@@ -1,0 +1,375 @@
+\section{Approaches to Parallelism}
+
+    When looking at parallel programming, it is important to make the
+distinction between concurrency and parallelism. 
+    Concurrency embodies the idea of multiple workers (threads, 
+computers, agents, etc.) making progress on independent tasks. A
+standard example for concurrency is a modern web-server. Each connection to 
+the web-server can be thought of as an independent sub-task of the
+program. The web-server does not have to be run on a multi-core 
+machine for the concurrency to take place. A single-core machine
+is capable of running concurrent threads through scheduling and 
+context switching. 
+
+    Parallelism describes the simultaneous execution of tasks with the purpose
+of achieving a gain in performance. Tasks that
+can be easily divided into independent sub-tasks can easily be made
+into parallel algorithms. For example, if one wanted to compute the monthly
+average temperature for a given year, each month could be computed independently.
+If enough of these independent computations happen simultaneously there can
+be a substantial improvement in the program's wall-clock speed. Ideally, the 
+increase in performance would scale at the same rate as the available parallel
+machinery (2$x$ performance with two processors, 5$x$ performance with 5 
+processors). Unfortunately, there are some unavoidable factors that prevent
+%this ideal from being realised \cite{hughes:thesis,HistoryOfHaskell,PFPAnIntro}. The most basic fact preventing this ideal is that the
+executing machinery (whether virtual or physical) will necessarily introduce 
+some overhead in the generation and management of parallel threads of 
+execution \cite{PeytonJones:1992:IFL:129390}. Beyond that, it is unusual
+for a program to be perfectly parallel except in trivial cases. Most parallel 
+programs exhibit non-uniform parallelism and complex data dependencies. This
+results in programs where parallel threads vary greatly in their processing
+time and contain threads of execution that will depend on the results of other
+threads. This results in threads having to wait for the result of another thread
+before commencing (which is known as blocking).
+
+ \subsection{Haskell}
+    Haskell is a lazy functional language benefiting from constant development
+since its inception in 1987\footnote{1987 was when the academic community
+decided that an `standard' language was needed to unify the study of lazy
+functional programming\cite{HistoryOfHaskell}, however, the first Haskell report was not
+published until 1990 \cite{Haskell98Book}} \cite{HistoryOfHaskell,
+Haskell98Book}. There have been many good introductions to
+Haskell and functional programming\cite{wiki:HaskellBooks}. In this report, any 
+details that may not be obvious to a non-Haskell user will be explained along 
+with the code listing. 
+
+\paragraph{Haskell Parallelism}
+    The Glasgow Haskell Compiler (GHC) has extensive parallelism and
+concurrency support, this is part of what makes the compiler a popular
+implementation \cite{HistoryOfHaskell}.
+
+ \subsection{Explicit Parallelism}
+
+    The most popular Haskell compiler, GHC \cite{HistoryOfHaskell}, is able 
+to compile and run parallel
+Haskell programs `out of the box'. This ability is limited to the \emph{shared
+memory processors}, also known as symmetric multiprocessors (SMP), that are 
+nearly ubiquitous with the rise of multi-core architectures in modern CPUs. The
+GHC project provides several ways to utilise parallel-capable machines. 
+
+The first method is through the \verb=par= and \verb=seq=\footnote{While 
+\texttt{seq} was introduced into Haskell for Haskell '98
+\cite{Haskell98Book} it was used for many years before that
+\cite{HistoryOfHaskell}. One of the earliest descriptions was by Hughes who 
+introduced a \texttt{synch} combinator that
+performed the same function in 1983 \cite{hughesthesis}.} combinators. The
+\verb=seq= combinator has the following type.
+\begin{verbatim}
+        seq :: a -> b -> b
+\end{verbatim}
+
+An expression of the form \verb=seq a b= first forces the evaluation of 
+\verb=a= to WHNF\footnote{For an expression to be in Weak Head Normal Form it
+must be evaluated enough such that the outermost constructor is known. To say
+that a function is in WHNF means that the function is partially applied.} 
+and then returns \verb=b=. This allows a programmer to 
+express sequential evaluation. It is important to note that 
+\verb=seq= $\bot$ \verb=b= results in $\bot$. 
+
+    It is important to realise that 
+GHC's implementation of \verb=seq= does \emph{not} guarantee to force the evaluation
+of its first argument. The compiler may find an optimisation that circumvents
+the sequence created by the combinator. In order to provide a combinator that
+\emph{does} guarantee the evaluation of the first argument before the second, 
+GHC provides the \verb-pseq-\footnote{The `p' in \texttt{pseq} stands for parallel.
+The idea being that parallel programs are more likely than sequential programs 
+to require that \texttt{seq} guarantees its behavior.} combinator.
+
+In the literature, the \verb=par= combinator appears in one of two forms
+\cite{HistoryOfHaskell, hughesthesis}. In order to differentiate between the
+two forms we will refer to the earlier version as the \emph{applicative} par, or
+\verb=parAp=, and the more recent (and more common) version as \emph{Haskell} 
+\verb=par=\footnote{The reason we will be referring to this as Haskell par is
+because most users will know this version of the combinator from their use of
+Haskell}.
+
+Haskell \verb=par= takes the same form as \verb=seq= and has the same type
+signature. The combinator takes two parameters, sparks off the first parameter
+for parallelism, and returns the second. 
+
+\begin{verbatim}
+        par :: a -> b -> b
+
+        par a b = b
+\end{verbatim}
+
+The applicative par expresses a function application whose parameter has been
+sparked off to be evaluated in parallel. Semantically, this means that the
+applicative par has the following form
+
+\begin{verbatim}
+        parAp :: (a -> b) -> a -> b
+
+        parAp f x = f x
+\end{verbatim}
+
+The strictness of the function being applied can have a huge effect on the
+parallelism from this combinator. In fact, we will see in section
+\ref{sec:experiments} that in same cases, the compilation of the
+function being applied can have large effects on \verb=parAp='s use. 
+
+Interestingly, the version of \verb=par= that an implementation chooses does not
+change of limit the expressiveness. Each version of \verb-par- can actually be
+defined in terms of the other. Defining the applicative par in terms of Haskell
+par gives us
+
+\begin{verbatim}
+        parAp f x = par x (f x)
+\end{verbatim}
+
+In order to define Haskell par in terms of applicative par we must use the
+\verb=K= combinator
+
+\begin{verbatim}
+        K x y = x
+
+        par x y = parAp (K y) x
+\end{verbatim}
+
+While language implementors may have strong preferences for one over the other,
+there are a few good arguments for the use of Haskell \verb=par=. Haskell
+\verb=par= is the simpler of the two versions, using it as an infix combinator
+makes it easy to spark an arbitray number of expressions easily, 
+\verb-a `par` b `par` c-, and defining applicative \verb=par= does not require
+the use of any other combinators (unlike defining Haskell \verb=par= using
+applicative \verb=par= which requires the \verb=K= combinator). 
+
+    Now that we have our essential combinators we are able to define a parallel
+algorithm. One of the big sellers of functional programming is the wonderfully
+concise Quicksort definition
+
+\begin{lstlisting}
+        quicksort :: (Ord a) => [a] -> [a]
+        quicksort (x:xs) = less ++ x:greater
+            where
+                less    = quicksort [y | y <- xs, y <= x]
+                greater = quicksort [y | y <- xs, y > x]
+        quicksort _ = []
+\end{lstlisting}
+
+The obvious way to parallelise this algorithm is to ensure that each of the two
+recursive calls can be executed in parallel. This can be done by changing the second 
+line to 
+
+\begin{verbatim}
+        quicksort (x:xs) = greater `par` (less ++ x:greater)
+\end{verbatim}
+
+The issue with the above is that while the left-hand side is sparked off in 
+parallel, it will only be evaluated to WHNF if the spark catches. This will
+result in only the first \verb=cons= of the list. The rest of the list will 
+only be evaluated if/when \verb=greater= is needed\footnote{Because of 
+laziness it is possible that \texttt{greater} will never be needed. An 
+example would be if only the head of the sorted list is requested.}. This
+fails to exploit all of the parallelism we desire and highlights the sometimes
+conflicting nature of parallelism and laziness. 
+
+    In order to help us attain the parallelism we are aiming for, we can
+introduce a function \verb=force= that ensures that its parameters are evaluated
+fully. As found in the textbook `Real World Haskell'' \cite{realWorld}
+
+\begin{verbatim}
+        force :: [a] -> ()
+        force list = force' list `pseq` ()
+            where force' (_:xs) = force' xs
+                  force' []     = 1
+\end{verbatim}
+
+This function takes a list and enforces spine-strictness. As long as the list is 
+not an infinite structure the use of this function is safe. With this function
+in hand we could adapt our basic parallel Quicksort into a better performing one. 
+
+An interesting point is that this definition of force can be much simpler
+
+\begin{verbatim}
+        force :: [a] -> ()
+        force force (_:xs) = force' xs
+              force []     = ()
+\end{verbatim}
+
+Because the function is fully saturated, the recursive call will continue
+evaluating through the entirety of the list. This only goes to show that even
+experts sometimes misunderstand when combinators like \verb=seq= are needed.
+
+\begin{lstlisting}
+        parQuicksort :: (Ord a) => [a] -> [a]
+        parQuicksort (x:xs) = force greater `par` 
+                           (force lesser `pseq` (less ++ x:greater))
+            where
+                less    = parQuicksort [y | y <- xs, y <= x]
+                greater = parQuicksort [y | y <- xs, y > x]
+        parQuicksort _ = []
+\end{lstlisting}
+
+Notice that there were a few more changes than just calling \verb=force= with
+the parallel spark. By also forcing the evaluation of \verb=lesser= before
+appending the two lists we ensure that both \verb=greater= and \verb=lesser=
+are constructed completely. While this version of a parallel Quicksort does
+execute its recursive calls in parallel it has come at a cost. First, the
+resulting list is no longer lazy. Using this function for determining the head
+of the resulting list would result in the entire list being computed. While
+the loss of laziness can sometimes be a worthwhile trade-off (particularly 
+if the entire list will be required anyway) for an increase in speed, the
+second major cost is that this parallel Quicksort does not result in a faster
+program!
+
+    Despite the added functions to ensure that laziness did not get in the way
+of our desired parallelism, the parallel sorting was actually slower than the
+sequential sort. Running a parallel Quicksort on a two core machine, O'Sullivan
+found that this algorithm actually resulted in a $23\%$ decrease in 
+performance \cite{realWorld}. The reason for the slowdown comes up often in the 
+design of parallel algorithms: There is a minimum amount of work a thread must
+perform in order to make the expense of sparking off the thread worthwhile. This 
+issue highlights what is known as granularity \cite{dutchBook}. While the sparking 
+of threads is relatively cheap in a system such as GHC, there is still a cost, 
+and if the amount of work a thread performs is very little, the cost may not be 
+worth it. 
+
+    One way of tackling this issue is by introducing the notion of \emph{depth}
+to the function. An additional parameter can be be added to the function that
+acts as a count for the depth. 
+
+\begin{verbatim}
+        parQuicksort (x:xs) depth = if depth <= 0 then quicksort (x:xs)
+                                                  else ...
+\end{verbatim}
+
+    In this version we check to see if the desired maximum depth has been
+reached and if so then the recursive call is to the standard sequential sorting
+algorithm. If the max depth is not reached then we use the body of the
+parQuicksort defined above, with the depth argument to each recursive call being
+\verb=depth - 1=. The desired maximum depth is determined by the value given as
+the depth argument at the top-level call of the function. This method of
+controlling the granularity is a useful one and allows for easy experimentation
+on the maximum depth for the problem at hand. The downside is that it
+contributes yet another concern for the programmer to worry about. 
+
+ 
+    Managing the granularity of a parallel program is one of the bigger
+challenges facing parallel functional programming \cite{SPJ:PIFPL}. Whether
+decided by the programmer (with annotations) or by the compiler implicitely, 
+the question of ``is this task worth it?'' will always come up when deciding
+what tasks should be sparked. 
+
+%\footnote{We found that running a similar experiment on a 4-core machine 
+%did not improve the results by much.} 
+
+ \subsection{Implicit Parallelism}
+   While explicit parallelism has many advantages and can show great performance
+increases, many desire the ability to express a functional program
+\emph{without} having to specify where parallelism can take place. This idea,
+that parallelism can be achieved without programmer intervention, is known as
+implicit parallelism. 
+
+  \paragraph{Strictness Analysis}
+    Laziness can work against our desire to exploit possible parallelism in
+functional programs. Because of this, researchers have discovered that using
+static analysis at compile time in order to discover strict portions of a
+program can yield promising results. This analysis has been named
+\emph{strictness analysis} \cite{ritabook, SPJ:PIFPL}. A trivial example is that
+of the addition of two expressions, such as the fibonacci sequence. 
+
+\begin{verbatim}
+        nfib n 
+            | n <= 0    = 0
+            | n == 1    = 1
+            | otherwise = nfib (n-1) + nfib (n-2)
+\end{verbatim}
+
+Because the \verb=(+)= function is strict in both its arguments we know that
+both recursive calls to \verb=nfib= will be required. This fact, that we
+\emph{know} that the arguments to a function will be required by the function,
+is what enables us to exploit the parallelism that is inherent in the program. 
+
+    Strictness analysis has
+been deemed \emph{conservative} parallelism \cite{SPJ:PIFPL}. This is due to 
+the idea that sparking an expression that will definitely be required by the 
+program is not seen as risky. While for the most part this is true, in reality 
+it depends on how the sparking is handled by the runtime. 
+
+    There are also techniques that involve using a program's statistics gathered 
+at runtime to better predict where parallelism can be exploited (Harris, Singh
+2007). 
+
+ \subsection{Semi-Implicit Parallelism}
+    This section will look at things like `Strategies' to illustrate how a
+programmer can write the code they want to write (for the most part) and then
+use meta-techniques to make that code parallel. 
+
+Strategies came in two waves; the first wave was introduced by Trinder et al. in
+"Algorithm \(+\) Strategy \(=\) Parallelism". This incarnation of strategies is
+simple to understand and easy to use effectively. 
+
+The type declaration for a Strategy is
+
+\begin{verbatim}
+        type Strategy a = a -> ()
+\end{verbatim} 
+
+The key point to take away from this is that Strategies do not, and can not,
+contribute to the end result of the computation. 
+
+It is possible, and useful, to define strategies that do not introduce
+parallelism, but instead ensure that evaluation is carried out to some degree.
+For example, the strategy for doing nothing
+
+\begin{verbatim}
+        r0 :: Strategy a
+        r0 _ = ()
+\end{verbatim}
+
+And for evaluating the argument to WHNF
+
+\begin{verbatim}
+        rwhnf :: Strategy a
+        rwhnf x = x `seq` ()
+\end{verbatim}
+
+These strategies are not often used on their own, but are used in conjunction
+with other strategies to achieve a goal. For example, applying a strategy to
+each element of a list can be expressed as 
+
+\begin{verbatim}
+        seqList :: Strategy a -> Strategy [a]
+        seqList strat [] = ()
+        seqLIst strat (x:xs) = strat x `seq` (seqList strat xs)
+
+        parList :: Strategy a -> Strategy [a]
+        parList strat [] = ()
+        parList strat (x:xs) = strat x `par` (parList strat xs)
+\end{verbatim}
+
+Both of these functions are common strategies for working on lists. In the first
+case, \verb=seqList=, elements in the list are \emph{sequentially} evaluated 
+using \verb=strat=. In \verb=parList=, each element is evaluated in parallel
+using \verb=strat=, this gives no guarantee of the evaluation order, only that
+the sparks will point to each element of the list. 
+
+In order to use a strategy, the function \verb=using= was defined; taking an 
+expression and a strategy, it bridges the gap between the specified algorithm
+and the desired strategy.
+
+\begin{verbatim}
+        using :: a -> Strategy a -> a
+        using x s = s x `seq` x
+\end{verbatim}
+
+This allows us to define \verb=parMap= as
+
+\begin{verbatim}
+        parMap :: Strategy b -> (a -> b) -> [a] -> [b]
+        parMap strat f xs = map f xs `using` parList strat
+\end{verbatim}
+
+With this we could evaluate all the elements of a list to whatever level the
+first argument specifies.

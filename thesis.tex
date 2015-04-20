@@ -1,0 +1,62 @@
+\documentclass{tufte-book}
+
+\title{Implicit Parallelism: Trying Again}
+
+\author{Jos\'{e} Manuel Calder\'{o}n Trilla}
+
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+
+\newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
+
+\begin{document}
+
+\frontmatter
+
+\blankpage
+
+\maketitle
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\chapter{Intro}
+
+    Things go here.
+
+\chapter{Review}
+
+    %This is based on Hughes\cite{hughesthesis}.
+    %General overview of why functional programming is considered `good' for
+    %parallelism.
+    \section{Functional Programming and Parallelism}
+    \input{Background/parFuncProg.tex}
+    
+    %Review of Graph Reduction. Needs to focus more on the G-Machine and our
+    %implementation. Will we convert to spineless G-Machine?
+    \section{Graph Reduction}
+    \input{Background/funcProgGraphRedctn.tex}
+
+\chapter{Meat}
+
+    New things here.
+    
+\chapter{Meet}
+
+    New things here.
+
+\chapter{Conclusions}
+
+    And.... we're done.
+
+\backmatter
+
+\bibliography{literature}
+\bibliographystyle{plainnat}
+
+\end{document}
