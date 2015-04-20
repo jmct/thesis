@@ -7,16 +7,27 @@ and ubiquitous architecture of the day was not suitable for the eventual shift
 to parallelism and the performance gains that could be achieved through
 parallelism's use. This fed the
 interest in novel computer architectures that would more readily support
-parallelism. 
+parallelism.
+
+More declarative languages, and particularly functional languages, were seen as
+being better suited to Backus' challenge than more traditional imperative
+languages. This is because many imperative languages were designed for the
+simplicity of compilation. They free the programmer from repetitive
+bookkeeping, such as saving registers for function calls and saving the
+intermediate computations in an expression, but do not conceal all aspects of
+the underlying machine. Most crucially, they allow arbitrary mutation and
+side-effects. This limits the amount of parallelism possible because the result
+of a function call can depend on more than values of the passed arguments.
  
     Work had already been carried out on non-von Neumann architectures
 before that time, however, much of it was in the form of abstract machines
 that functioned `on top' of the von Neumann architecture \cite{turnerHistory}.
+
     In the early 70's the idea of graph reduction is introduced
 (Wadsworth)\cite{wadsworth} and
 with it, the concept of lazy evaluation was ready to be formalised
-\cite{lazyCons, HistoryOfHaskell}. Lazy
-evaluations has its roots in papers by Henderson and Morris, and Friedman and
+%\cite{lazyCons, HistoryOfHaskell}.
+Lazy evaluations has its roots in papers by Henderson and Morris, and Friedman and
 Wise \cite{turnerHistory}.
 People began to think of ways to better implement graph reduction machines.
 A big breakthrough for software reduction was Turner's SKI-Combinator reduction
