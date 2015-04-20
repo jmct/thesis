@@ -11,6 +11,10 @@
 \usepackage{fancyvrb}
 \usepackage{hyperref}
 
+% Tufte-book imports natbib, so we can use \citet and \citep without
+% importing the package
+%\usepackage[round]{natbib}
+
 \newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
 
 \begin{document}
@@ -31,9 +35,9 @@
 
 \chapter{Review}
 
-    %This is based on Hughes\cite{hughes:thesis}.
-    %General overview of why functional programming is considered `good' for
-    %parallelism.
+
+    General overview of why functional programming is considered `good' for
+    parallelism \citep{hughes:thesis}.
     \section{Functional Programming and Parallelism}
     \input{Background/parFuncProg.tex}
     
