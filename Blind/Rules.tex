@@ -1,0 +1,57 @@
+Projections represent functions on our value domain, therefore translating a
+projection into a usable strategy only requires that we express the
+projection's denotation in code. Figure \ref{demStrat} presents the rules we
+use to accomplish this. Our rules are based on the representation shown in Appendix
+\ref{sec:Projections}.
+
+\begin{itemize}
+    \item Rule $\mathcal{C}$ constructs a strategy for all of the contexts except products
+    \item Rule $\mathcal{A}$ is used or the constructor-contexts pairs found in sums
+    \item Rule $\mathcal{F}$ handles the strict fields in a constructor application
+\end{itemize}
+
+\begin{figure}[h!]
+\begin{displaymath}
+  \begin{aligned}
+   \noalign{$\mathcal{C} :: \Sem{Context} \rightarrow Names \rightarrow Exp $}
+    & \mathcal{C}\Sem{\texttt{CLaz} \   c}    \phi  &&= \lambda x \rightarrow () \\
+    & \mathcal{C}\Sem{\texttt{CStr} \  c}     \phi  &&= \Sem{c} \phi \\
+    & \mathcal{C}\Sem{\texttt{CMu} \  n \  c} \phi  &&= fix \ (\lambda n \rightarrow \Sem{c} (n:\phi)) \\
+    & \mathcal{C}\Sem{\texttt{CRec}}       (n:\phi) &&= n \\
+    & \mathcal{C}\Sem{\texttt{CSum} \ cs}     \phi  &&= \lambda x \rightarrow Case \ x \ of \ \mathcal{A}\Sem{cs} \phi \\
+    & \mathcal{C}\Sem{c}                      \phi  &&= \lambda x \rightarrow x \  `seq` \ () \\
+    & \quad && \\
+    \noalign{$\mathcal{A} :: \Sem{(Constructor, Context)} \rightarrow Names \rightarrow (Pat, Exp) $}
+    & \mathcal{A}\Sem{(C_{n}, \texttt{CProd} \  [])} \phi &&= (C_{n}, ()) \\
+    & \mathcal{A}\Sem{(C_{n}, \texttt{CBot})}        \phi &&= (C_{n}, ()) \\
+    & \mathcal{A}\Sem{(C_{n}, \texttt{CProd} \  cs)} \phi &&= (C_{n} \ vs, \mathcal{F}\Sem{ss} \phi) \\
+    \noalign{$\qquad where \enspace ss = filter \ (isStrict \circ fst) \ \$ \ zip \ cs \ vs $} 
+    \noalign{$\qquad \hphantom{where} \enspace vs = take \ (length \ cs) freshVars $}
+    & \quad && \\
+    \noalign{$\mathcal{F} :: \Sem{[(Context, Exp)]} \rightarrow Names \rightarrow Exp $}
+    & \mathcal{F}\Sem{[]} \phi           &&= () \\
+    & \mathcal{F}\Sem{((c, v):[])} \phi  &&= App \ (Fun \ ``seq") \ [App \ (\mathcal{C}\Sem{c} \phi)\  [v], ()] \\
+    & \mathcal{F}\Sem{((c, v):cs)} \phi  &&= App \ (Fun \ ``parStrat") \ [App \ (\mathcal{C}\Sem{c} \phi)\  [v], ls] \\
+    \noalign{$\qquad where \enspace ls =  \mathcal{F}\Sem{cs} \phi$}
+  \end{aligned}
+\end{displaymath}
+\caption{Rules to generate strategies from demand contexts}
+\label{demStrat}
+\end{figure}
+
+
+Rule $\mathcal{C}$ ignores products because product types
+are only found within constructors in our language. This means they are only found
+in \verb-CSum-s, which are handled by $\mathcal{A}$.
+
+While the \emph{structure} of the derived strategies is inherent in the
+projections, the choice of \verb-par- or \verb-seq- is not. This makes sense as
+a projection is a \emph{denotational} structure while \verb-par- and \verb-seq-
+are \emph{operational} considerations. This means that a projection can have
+multiple valid derived strategies. We use the following heuristic when a
+constructor has two or more fields: strict constructor fields are sparked off
+in left-to-right order except for the last strict field which is evaluated
+sequentially with \verb-seq- (this is what is shown in $\mathcal{F}$). This is
+the same heuristic we use when parallelizing function applications except that
+when there is only one strict field (or argument in the case of functions) we
+use \verb-seq- (for functions with only one strict argument we use \verb-par-).

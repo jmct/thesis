@@ -1,0 +1,24 @@
+\subsection{Strictness Analysis}
+
+The main idea behind abstract interpretation is that you can throw away
+information about your program that is not necessary for the property you are
+analysing. When dealing with the \verb'Integer' type, it may not be necessary to
+know the actual value of an integer, but instead only \emph{some} of the
+information about that integer. 
+
+In the case of strictness analysis, we only require information about how
+defined a value is, and do not need to know about its concrete value.
+With strictness information in hand we can annotate our program to execute
+strict arguments in parallel with the function body. In short, the strictness
+analysis informs the \emph{initial} placement of \verb'par' annotations in a
+program. Basing the initial placement on strictness information is important
+because we aim for our compiler to maintain the semantics of the initial
+sequential program.
+
+When using a safe analysis we
+may not be able to determine all of the needed arguments for a given function.
+However, we can be certain that any argument the analysis determines is needed is
+definitely needed. This safety is crucial in avoiding the introduction of
+$\bot$ where it would not have occurred in a sequential lazy implementation
+\cite{wadler1987strictness}.
+

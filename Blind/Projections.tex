@@ -1,0 +1,20 @@
+We use the following Haskell representation of projections in our compiler.
+
+\begin{figure}
+\centering
+\begin{BVerbatim}
+data Context = CVar String
+             | CRec String
+             | CBot
+             | CProd [Context]
+             | CSum [(String, Context)]
+             | CMu String Context
+             | CStr Context
+             | CLaz Context
+\end{BVerbatim}
+\end{figure}
+
+
+Kubiak et al. were the first to show the utility of this representation and it
+was then used in Hinze's work on projection-based analyses \cite{kubiak,
+hinze1995projection}.

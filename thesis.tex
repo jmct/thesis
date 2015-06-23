@@ -11,12 +11,45 @@
 \usepackage{fancyvrb}
 \usepackage{hyperref}
 
+\usepackage{todonotes}
+\usepackage{amsmath}
+\usepackage{fancyvrb}
+\usepackage{latexsym}
+\usepackage{textcomp}
+\usepackage{cite}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{siunitx}
+\usepackage{etoolbox}
+
 % Tufte-book imports natbib, so we can use \citet and \citep without
 % importing the package
 %\usepackage[round]{natbib}
 
 \newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
 
+%This is the stuff for semantic equations%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\robustify\bfseries
+\newsavebox{\sembox}
+\newlength{\semwidth}
+\newlength{\boxwidth}
+
+\newcommand{\Sem}[1]{%
+\sbox{\sembox}{\ensuremath{#1}}%
+\settowidth{\semwidth}{\usebox{\sembox}}%
+\sbox{\sembox}{\ensuremath{\left[\usebox{\sembox}\right]}}%
+\settowidth{\boxwidth}{\usebox{\sembox}}%
+\addtolength{\boxwidth}{-\semwidth}%
+\left[\hspace{-0.3\boxwidth}%
+\usebox{\sembox}%
+\hspace{-0.3\boxwidth}\right]%
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newcommand{\sigval}[1]{\bfseries #1}
 \begin{document}
 
 \frontmatter
@@ -46,11 +79,34 @@
     \section{Graph Reduction}
     \input{Background/funcProgGraphRedctn.tex}
 
-\chapter{Meat}
+\chapter{The Discovery and Placement of Safe Parallelism}
 
     New things here.
     
-\chapter{Meet}
+\chapter{Bitstring Search}
+
+    This chapter will talk about the work on blind-search with Simon.
+
+    \section{Introduction}
+    \input{Blind/Intro.tex}
+
+    \section{Overview}
+    \label{sec:blind-Overview}
+    \input{Blind/Overview.tex}
+
+    \section{Implicit Parallelism in Functional Languages}
+    \label{sec:blind-ParFunc}
+    \input{Blind/ParFunc.tex}
+
+    \section{Experimental Setup and Results}
+    \label{sec:blind-Results}
+    \input{Blind/Results.tex}
+
+    \section{Conclusions of Bitstring Searching}
+    \label{sec:blind-Conclusion}
+    \input{Blind/Conclusions.tex}
+
+\chapter{Informed Search}
 
     New things here.
 

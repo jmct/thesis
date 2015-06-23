@@ -1,0 +1,12 @@
+Research into parallel \emph{functional} programming has been an active research area
+since the early 1980s. Before research into implicit parallelism fell out of
+favor, much of the work focused on the use of static analysis alone in
+parallelising programs \cite{hammond2000research, hogen1992automatic}. Harris
+and Singh used runtime feedback to \emph{find} parallelism in functional
+programs without the use of static analysis \cite{feedbackImplicit}. Our
+approach can be seen as reversal of their approach, \emph{introduce}
+parallelism at compile-time and \emph{remove} parallelism using runtime
+feedback.
+
+A number of researchers in the late 1990s applied metaheuristic search to transform serial \emph{imperative} programs into parallel ones.  Both Nisbet \cite{nisbet} and Williams \cite{williams:thesis} independently targeted FORTRAN programs using metaheuristics to find an appropriate sequence of code transformation to enable the program to take advantage of a target parallel architecture.  The Paragen framework described by Ryan and his collaborators applies genetic programming to optimise a tree-like representation of parallelising transformations that are applied to blocks of code, and a linear representation of transformations that are applied to loops in the program \cite{ryan1999automatic}.  The fitness used by Paragen is a combination of the speed-up obtained and the equivalence of the serial and parallel versions of the program based on a post hoc analysis of data dependencies.  The two key differences from the work described in this paper are that: (a) here the search does not derive a sequence of transformations, but instead determines which potential transformations, found by prior static analysis, are enabled; and, (b) any transformed parallel program is guaranteed to be equivalent to the original serial program by construction.  We believe that these differences may facilitate scalability in our approach.
+

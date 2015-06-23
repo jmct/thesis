@@ -1,0 +1,22 @@
+As the speed of processors is starting to plateau, chip manufacturers are
+instead looking to multi-core architectures for increased performance. The
+ubiquity of multi-core hardware has made parallelism an important tool in
+writing performant programs. Unfortunately, parallel programming is still
+considered an advanced technique and most programs are written as sequential
+programs.
+
+We propose that we lift this burden from the programmer and allow the compiler
+to automatically determine which parts of a program can be executed in
+parallel. Historically, most attempts at auto-parallelism depended on static
+analysis alone. While static analysis is often able to find \emph{safe}
+parallelism, it is difficult to determine \emph{worthwhile} parallelism. This
+is known as the \emph{granularity problem}. Our work shows that we can use
+static analysis \emph{in conjunction with} search techniques by having the
+compiler execute the program and then alter the amount of parallelism based on
+execution speed.  We do this by annotating the program with parallel annotations
+and using search to determine which annotations to enable.
+
+This allows the static analysis to find the safe parallelism and shift the
+burden of finding worthwhile parallelism to search. Our results show that by
+searching over the possible parallel settings we can achieve better performance
+than static analysis alone.
