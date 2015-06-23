@@ -21,10 +21,10 @@ be a substantial improvement in the program's wall-clock speed. Ideally, the
 increase in performance would scale at the same rate as the available parallel
 machinery (2$x$ performance with two processors, 5$x$ performance with 5 
 processors). Unfortunately, there are some unavoidable factors that prevent
-%this ideal from being realised \cite{hughes:thesis,HistoryOfHaskell,PFPAnIntro}. The most basic fact preventing this ideal is that the
+%this ideal from being realised \citep{hughes:thesis,HistoryOfHaskell,PFPAnIntro}. The most basic fact preventing this ideal is that the
 executing machinery (whether virtual or physical) will necessarily introduce 
 some overhead in the generation and management of parallel threads of 
-execution \cite{PeytonJones:IFL}. Beyond that, it is unusual
+execution \citep{PeytonJones:IFL}. Beyond that, it is unusual
 for a program to be perfectly parallel except in trivial cases. Most parallel 
 programs exhibit non-uniform parallelism and complex data dependencies. This
 results in programs where parallel threads vary greatly in their processing
@@ -36,21 +36,21 @@ before commencing (which is known as blocking).
     Haskell is a lazy functional language benefiting from constant development
 since its inception in 1987\footnote{1987 was when the academic community
 decided that an `standard' language was needed to unify the study of lazy
-functional programming\cite{HistoryOfHaskell}, however, the first Haskell report was not
-published until 1990 \cite{Haskell98Book}} \cite{HistoryOfHaskell,
+functional programming\citep{HistoryOfHaskell}, however, the first Haskell report was not
+published until 1990 \citep{Haskell98Book}} \citep{HistoryOfHaskell,
 Haskell98Book}. There have been many good introductions to
-Haskell and functional programming\cite{wiki:HaskellBooks}. In this report, any 
+Haskell and functional programming\citep{wiki:HaskellBooks}. In this report, any 
 details that may not be obvious to a non-Haskell user will be explained along 
 with the code listing. 
 
 \paragraph{Haskell Parallelism}
     The Glasgow Haskell Compiler (GHC) has extensive parallelism and
 concurrency support, this is part of what makes the compiler a popular
-implementation \cite{HistoryOfHaskell}.
+implementation \citep{HistoryOfHaskell}.
 
  \subsection{Explicit Parallelism}
 
-    The most popular Haskell compiler, GHC \cite{HistoryOfHaskell}, is able 
+    The most popular Haskell compiler, GHC \citep{HistoryOfHaskell}, is able 
 to compile and run parallel
 Haskell programs `out of the box'. This ability is limited to the \emph{shared
 memory processors}, also known as symmetric multiprocessors (SMP), that are 
@@ -59,10 +59,10 @@ GHC project provides several ways to utilise parallel-capable machines.
 
 The first method is through the \verb=par= and \verb=seq=\footnote{While 
 \texttt{seq} was introduced into Haskell for Haskell '98
-\cite{Haskell98Book} it was used for many years before that
-\cite{HistoryOfHaskell}. One of the earliest descriptions was by Hughes who 
+\citep{Haskell98Book} it was used for many years before that
+\citep{HistoryOfHaskell}. One of the earliest descriptions was by Hughes who 
 introduced a \texttt{synch} combinator that
-performed the same function in 1983 \cite{hughes:thesis}.} combinators. The
+performed the same function in 1983 \citep{hughes:thesis}.} combinators. The
 \verb=seq= combinator has the following type.
 \begin{verbatim}
         seq :: a -> b -> b
@@ -86,7 +86,7 @@ The idea being that parallel programs are more likely than sequential programs
 to require that \texttt{seq} guarantees its behavior.} combinator.
 
 In the literature, the \verb=par= combinator appears in one of two forms
-\cite{HistoryOfHaskell, hughes:thesis}. In order to differentiate between the
+\citep{HistoryOfHaskell, hughes:thesis}. In order to differentiate between the
 two forms we will refer to the earlier version as the \emph{applicative} par, or
 \verb=parAp=, and the more recent (and more common) version as \emph{Haskell} 
 \verb=par=\footnote{The reason we will be referring to this as Haskell par is
@@ -176,7 +176,7 @@ conflicting nature of parallelism and laziness.
 
     In order to help us attain the parallelism we are aiming for, we can
 introduce a function \verb=force= that ensures that its parameters are evaluated
-fully. As found in the textbook `Real World Haskell'' \cite{realWorld}
+fully. As found in the textbook `Real World Haskell'' \citep{realWorld}
 
 \begin{verbatim}
         force :: [a] -> ()
@@ -227,10 +227,10 @@ program!
 of our desired parallelism, the parallel sorting was actually slower than the
 sequential sort. Running a parallel Quicksort on a two core machine, O'Sullivan
 found that this algorithm actually resulted in a $23\%$ decrease in 
-performance \cite{realWorld}. The reason for the slowdown comes up often in the 
+performance \citep{realWorld}. The reason for the slowdown comes up often in the 
 design of parallel algorithms: There is a minimum amount of work a thread must
 perform in order to make the expense of sparking off the thread worthwhile. This 
-issue highlights what is known as granularity \cite{dutchBook}. While the sparking 
+issue highlights what is known as granularity \citep{dutchBook}. While the sparking 
 of threads is relatively cheap in a system such as GHC, there is still a cost, 
 and if the amount of work a thread performs is very little, the cost may not be 
 worth it. 
@@ -256,7 +256,7 @@ contributes yet another concern for the programmer to worry about.
 
  
     Managing the granularity of a parallel program is one of the bigger
-challenges facing parallel functional programming \cite{SPJ:PIFPL}. Whether
+challenges facing parallel functional programming \citep{SPJ:PIFPL}. Whether
 decided by the programmer (with annotations) or by the compiler implicitely, 
 the question of ``is this task worth it?'' will always come up when deciding
 what tasks should be sparked. 
@@ -276,7 +276,7 @@ implicit parallelism.
 functional programs. Because of this, researchers have discovered that using
 static analysis at compile time in order to discover strict portions of a
 program can yield promising results. This analysis has been named
-\emph{strictness analysis} \cite{ritabook, SPJ:PIFPL}. A trivial example is that
+\emph{strictness analysis} \citep{ritabook, SPJ:PIFPL}. A trivial example is that
 of the addition of two expressions, such as the fibonacci sequence. 
 
 \begin{verbatim}
@@ -292,7 +292,7 @@ both recursive calls to \verb=nfib= will be required. This fact, that we
 is what enables us to exploit the parallelism that is inherent in the program. 
 
     Strictness analysis has
-been deemed \emph{conservative} parallelism \cite{SPJ:PIFPL}. This is due to 
+been deemed \emph{conservative} parallelism \citep{SPJ:PIFPL}. This is due to 
 the idea that sparking an expression that will definitely be required by the 
 program is not seen as risky. While for the most part this is true, in reality 
 it depends on how the sparking is handled by the runtime. 

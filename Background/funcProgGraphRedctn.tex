@@ -2,7 +2,7 @@
 
     1978 Turing Award winner, John Backus, used his acceptance speech to ask the
 question: ``Can Programming be liberated from the von Neumann Style?''
-\cite{HistoryOfHaskell}. The crux of his argument was that the traditional
+\citep{HistoryOfHaskell}. The crux of his argument was that the traditional
 and ubiquitous architecture of the day was not suitable for the eventual shift
 to parallelism and the performance gains that could be achieved through
 parallelism's use. This fed the
@@ -21,17 +21,17 @@ of a function call can depend on more than values of the passed arguments.
  
     Work had already been carried out on non-von Neumann architectures
 before that time, however, much of it was in the form of abstract machines
-that functioned `on top' of the von Neumann architecture \cite{turnerHistory}.
+that functioned `on top' of the von Neumann architecture \citep{turnerHistory}.
 
     In the early 70's the idea of graph reduction is introduced
-(Wadsworth)\cite{wadsworth} and
+(Wadsworth)\citep{wadsworth} and
 with it, the concept of lazy evaluation was ready to be formalised
-%\cite{lazyCons, HistoryOfHaskell}.
+%\citep{lazyCons, HistoryOfHaskell}.
 Lazy evaluations has its roots in papers by Henderson and Morris, and Friedman and
-Wise \cite{turnerHistory}.
+Wise \citep{turnerHistory}.
 People began to think of ways to better implement graph reduction machines.
 A big breakthrough for software reduction was Turner's SKI-Combinator reduction
-scheme in 1979 \cite{turnerHistory, clackbook}. 
+scheme in 1979 \citep{turnerHistory, clackbook}. 
 
     In the 1980's we saw a great interest in parallel architectures for
 functional languages. The two main conferences in the field were `LISP and
@@ -40,26 +40,26 @@ Programming and Computer Architecture' (which was held on odd years).
 
     Several novel architectures were developed with the hopes that they could
 surpass stock hardware in their performance. This line of research continued
-through the 80's and into the early 90's \cite{Alice, GRIP, clackbook,
+through the 80's and into the early 90's \citep{Alice, GRIP, clackbook,
 PFPAnIntro}.
 
     The G-Machine in '84 showed that lazy functional languages (which had always
 been considered inefficient) could be implemented in an efficient manner on
 stock hardware. However, the abstract machine could also be used in the
-implementations of novel architectures \cite{Augustsson:LazyMLCompiler}. 
+implementations of novel architectures \citep{Augustsson:LazyMLCompiler}. 
 
     The 1990's saw a decline in the amount of research aimed at parallel
 functional programming. This was mainly due to the results from earlier research
 being less successful than had been hoped (some novel architectures did see good
 results, but they could not keep up with the improvements seen in the sequential
-hardware sphere) \cite{PFPAnIntro, clackbook}. 
+hardware sphere) \citep{PFPAnIntro, clackbook}. 
 
     The late 90's and the 2000's saw a resurgence in the interest in parallel
 functional programming. While still constrained by the von Neumann bottleneck, 
 interest in this architecture is high because of the ubiquity of multi-core in 
 computers today. Generally, many of the techniques discussed earlier are used, but as virtual
 machines abstracting away from the hardware architecture (Like GpH using GUM, or
-GHC using STG-Machine) \cite{buckwheat, haskellSharedMem}. 
+GHC using STG-Machine) \citep{buckwheat, haskellSharedMem}. 
 
 
 While still suffering from the von Neumann bottleneck, the
@@ -83,7 +83,7 @@ order that does not terminate.
  \subsection{$G$-Machine}
     Unlike conventional register machines, the $G$-Machine is a stack based
 machine designed to perform \emph{normal order} graph reduction.
-    The key point for the G-Machine \cite{Augustsson:LazyMLCompiler}
+    The key point for the G-Machine \citep{Augustsson:LazyMLCompiler}
 is that it extended the idea that Turner introduced
 with the compilation of functional programs to SKI combinators. 
 But instead of relying on pre-determined combinators, why not
@@ -91,11 +91,11 @@ utilise the high-level declarations defined by the programmer? By compiling
 code for each of these, we are able to produce
 efficient code for each top-level function, whereas before we only had efficient
 code for each pre-determined combinator. These top-level function definitions
-were coined \emph{supercombinators} by Hughes \cite{hughes:thesis}. Each 
+were coined \emph{supercombinators} by Hughes \citep{hughes:thesis}. Each 
 supercombinator must not contain any lambdas on the right-hand side. In order to 
 accomplish this for the $G$-Machine, Augustsson and
 Johnsson expanded on the lambda-lifting technique first outlined by Hughes
-\cite{Augustsson:LazyMLCompiler, hughes:thesis}. 
+\citep{Augustsson:LazyMLCompiler, hughes:thesis}. 
     
     Each supercombinator is compiled in compiled to what is essentially a
 reverse postfix notation for the right-hand side of the function definition.  
@@ -144,12 +144,12 @@ this case).
 step. While this is conceptually simple and easy to implement, such frequent
 rewrites in the heap can be seen as wasteful. The Spineless
 $G$-Machine improves on this by only updating the graph when loss of sharing is
-a possibility \cite{burn1988spineless}. It is known as `spineless' because the 
+a possibility \citep{burn1988spineless}. It is known as `spineless' because the 
 chain of application nodes that would make up the spine in the standard 
 $G$-Machine is not built up in the heap. Instead it is exclusively 
 accumulated on the stack until an update is required. The key point in this
 variation of the $G$-Machine is that updating should be associated with the
-potential loss of sharing and not with a reduction \cite{burn1988spineless}.
+potential loss of sharing and not with a reduction \citep{burn1988spineless}.
 
     The way this was accomplished was by adding a new type of application node
 which they call a ``SAP'' node (for shared application). A SAP node indicates
@@ -179,7 +179,7 @@ as few sharing nodes as possible (therefore minimising the re-writing) while
 adding an overhead cost of having to check when a shared subgraph is created.
 The authors call this mechanism ``dashing'' and argue that the savings of having
 as few re-writes as possible make the overhead cost of dashing worthwhile
-\cite{burn1988spineless}.
+\citep{burn1988spineless}.
 
 
  \subsection{STG-Machine}
@@ -197,11 +197,11 @@ to point to the values of free variables. The code the packet points to is what
 determines the behavior of the node. There is a global \emph{environment
 pointer} which addresses a packet, and then the packets code is executed. If
 there are any free variables associated with the packet the are accessed via an
-offset from the environment pointer \cite{jones1992implementing}. This process
+offset from the environment pointer \citep{jones1992implementing}. This process
 was called `entering' the packet. Because there is no tag on a node, the only
 way of determining the purpose of the node is to enter the packet. As said by
 Peyton Jones ``each closure (including data values) is represented uniformly,
-and scrutinized only by entering it.'' \cite{jones1992implementing}. 
+and scrutinized only by entering it.'' \citep{jones1992implementing}. 
 
     The STG-Machine uses the self-updating model when having to update a
 subgraph. Instead of updating after every reduction, like the $G$-Machine, each
@@ -211,14 +211,14 @@ and the resulting packet's code will simply return the value stored in the
 packet. 
 
     The STG-Machine became the basis for GHC and has had many improvements over
-the years \cite{HistoryOfHaskell}. Interestingly, one of the improvements to the
+the years \citep{HistoryOfHaskell}. Interestingly, one of the improvements to the
 STG-Machine was the introduction of tags! The elegance of being able to treat
 every node the same has a cost on the performance on modern architectures
-\cite{marlow2007faster}.
+\citep{marlow2007faster}.
 Because so much of the performance in modern CPUs comes from the speed of its
 cache (and therefore avoiding the memory bottleneck) the indirections that arise
 from the code pointers in each packet have a significant cost on performance. As
-stated in the introduction to their 2007 paper \cite{marlow2007faster}:
+stated in the introduction to their 2007 paper \citep{marlow2007faster}:
 \begin{quote}
 The tagless scheme is attractive because the code to evaluate a closure is
 simple and uniform: any closure can be evaluated simply by
@@ -254,15 +254,15 @@ graph almost all communication could take place via that graph.
 The spark pool is where idle processors can look for subgraphs that have been
 sparked off for evaluation. This simple-yet-functioning model is actually the
 basis for the implementation described in chapter \ref{sec:implementation}
-\cite{PeytonJones:IFL}.
+\citep{PeytonJones:IFL}.
 
  \subsection{$\langle \nu , G\rangle $-Machine}
     A departure from the stack-based approach of the G-Machine, here we have a
-packet-based abstract machine \cite{vGMachine, Alice}. 
+packet-based abstract machine \citep{vGMachine, Alice}. 
     The packets (or frame as they are called in the
 original paper) are similar to the packets we have seen for the STG-Machine
 (although the $\langle \nu , G\rangle $-Machine was described and implemented
-first \cite{vGMachine}). One difference is that on top of the code pointer and
+first \citep{vGMachine}). One difference is that on top of the code pointer and
 pointer to its arguments, there is a dynamic pointer that points to the caller of
 the expression the packet represents, and there is a block of free `working
 space' on each packet (we will see why in a moment). 
@@ -271,7 +271,7 @@ $\langle \nu , G\rangle $-Machine deals with its stack.
 As opposed to having a central stack, each packet has its own, using the free
 space allocated with the creation of the packet as its local stack.
 Therefore the stack for a task is always in
-the heap with the task itself \cite{vGMachine}. This is in contrast to the standard
+the heap with the task itself \citep{vGMachine}. This is in contrast to the standard
 G-Machine, where the stack resides `in' the machine itself and the tasks use
 that stack until they are blocked, at which point the task's stack is
 transferred to the heap until the task is awoken. 
