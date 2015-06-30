@@ -1,0 +1,27 @@
+\documentclass{standalone}
+\usepackage{pgfplots}
+\usepgfplotslibrary{statistics}
+\usetikzlibrary{pgfplots.statistics}
+\pgfplotsset{width=10cm,compat=1.12}
+%\pgfplotsset{every tick label/.append style={font=\tiny}}
+\begin{document}
+\begin{tikzpicture}
+\begin{semilogyaxis}[boxplot/draw direction=y,
+                     xtick={1,2,3,4,5,6,7,8,9},
+                     title=Par-Site Health for SumEuler,
+                     xlabel={Par-Site},
+                     ylabel={Reduction Count},
+                     yminorticks=false,
+                     cycle list={{black,mark=*}},]
+    \addplot+[boxplot] table[y index=0] {1ThreadHealth.csv};
+    \addplot+[boxplot] table[y index=0] {2ThreadHealth.csv};
+    \addplot+[boxplot] table[y index=0] {3ThreadHealth.csv};
+    \addplot+[boxplot] table[y index=0] {4ThreadHealth.csv};
+    \addplot+[boxplot] table[y index=0] {5ThreadHealth.csv};
+    \addplot+[boxplot] table[y index=0] {6ThreadHealth.csv};
+    \addplot+[boxplot] table[y index=0] {7ThreadHealth.csv};
+    \addplot+[boxplot] table[y index=0] {8ThreadHealth.csv};
+    \addplot+[boxplot] table[y index=0] {9ThreadHealth.csv};
+\end{semilogyaxis}
+\end{tikzpicture}
+\end{document}

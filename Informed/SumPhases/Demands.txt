@@ -1,0 +1,29 @@
+("(+)",CProd [])
+
+("(-)",CProd [])
+
+("(==)",CSum [("True",CProd []),("False",CProd [])])
+
+("(>)",CSum [("True",CProd []),("False",CProd [])])
+
+("euler",CProd [])
+
+("filterDefrelPrime",CMu "" (CSum [("Cons",CProd [CLaz CBot,CStr (CRec "")]),("Nil",CProd [])]))
+
+("fromto_D1",CMu "" (CSum [("Cons",CProd [CStr (CProd []),CLaz (CRec "")]),("Nil",CProd [])]))
+
+("fromto_D2",CMu "" (CSum [("Cons",CProd [CLaz (CProd []),CStr (CRec "")]),("Nil",CProd [])]))
+
+("gcd",CProd [])
+
+("ifte",CVar "")
+
+("length",CProd [])
+
+("main",CProd [])
+
+("mapDefeuler",CMu "" (CSum [("Cons",CProd [CStr (CProd []),CStr (CRec "")]),("Nil",CProd [])]))
+
+("relPrime",CSum [("True",CProd []),("False",CProd [])])
+
+("sum",CProd [])

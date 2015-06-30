@@ -1,0 +1,54 @@
+\begin{verbatim}
+main  = 
+   let eulerList =
+       let xs = fromto 1 1000
+       in par (fix mainListS1 xs) (map_euler xs)
+   in par (fix mainListS2 eulerList) (sum eulerList);
+
+rwhnf x = seq x Unit;
+
+mainListS1 f xs = case xs of
+    Cons y ys -> par (rwhnf y) (seq (f ys) Unit);
+    Nil       -> Unit;
+
+mainListS2 f xs = case xs of
+    Cons y ys -> par (rwhnf y) (seq (f ys) Unit);
+    Nil       -> Unit;
+
+sum xs = case xs of
+    Nil       -> 0;
+    Cons y ys -> let rest = sum ys
+                 in (par (rwhnf rest) ((y + rest)));
+
+map_euler xs = case xs of
+    Nil       -> Nil;
+    Cons y ys -> Cons (euler y) (map_euler ys);
+
+euler x = let ys = filter_relPrime x (fromto 1 x)
+          in par (fix eulerListS1 ys) (length ys);
+
+eulerListS1 f xs = case xs of
+    Cons y ys -> seq (f ys) Unit;
+    Nil       -> Unit;
+
+length xs = case xs of
+    Nil       -> 0;
+    Cons y ys -> let len = length ys
+                 in (par (rwhnf len) ((1 + len)));
+
+filter_relPrime x y = case y of
+    Nil       -> Nil;
+    Cons z zs ->
+        let b = relPrime x z
+        in (par (filter_relPrimeS1 b)
+                (if b
+                 then Cons z (filter_relPrime x zs)
+                 else filter_relPrime x zs));
+
+filter_relPrimeS1 x = case x of
+    True -> Unit;
+    False -> Unit;
+
+relPrime x y = let z = gcd x y
+               in (par (rwhnf z) ((z == 1)));
+\end{verbatim}
