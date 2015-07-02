@@ -14,6 +14,7 @@ pdf: *.tex literature.bib Background/*.tex Blind/*.tex Static-Analysis/*.tex
 
 count: *.tex Background/*.tex Blind/*.tex Static-Analysis/*.tex
 	echo "$$(date +"%F %T"),$$(detex thesis.tex | wc -w)" >> wordcount.csv
+	tail wordcount.csv
 
 testcount: *.tex Background/*.tex Blind/*.tex Static-Analysis/*.tex
 	echo "$$(date +"%F %T"),$$(detex thesis.tex | wc -w)"
