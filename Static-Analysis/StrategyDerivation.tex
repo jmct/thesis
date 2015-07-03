@@ -1,0 +1,185 @@
+\section{Deriving Strategies from Projections}
+\label{sec:proAndStrat}
+
+One of the reasons that projections were chosen for our strictness analysis is
+their correspondence to parallel strategies.  Strategies are functions whose
+sole purpose is to force the evaluation of specific parts of their arguments
+\citep{marlow2010seq, strategies}. All strategies return the unit value
+\verb-()-. Strategies are not used for their computed result but for the
+evaluation they force along the way.
+
+\subsection*{Some Examples}
+
+The type for strategies is defined as \verb`type Strategy a = a -> ()`.
+
+The simplest strategy, named \verb-r0- in \citep{marlow2010seq}, which performs
+no reductions is defined as \verb-r0 x = ()-. The strategy for weak head normal
+form is only slightly more involved: \verb-rwhnf x = x `seq` ()-
+
+\hfill$\Box$
+
+The real power comes when strategies are used on data-structures. Take
+lists for example. Evaluating a list sequentially or in parallel provides us
+with the following two strategies
+
+\begin{alltt}
+    seqList s []     = ()
+    seqList s (x:xs) = s x `seq` (seqList s xs)
+
+    parList s []     = ()
+    parList s (x:xs) = s x `par` (parList s xs)
+\end{alltt}
+
+Each strategy takes another strategy as an argument. The provided
+strategy is what determines how much of each element to evaluate. If the provided
+strategy is \verb-r0- the end result would be that only the spine of the list is
+evaluated. On the other end of the spectrum, providing a strategy that evaluates a value
+of the list-item type \verb-a- fully would result in list's spine \emph{and} elements being evaluated.
+
+\hfill$\Box$
+
+Already we can see a correspondence between these strategies and the contexts shown
+in Figure \ref{contexts}. The $T$ context (tail strict) corresponds to the strategy
+that only evaluates the spine of the list, while the $HT$ context corresponds to the
+strategy that evaluates the spine and all the elements of a list.
+
+Recalling the program in Figure \ref{sumLast} the generated function
+\verb-mainListS1- corresponds to a strategy for evaluating a list in a
+$HT$ context. In our derived strategies it is not necessary to pass
+additional strategies as arguments because the demand on a structure's elements
+makes up part of the context that describes the demand on that structure.
+
+\subsection*{Derivation Rules}
+
+%    & \mathcal{C} :: \Sem{Context} \rightarrow Names \rightarrow Exp \\
+%    & \mathcal{A}\Sem{(Constr, Context)} \rightarrow Names \rightarrow (Pat, Exp) \\
+
+\begin{figure}[t]
+\begin{displaymath}
+  \begin{aligned}
+   \noalign{$\mathcal{C} :: \Sem{Context} \rightarrow Names \rightarrow Exp $}
+    & \mathcal{C}\Sem{c?}    \phi  &&= \lambda x \rightarrow () \\
+    & \mathcal{C}\Sem{c!}     \phi  &&= \Sem{c} \phi \\
+    & \mathcal{C}\Sem{\mu\beta.c} \phi  &&= fix \ (\lambda n \rightarrow \Sem{c} (n:\phi)) \\
+    & \mathcal{C}\Sem{\beta}       (n:\phi) &&= n \\
+    & \mathcal{C}\Sem{[cs]}     \phi  &&= \lambda x \rightarrow Case \ x \ of \ \mathcal{A}\Sem{cs} \phi \\
+    & \mathcal{C}\Sem{c}                      \phi  &&= \lambda x \rightarrow x \  `seq` \ () \\
+    & \quad && \\
+    \noalign{$\mathcal{A} :: \Sem{(Constructor, Context)} \rightarrow Names \rightarrow (Pat, Exp) $}
+    & \mathcal{A}\Sem{(C_{n}, ID)} \phi &&= (C_{n}, ()) \\
+    & \mathcal{A}\Sem{(C_{n}, BOT)}        \phi &&= (C_{n}, ()) \\
+    & \mathcal{A}\Sem{(C_{n}, \langle cs \rangle)} \phi &&= (C_{n} \ vs, \mathcal{F}\Sem{ss} \phi) \\
+    \noalign{$\qquad where \enspace ss = filter \ (isStrict \circ fst) \ \$ \ zip \ cs \ vs $} 
+    \noalign{$\qquad \hphantom{where} \enspace vs = take \ (length \ cs) freshVars $}
+    & \quad && \\
+    \noalign{$\mathcal{F} :: \Sem{[(Context, Exp)]} \rightarrow Names \rightarrow Exp $}
+    & \mathcal{F}\Sem{[]} \phi           &&= () \\
+    & \mathcal{F}\Sem{((c, v):[])} \phi  &&= App \ (Fun \ ``seq") \ [App \ (\mathcal{C}\Sem{c} \phi)\  [v], ()] \\
+    & \mathcal{F}\Sem{((c, v):cs)} \phi  &&= App \ (Fun \ ``par") \ [App \ (\mathcal{C}\Sem{c} \phi)\  [v], ls] \\
+    \noalign{$\qquad where \enspace ls =  \mathcal{F}\Sem{cs} \phi$}
+  \end{aligned}
+\end{displaymath}
+\caption{Rules to generate strategies from demand contexts}
+\label{demStrat}
+\end{figure}
+
+Because projections \emph{already} represent functions on our value domain, translating
+a projection into a usable strategy only requires that we express the projection's
+denotation in a programmed definition. The rules we use are shown in Figure \ref{demStrat}.
+Rule $\mathcal{C}$ constructs a strategy for all of the context constructors except for
+products. This is because product types are only found within constructors in the
+source language and are therefore wrapped in sums as constructor-tag context
+pairs. These pairs are handled by the $\mathcal{A}$ rule.
+
+
+
+One aspect of strategies that does \emph{not} directly correspond to a context
+is the choice between \verb-seq- and \verb-par-. Every context can be fully
+described by both sequential and parallel strategies. When a constructor has
+two or more fields, it can be beneficial to evaluate \emph{some} of the fields
+in parallel. It is not clear, generally, which fields should be evaluated in
+parallel and which should be evaluated in sequence. As shown in rule $\mathcal{F}$
+we evaluate all fields in parallel \emph{except} for the last field in a structure.
+This means that if a structure has only one field then its field will be evaluated
+using \verb-seq-.
+
+\subsection{Specialising on Demand}
+
+The key reason for performing a strictness analysis in our work is to know when
+it is \emph{safe} to perform work before it is needed. This work can then be
+sparked off and performed in parallel to the main thread of execution. Using
+the projection-based analysis allows us to know not only \emph{which} arguments
+are needed, but \emph{how much} (structurally) of each argument is needed. We
+convert the projections into strategies and then spark off those strategies in
+parallel.
+
+Assume that our analysis determines that function \verb`f` is strict in both of
+its arguments.  This allows us to convert
+
+\begin{verbatim}
+        f e1 e2
+\end{verbatim}
+
+into
+
+\begin{verbatim}
+        let a = e1
+            b = e2
+        in (s1 a) `par` (s2 b) `seq` (f a b)
+\end{verbatim}
+
+where \verb`s1` and \verb`s2` are the strategies generated from the projections on those
+expressions.
+
+
+\subsection*{Different Demands on the Calling Function}
+
+If a function has different demands on its result at different calling sites,
+that is dealt with `for free' using the transformation above. However, there
+may be multiple \emph{possible} demands \emph{at the same call site}.
+
+This can happen when there are different demands on the calling function, for
+example:
+
+\begin{verbatim}
+        func x = f e1 e2
+\end{verbatim}
+
+Different demands on the result of \verb`func` may mean different demands on
+the result of \verb`f`. This in turn means that different transformations would
+be appropriate. Assume this results in having two different demands on
+\verb`f`. One demand results in the first transformation (\verb-funcD1-) and
+the other results in the second (\verb-funcD2-). How do we reconcile this
+possible difference?
+
+\subsection*{Specialisation by Demand}
+
+To accommodate this possibility we can clone the function \verb`func`. One
+clone for each demand allows us to have the `more parallel' version when it
+is safe, and keep the `less parallel' version in the appropriate cases. Note,
+we do not have to clone all functions with versions for every possible demand.
+Instead we can do the following for each function:
+
+\begin{enumerate}
+    \item Determine which demands are actually present in the program
+    \item In the body of the function, do the different demands result in differing
+        demands for a specific function call?
+    \item If no, no cloning
+    \item If yes, clone the function for each demand and re-write the call-sites to call
+        the appropriate clone
+\end{enumerate}
+
+Applying the above procedure to our hypothetical expression would result in the
+following
+
+
+\begin{verbatim}
+funcD1 x = let a = e1
+               b = e2
+            in s1 a `par` s2 b `seq` f a b
+
+funcD2 x = let a = e1
+           in s1 a `par` f a e2
+\end{verbatim}
+
+

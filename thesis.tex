@@ -109,11 +109,13 @@
         functions, or use of parallel libraries.}
     
     \section{Lazy Languages and Parallelism}
+    \input{Intro/Introduction.tex}
+
 
 
     \section{Thesis Roadmap}
 
-\chapter{Parallelism in a Functional Languages}
+\chapter{Parallelism in a Functional Language}
 
     This chapter explores previous approaches to parallelism in a
     functional language, both implicit and explicit. We do this so that
@@ -133,9 +135,19 @@
 
 \chapter{The Discovery and Placement of Safe Parallelism}
 
-    New things here.
+    Before we can run our automatically parallelised programs, we must develop
+    methods and techniques for the compiler to \emph{find} and \emph{express}
+    the parallelism that is implicit in our programs. This is the main focus
+    of this chapter.
+
+    \section{Defunctionalisation (or Higher-Order Specialisation)}
+    \input{Static-Analysis/Defunctionalisation.tex}
+
     \section{Strictness Analysis}
     \input{Static-Analysis/StrictnessAnalysis.tex}
+
+    \section{Expressing Need, Strategically}
+    \input{Static-Analysis/StrategyDerivation.tex}
     
 \chapter{Bitstring Search}
 

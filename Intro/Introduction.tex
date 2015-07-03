@@ -1,0 +1,26 @@
+Advocates of purely functional programming languages often cite easy
+parallelism as a major benefit of abandoning mutable state \citep{hughes:thesis,
+SPJ:PIFPL}. This idea drove research into the theory and implementation of
+compilers that take advantage of \emph{implicit parallelism} in a functional
+program. For lazy functional languages this can be seen to be at odds with the
+goal of only evaluating expressions when they are needed. 
+
+The ultimate goal of writing a program in a functional style, and having the
+compiler find the implicit parallelism, still requires work.  We believe there
+are several reasons why previous work into implicit parallelism has not
+achieved the results that researchers have hoped for. Chief amongst those
+reasons is that the static placement of parallel annotations is not sufficient
+for creating well-performing parallel programs \citep{hammond2000research,
+hogen1992automatic, tremblay1995impact, feedbackImplicit}. This paper explores
+one route to improvement: the compiler can use runtime profile data to improve
+initial decisions about parallelism in much the same way a programmer would
+manually tune a parallel program.
+
+Additionally, when research into implicit parallelism was more common, the work
+was often based on novel architectures or distributed systems, not commodity
+hardware \citep{GRIP, hammond2000research}. Research was unable to keep
+up with huge improvements in sequential hardware. Today most common desktop
+workstations are parallel machines; this steers
+our motivation away from the full utilisation of hardware. Many programmers
+today write sequential programs and run them on parallel machines. We
+argue that even modest speedups are worthwhile if they occur `for free'.

@@ -1,0 +1,121 @@
+\section{Defunctionalisation}
+\label{sec:defunct}
+
+After parsing the next stage of the compiler applies a defunctionalising
+transformation to the input programs. Our defunctionalisation method is limited
+in scope, but sufficient for our purposes. It specialises higher-order
+functions defining separate instances for different functional arguments. We
+are careful to preserve sharing during this transformation. Here we give our
+motivation for introducing this transformation.
+
+Central to our design is the concept of \verb-par- placement within a program.
+Each \verb-par- application can be identified by its \emph{position} in the
+AST. In a higher-order program basing our parallelism on the location of a
+\verb-par- would very likely lead to undesirable consequences. For example, a common pattern
+in parallel programs is to introduce a parallel version of the \verb-map-
+function
+
+\begin{alltt}
+    parMap :: (a -> b) -> [a] -> [b]
+    parMap f []     = []
+    parMap f (x:xs) = let y = f x
+                      in y `par` y : parMap f xs
+\end{alltt}
+
+There is inevitably some overhead associated with evaluation of a \verb-par-
+application, and of sparking off a fresh parallel thread.  So if the
+computation \verb-f x- is inexpensive, the parallelism may not provide any
+benefit and could even be detrimental. As \verb-parMap- may be used throughout
+a program it is possible that there are both useful and detrimental parallel
+applications for various functional arguments: \verb-parMap f- may provide
+useful parallelism while \verb-parMap g- may cost more in overhead than we gain
+from any parallelism.  Unfortunately when this occurs we are unable to switch
+off the \verb-par- for \verb-parMap g- without losing the useful parallelism of
+\verb-parMap f-. This is because the \verb-par- annotation is within the body
+of \verb-parMap-. By specialising \verb-parMap- we create two separate
+functions: \verb-parMap_f- and \verb-parMap_g-, with distinct \verb-par-
+annotations in \emph{each} of the instances of \verb-parMap-.
+
+\pagebreak
+
+\begin{alltt}
+    parMap_f []     = []
+    parMap_f (x:xs) = let y = f x
+                      in y `par` y : parMap_f xs
+
+    parMap_g []     = []
+    parMap_g (x:xs) = let y = g x
+                      in y `par` y : parMap_g xs
+\end{alltt}
+
+
+After defunctionalisation we can determine the usefulness of parallelism
+in each case independently. The plan is to deactivate the \verb-par- for the
+inexpensive computation, \verb-g x-, without affecting the parallel application
+of the worthwhile computation, \verb-f x-.
+
+\subsection{How We Defunctionalise}
+
+Our defunctionaliser makes the following set of assumptions:
+
+\begin{itemize}
+  \item Algebraic data structures are first-order (no functional components)
+  \item The patterns on the left-hand side of a declaration have been compiled
+        into case expressions
+  \item Functions may have functional arguments but their definitions must be
+        arity-saturated and return data-value results
+  \item No explicit lambdas in the program, but partial applications are permitted
+\end{itemize}
+
+With these assumptions in mind, the rules for defunctionalisation are presented
+in Figure \ref{defunRules}. These rules are applied to the AST in a
+\emph{bottom up} fashion. This allows the transformation to assume that the
+arguments to partially applied functions (like $e'_{1}$ in (1)) have already
+been defunctionalised.
+
+\paragraph{Example}
+
+Take \verb-reverse- defined as an instance of \verb-foldl-:
+
+\begin{verbatim}
+    reverse xs  =  foldl (flip Cons) Nil xs
+\end{verbatim}
+
+this becomes
+
+\begin{verbatim}
+    reverse xs  =  foldl_flip_Cons Nil xs
+
+    foldl_flip_Cons z xs 
+        = case xs of
+            Nil       -> z
+            Cons y ys ->
+                foldl_flip_Cons (flip_Cons z y) ys
+
+    flip_Cons xs x = Cons x xs
+\end{verbatim}
+
+\hfill$\Box$
+
+\begin{figure}[t]
+ \begin{align}
+  \begin{split}
+   &f \ e_{1} \dots e_{i-1}\ (g \ e'_{1} \dots e'_{m})\ e_{i+1} \dots e_{\#f} \qquad 0 \leq m < \#g\\
+   &\quad \implies f_{\langle i,g,m\rangle} \ e_{1} \dots e_{i-1}\ e'_{1} \dots e'_{m} \ e_{i+1} \dots e_{\#f}
+  \end{split}\\[10pt]
+  \begin{split}
+  &f \ x_{1} \dots \ x_{n} \ = e \\
+  &\quad \implies f_{\langle i,g,m\rangle} \ x_{1} \dots x_{i-1}\ y_{1} \dots y_{m}\ x_{i+1} \dots x_{n} \\
+  & \qquad \qquad \quad = e[x_{i}/g\ y_{1} \dots y_{m}]
+  \end{split}
+ \end{align}
+\caption{Rules for Defunctionalisation. $\#f$ and $\#g$ represent the arities of the functions.
+        (1) refers to the transformation at the \emph{call site},
+        (2) describes the transformation of the definition, creating a new version of $f$ that has
+        been specialised at its $i$th argument with function $g$ and $m$ arguments to $g$.}
+\label{defunRules}
+\end{figure}
+
+Another important benefit of applying defunctionalisation to the program is
+that it allows the use of Hinze's projection-based strictness analysis
+\citep{hinze1995projection}, which we discuss next.
