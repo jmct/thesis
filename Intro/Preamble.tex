@@ -1,0 +1,32 @@
+There is a very common refrain that programmers use. It goes something like
+this: ``If you want a $[X]$ program, you must $[Y]$''. We can choose
+appropriate $X$'s and $Y$'s to prove a point about the difficulty of
+programming. Here are some common examples:
+
+\begin{itemize}
+  \item ``If you want a fast program, you must write it in C''
+  \item ``If you want an efficient program, you must write it in
+            assembler''
+  \item ``If you want a performant program, you must use
+            cache-conscious structures''
+  \item ``If you want a parallel program, you must write a parallel
+            program''
+\end{itemize}
+
+This thesis is concerned with the last of these examples. What does it mean?
+For many, the idea that a compiler can \emph{automatically} parallelise a
+program that was written as a sequential one is a pipe-dream. This version
+of the refrain attempts to emphasise the point that utilising parallelism
+require \emph{active thought and action} by the programmer, we can not
+get parallelism `for free'.
+
+We seek to show that this is not always that case. We do this by attempting
+the inverse of the refrain: writing a compiler that is able to take a
+\emph{sequential} program and transform it into a better
+performing\footnote{This is key!} \emph{parallel} program.  A system that
+can achieve this goal is said to take advantage of a program's
+\emph{implicit}, or \emph{inherent}, parallelism.
+
+\defineword{Implicit Parallelism}{The potential parallelism that is present
+    in a program without the need for any annotations, calling of parallel
+    functions, or use of parallel libraries.}

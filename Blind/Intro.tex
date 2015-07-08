@@ -1,34 +1,7 @@
-Moore's law has often provided a `free lunch' for those looking to run faster
-programs without the programmer expending any engineering effort. Throughout
-the 1990s in particular, an effective way of having a faster x86 program was to
-wait for Intel\texttrademark{} to release its new line of processors and run the
-program on your new CPU. Unfortunately, clock speeds have reached a plateau and
-we no longer get speedups for free \citep{sutter2005free}. Increased performance
-now comes from including additional processor cores on modern CPUs.  This means
-that programmers have been forced to write parallel and concurrent programs
-when looking for improved wall-clock performance. Unfortunately, writing
-parallel and concurrent programs involves managing complexity that is not present in
-single-threaded programs. The goal of the work outlined in this paper is to
-convince the reader that not all hope is lost. By looking for the
-\emph{implicit parallelism} in programs that are written as single-threaded
-programs we can achieve performance gains without programmer effort.
-
-Our work focuses on F-Lite: a pure, non-strict functional language that is
-suitable as a core language of a compiler for a higher-level language like
-Haskell \citep{naylor2010reduceron}. We have chosen to use a non-strict language
-because of the lack of arbitrary side-effects \citep{whyFPmatters}, and many
-years of work in the area of implicit parallelism \citep{hogen1992automatic,
-PFPAnIntro, jones1993implicit} however we feel that many of our techniques
-would transfer well to other language paradigms.
-
-% \subsection{Contribution}
-
-The primary contribution of this paper is to demonstrate that using search based on dynamic execution of the parallelised program
-is a robust way to help diminish the \emph{granularity} problem that is
-difficult for static analysis alone.  We show that for some programs, the combination of search and static analysis can achieve  speed-ups that are nearly linear with respect to the number of cores.
-
-% Additionally we show that runtime profile data is not necessary to utilise feedback directed improvement: we show improvements based on overall runtime without `peeking' into the runtime system.
-
-% \subsection{Roadmap}
-
-The rest of this paper describes our technique in more detail. Section \ref{sec:blind-ParFunc} discuss the main background to this work: implicit parallelism in functional languages. Section~\ref{sec:blind-Overview} provides a worked example to illustrate the static analysis we perform to determine potential parallelism.  We describe our empirical method and results in Section \ref{sec:blind-Results}. Lastly, we offer our conclusions and discuss related work in Section \ref{sec:blind-Conclusion}.
+The rest of this chapter describes our technique in more detail. Section
+\ref{sec:blind-ParFunc} discuss the main background to this work: implicit
+parallelism in functional languages. Section~\ref{sec:blind-Overview} provides
+a worked example to illustrate the static analysis we perform to determine
+potential parallelism.  We describe our empirical method and results in Section
+\ref{sec:blind-Results}. Lastly, we offer our conclusions and discuss related
+work in Section \ref{sec:blind-Conclusion}.

@@ -75,56 +75,20 @@
 
 \chapter{Introduction}
 
-    There is a very common refrain that programmers use. It goes something like
-    this: ``If you want a $[X]$ program, you must $[Y]$''. We can choose
-    appropriate $X$'s and $Y$'s to prove a point about the difficulty of
-    programming. Here are some common examples:
-
-    \begin{itemize}
-      \item ``If you want a fast program, you must write it in C''
-      \item ``If you want an efficient program, you must write it in
-                assembler''
-      \item ``If you want a performant program, you must use
-                cache-conscious structures''
-      \item ``If you want a parallel program, you must write a parallel
-                program''
-    \end{itemize}
-
-    This thesis is concerned with the last of these examples. What does it mean?
-    For many, the idea that a compiler can \emph{automatically} parallelise a
-    program that was written as a sequential one is a pipe-dream. This version
-    of the refrain attempts to emphasise the point that utilising parallelism
-    require \emph{active thought and action} by the programmer, we can not
-    get parallelism `for free'.
-    
-    We seek to show that this is not always that case. We do this by attempting
-    the inverse of the refrain: writing a compiler that is able to take a
-    \emph{sequential} program and transform it into a better
-    performing\footnote{This is key!} \emph{parallel} program.  A system that
-    can achieve this goal is said to take advantage of a program's
-    \emph{implicit}, or \emph{inherent}, parallelism.
-
-    \defineword{Implicit Parallelism}{The potential parallelism that is present
-        in a program without the need for any annotations, calling of parallel
-        functions, or use of parallel libraries.}
+    \input{Intro/Preamble.tex}
     
     \section{Lazy Languages and Parallelism}
     \input{Intro/Introduction.tex}
 
-
+    \section{Overview}
+    \input{Intro/Overview.tex}
 
     \section{Thesis Roadmap}
 
 \chapter{Parallelism in a Functional Language}
 
-    This chapter explores previous approaches to parallelism in a
-    functional language, both implicit and explicit. We do this so that
-    we may better understand the trade-offs we accept when utilising
-    implicit parallelism and the difficulties involved.
+    \input{Background/Preamble.tex}
 
-
-    General overview of why functional programming is considered `good' for
-    parallelism \citep{hughes:thesis}.
     \section{Functional Programming and Parallelism}
     \input{Background/parFuncProg.tex}
     
@@ -135,10 +99,7 @@
 
 \chapter{The Discovery and Placement of Safe Parallelism}
 
-    Before we can run our automatically parallelised programs, we must develop
-    methods and techniques for the compiler to \emph{find} and \emph{express}
-    the parallelism that is implicit in our programs. This is the main focus
-    of this chapter.
+    \input{Static-Analysis/Preamble.tex}
 
     \section{Defunctionalisation (or Higher-Order Specialisation)}
     \input{Static-Analysis/Defunctionalisation.tex}
@@ -155,10 +116,6 @@
 
     \section{Introduction}
     \input{Blind/Intro.tex}
-
-    \section{Overview}
-    \label{sec:blind-Overview}
-    \input{Blind/Overview.tex}
 
     \section{Implicit Parallelism in Functional Languages}
     \label{sec:blind-ParFunc}
