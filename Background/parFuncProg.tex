@@ -1,89 +1,97 @@
 \section{Approaches to Parallelism}
 
-    When looking at parallel programming, it is important to make the
-distinction between concurrency and parallelism.
-    Concurrency embodies the idea of multiple workers (threads,
-computers, agents, etc.) making progress on independent tasks. A
-standard example for concurrency is a modern web-server. Each connection to
-the web-server can be thought of as an independent sub-task of the
-program. The web-server does not have to be run on a multi-core
-machine for the concurrency to take place. A single-core machine
-is capable of running concurrent threads through scheduling and
-context switching.
+When looking at parallel programming, it is important to make the distinction
+between concurrency and parallelism.  Concurrency embodies the idea of multiple
+workers (threads, computers, agents, etc.) making progress on independent
+tasks. A standard example for concurrency is a modern web-server. Each
+connection to the web-server can be thought of as an independent sub-task of
+the program. The web-server does not have to be run on a multi-core machine for
+the concurrency to take place. A single-core machine is capable of running
+concurrent threads through scheduling and context switching.
 
-    Parallelism describes the simultaneous execution of tasks with the purpose
-of achieving a gain in performance. Tasks that
-can be easily divided into independent sub-tasks can easily be made
-into parallel algorithms. For example, if one wanted to compute the monthly
-average temperature for a given year, each month could be computed independently.
-If enough of these independent computations happen simultaneously there can
-be a substantial improvement in the program's wall-clock speed. Ideally, the
-increase in performance would scale at the same rate as the available parallel
-machinery (2$x$ performance with two processors, 5$x$ performance with 5
-processors). Unfortunately, there are some unavoidable factors that prevent
-%this ideal from being realised \citep{hughes:thesis,HistoryOfHaskell,PFPAnIntro}. The most basic fact preventing this ideal is that the
-executing machinery (whether virtual or physical) will necessarily introduce
-some overhead in the generation and management of parallel threads of
-execution \citep{PeytonJones:IFL}. Beyond that, it is unusual
-for a program to be perfectly parallel except in trivial cases. Most parallel
-programs exhibit non-uniform parallelism and complex data dependencies. This
-results in programs where parallel threads vary greatly in their processing
-time and contain threads of execution that will depend on the results of other
-threads. This results in threads having to wait for the result of another thread
-before commencing (which is known as blocking).
+Parallelism describes the simultaneous execution of tasks with the purpose of
+achieving a gain in performance. Tasks that can be easily divided into
+independent sub-tasks can easily be made into parallel algorithms. For example,
+if one wanted to compute the monthly average temperature for a given year, each
+month could be computed independently.  If enough of these independent
+computations happen simultaneously there can be a substantial improvement in
+the program's wall-clock speed. Ideally, the increase in performance would
+scale at the same rate as the available parallel machinery (2$x$ performance
+with two processors, 5$x$ performance with 5 processors). Unfortunately, there
+are some unavoidable factors that prevent this ideal from being realised
+\citep{hughes:thesis,HistoryOfHaskell,PFPAnIntro}. The most basic fact
+preventing this ideal is that the executing machinery (whether virtual or
+physical) will necessarily introduce some overhead in the generation and
+management of parallel threads of execution \citep{PeytonJones:IFL}. Beyond
+that, it is unusual for a program to be perfectly parallel except in trivial
+cases. Most parallel programs exhibit non-uniform parallelism and complex data
+dependencies. This results in programs where parallel threads vary greatly in
+their processing time and contain threads of execution that will depend on the
+results of other threads. This results in threads having to wait for the result
+of another thread before commencing (which is known as blocking).
 
  \subsection{Haskell}
-    Haskell is a lazy functional language benefiting from constant development
+
+Haskell is a lazy functional language benefiting from constant development
 since its inception in 1987\footnote{1987 was when the academic community
 decided that an `standard' language was needed to unify the study of lazy
-functional programming\citep{HistoryOfHaskell}, however, the first Haskell report was not
-published until 1990 \citep{Haskell98Book}} \citep{HistoryOfHaskell,
-Haskell98Book}. There have been many good introductions to
-Haskell and functional programming\citep{wiki:HaskellBooks}. In this report, any
-details that may not be obvious to a non-Haskell user will be explained along
-with the code listing.
+functional programming\citep{HistoryOfHaskell}, however, the first Haskell
+report was not published until 1990 \citep{Haskell98Book}}
+\citep{HistoryOfHaskell, Haskell98Book}. Haskell as defined by the Haskell
+Report \citep{haskellReport} does not have parallelism as part of the language.
+However, functional programming has a long history of parallel implementations
+and Haskell is no different in this regard. Even the early implementations of
+Haskell had facilities for parallel computation.
 
 \paragraph{Haskell Parallelism}
-    The Glasgow Haskell Compiler (GHC) has extensive parallelism and
-concurrency support, this is part of what makes the compiler a popular
-implementation \citep{HistoryOfHaskell}.
+
+The Glasgow Haskell Compiler (GHC) has extensive parallelism and concurrency
+support, this is part of what makes the compiler a popular implementation
+\citep{HistoryOfHaskell}. While our eventual goal is to have access to
+compilers that take advantage of the implicit parallelism in our programs, it
+is useful to understand the tools and libraries that enable programmers to use
+\emph{explicit} parallelism in their Haskell programs. Some of these techniques
+are well-established and have decades of use and experience to draw from. Other
+techniques are more modern and provide new methods for Haskell programmers to
+use parallelism. Often, these newer methods are an `answer' to problems or
+pitfalls with the older techniques.
 
  \subsection{Explicit Parallelism}
 
-    The most popular Haskell compiler, GHC \citep{HistoryOfHaskell}, is able
-to compile and run parallel
-Haskell programs `out of the box'. This ability is limited to the \emph{shared
-memory processors}, also known as symmetric multiprocessors (SMP), that are
-nearly ubiquitous with the rise of multi-core architectures in modern CPUs. The
-GHC project provides several ways to utilise parallel-capable machines.
+The most popular Haskell compiler, GHC \citep{HistoryOfHaskell}, is able to
+compile and run parallel Haskell programs `out of the box'. This ability is
+limited to the \emph{shared memory processors}, also known as symmetric
+multiprocessors (SMP), that are nearly ubiquitous with the rise of multi-core
+architectures in modern CPUs. The GHC project provides several ways to utilise
+parallel-capable machines.
 
 The first method is through the \verb=par= and \verb=seq=\footnote{While
-\texttt{seq} was introduced into Haskell for Haskell '98
-\citep{Haskell98Book} it was used for many years before that
-\citep{HistoryOfHaskell}. One of the earliest descriptions was by Hughes who
-introduced a \texttt{synch} combinator that
-performed the same function in 1983 \citep{hughes:thesis}.} combinators. The
-\verb=seq= combinator has the following type.
+\texttt{seq} was introduced into Haskell for Haskell '98 \citep{Haskell98Book}
+it was used for many years before that \citep{HistoryOfHaskell}. One of the
+earliest descriptions was by Hughes who introduced a \texttt{synch} combinator
+that performed the same function in 1983 \citep{hughes:thesis}.} combinators.
+The \verb=seq= combinator has the following type.
+
 \begin{verbatim}
-        seq :: a -> b -> b
+        seq :: a -> b -> b 
 \end{verbatim}
 
-An expression of the form \verb=seq a b= first forces the evaluation of
-\verb=a= to WHNF\footnote{For an expression to be in Weak Head Normal Form it
-must be evaluated enough such that the outermost constructor is known. To say
-that a function is in WHNF means that the function is partially applied.}
-and then returns \verb=b=. This allows a programmer to
-express sequential evaluation. It is important to note that
-\verb=seq= $\bot$ \verb=b= results in $\bot$.
+An expression of the form \verb=seq a b= first forces the evaluation of its
+first argument to WHNF\footnote{For an expression to be in Weak Head Normal
+Form it must be evaluated enough such that the outermost constructor is known.
+To say that a function is in WHNF means that the function is partially
+applied.} and then returns its second argument. This allows a programmer to
+express sequential evaluation. It is important to note that \verb=seq= $\bot$
+\verb=b= results in $\bot$.
 
-    It is important to realise that
-GHC's implementation of \verb=seq= does \emph{not} guarantee to force the evaluation
-of its first argument. The compiler may find an optimisation that circumvents
-the sequence created by the combinator. In order to provide a combinator that
-\emph{does} guarantee the evaluation of the first argument before the second,
-GHC provides the \verb-pseq-\footnote{The `p' in \texttt{pseq} stands for parallel.
-The idea being that parallel programs are more likely than sequential programs
-to require that \texttt{seq} guarantees its behavior.} combinator.
+It is important to realise that GHC's implementation of \verb=seq= is
+\emph{not} guaranteed to force the evaluation of its first argument
+\emph{before} its second argument. The compiler may find an optimisation that
+circumvents the sequencing created by the combinator. In order to provide a
+combinator that \emph{does} provide this guarantee GHC provides the
+\verb-pseq-\footnote{The `p' in \texttt{pseq} stands for parallel.  The idea
+being that parallel programs are more likely than sequential programs to
+require that \texttt{seq} guarantees its behavior.} combinator.
 
 In the literature, the \verb=par= combinator appears in one of two forms
 \citep{HistoryOfHaskell, hughes:thesis}. In order to differentiate between the
@@ -94,8 +102,8 @@ because most users will know this version of the combinator from their use of
 Haskell}.
 
 Haskell \verb=par= takes the same form as \verb=seq= and has the same type
-signature. The combinator takes two parameters, sparks off the first parameter
-for parallelism, and returns the second.
+signature. The combinator takes two arguments, sparks off the first for
+evaluation in parallel, and returns the second.
 
 \begin{verbatim}
         par :: a -> b -> b
@@ -103,7 +111,7 @@ for parallelism, and returns the second.
         par a b = b
 \end{verbatim}
 
-The applicative par expresses a function application whose parameter has been
+The applicative \verb|parAp| expresses a function application whose parameter has been
 sparked off to be evaluated in parallel. Semantically, this means that the
 applicative par has the following form
 
