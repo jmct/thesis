@@ -30,7 +30,7 @@ their processing time and contain threads of execution that will depend on the
 results of other threads. This results in threads having to wait for the result
 of another thread before commencing (which is known as blocking).
 
- \subsection{Haskell}
+\subsection{Haskell}
 
 Haskell is a lazy functional language benefiting from constant development
 since its inception in 1987\footnote{1987 was when the academic community
@@ -56,7 +56,7 @@ techniques are more modern and provide new methods for Haskell programmers to
 use parallelism. Often, these newer methods are an `answer' to problems or
 pitfalls with the older techniques.
 
- \subsection{Explicit Parallelism}
+\subsection{Explicit Parallelism with \texttt{par} and \texttt{seq}}
 
 The most popular Haskell compiler, GHC \citep{HistoryOfHaskell}, is able to
 compile and run parallel Haskell programs `out of the box'. This ability is
@@ -126,8 +126,8 @@ parallelism from this combinator. In fact, we will see in section
 \ref{sec:experiments} that in same cases, the compilation of the
 function being applied can have large effects on \verb=parAp='s use.
 
-Interestingly, the version of \verb=par= that an implementation chooses does not
-change of limit the expressiveness. Each version of \verb-par- can actually be
+Interestingly, the version of \verb=par= that an implementation chooses does
+not change the expressiveness. Each version of \verb-par- can actually be
 defined in terms of the other. Defining the applicative par in terms of Haskell
 par gives us
 
@@ -136,38 +136,61 @@ par gives us
 \end{verbatim}
 
 In order to define Haskell par in terms of applicative par we must use the
-\verb=K= combinator
+\verb=k= combinator
 
 \begin{verbatim}
-        K x y = x
+        k x y = x
 
-        par x y = parAp (K y) x
+        par x y = parAp (k y) x
 \end{verbatim}
+
+The benefit of \verb|parAp| is that you get the sharing of the parallel computation
+without needing to give a name to a subexpression. For example, the following use of
+\verb|parAp| is very typical.
+
+\begin{verbatim}
+        parAp f (g 10)
+\end{verbatim}
+
+This does as you would expect, evaluate \verb|g 10| and share that with
+\verb|f|. In order to achieve the same effect using Haskell \verb|par| we must
+give \verb|g 10| a name.
+
+\begin{verbatim}
+        let x = g 10
+        in par x (f x)
+\end{verbatim}
+
 
 While language implementors may have strong preferences for one over the other,
 there are a few good arguments for the use of Haskell \verb=par=. Haskell
 \verb=par= is the simpler of the two versions, using it as an infix combinator
-makes it easy to spark an arbitray number of expressions easily,
-\verb-a `par` b `par` c-, and defining applicative \verb=par= does not require
-the use of any other combinators (unlike defining Haskell \verb=par= using
-applicative \verb=par= which requires the \verb=K= combinator).
+makes it easy to spark an arbitrary number of expressions easily,
+\verb-a `par` b `par` c-, and the use-case for applicative \verb=par= can be easily
+expressed using Haskell \verb|par|, as shown above.
 
-    Now that we have our essential combinators we are able to define a parallel
+\todoinline{It may be nice to instrument and profile the quicksort example that comes
+    next. Since we have the space to do it, showing how we get a better performing
+    algorithm and actually showing the speedups would be insightful.}
+\paragraph{Writing a program with \texttt{par} and \texttt{seq}}
+
+Now that we have our essential combinators we are able to define a parallel
 algorithm. One of the big sellers of functional programming is the wonderfully
 concise Quicksort definition
 
-\begin{lstlisting}
+\begin{verbatim}
         quicksort :: (Ord a) => [a] -> [a]
         quicksort (x:xs) = less ++ x:greater
             where
                 less    = quicksort [y | y <- xs, y <= x]
                 greater = quicksort [y | y <- xs, y > x]
         quicksort _ = []
-\end{lstlisting}
+\end{verbatim}
 
 The obvious way to parallelise this algorithm is to ensure that each of the two
-recursive calls can be executed in parallel. This can be done by changing the second
-line to
+recursive calls can be executed in parallel, this is a common form of
+paralellism known as `divide and conquer' \tocite{Either Hammond or something
+earlier}. This can be done by changing the second line to
 
 \begin{verbatim}
         quicksort (x:xs) = greater `par` (less ++ x:greater)
@@ -209,7 +232,7 @@ Because the function is fully saturated, the recursive call will continue
 evaluating through the entirety of the list. This only goes to show that even
 experts sometimes misunderstand when combinators like \verb=seq= are needed.
 
-\begin{lstlisting}
+\begin{verbatim}
         parQuicksort :: (Ord a) => [a] -> [a]
         parQuicksort (x:xs) = force greater `par`
                            (force lesser `pseq` (less ++ x:greater))
@@ -217,7 +240,7 @@ experts sometimes misunderstand when combinators like \verb=seq= are needed.
                 less    = parQuicksort [y | y <- xs, y <= x]
                 greater = parQuicksort [y | y <- xs, y > x]
         parQuicksort _ = []
-\end{lstlisting}
+\end{verbatim}
 
 Notice that there were a few more changes than just calling \verb=force= with
 the parallel spark. By also forcing the evaluation of \verb=lesser= before
@@ -263,11 +286,41 @@ on the maximum depth for the problem at hand. The downside is that it
 contributes yet another concern for the programmer to worry about.
 
 
-    Managing the granularity of a parallel program is one of the bigger
-challenges facing parallel functional programming \citep{SPJ:PIFPL}. Whether
-decided by the programmer (with annotations) or by the compiler implicitely,
-the question of ``is this task worth it?'' will always come up when deciding
-what tasks should be sparked.
+Managing the granularity of a parallel program is one of the bigger challenges
+facing parallel functional programming \citep{SPJ:PIFPL}. Whether decided by
+the programmer (with annotations) or by the compiler implicitly, the question
+of ``is this task worth it?'' will always come up when deciding what tasks
+should be sparked.
+
+\todoinline{To get a really fast quicksort, we'd need to actually implement
+    a `real' in place quicksort using something like the ST monad. This would
+    be a good spot to discuss the fast that sometimes it's the algorithm that
+    is the bottleneck, and not the lack of implicit parallelism.}
+
+\subsection{Explicit Parallelism with the \texttt{Par} Monad}
+
+One of the main benefits of using \verb|par| and \verb|seq| is that they
+provide a simple interface for expressing parallel computation without
+the need to worry about concurrency issues such as task/thread creation
+and synchronisation. The communication is via the same mechanism that
+allows for lazy evaluation \citep{SPF:PIFPL}. However, laziness can
+be difficult to reason about and gaining the maximum benefit from parallelism
+can often require the \emph{forcing} of values beyond WHNF. \todo{Reference the forcing in quicksort}
+This motivated another approach to deterministic parallelism, the \verb|Par|
+Monad \citep{marlow2011monad}.
+
+The \verb|Par| Monad makes the following trade-off: For the cost of making the
+dependencies between computations explicit and prohibiting the use of shared
+lazy structures, users gain predictable performance and the ability to reason
+about when evaluation takes place. The library provides an API for dataflow
+parallelism in Haskell.
+
+Internally the \verb|Par| Monad is implemented using I-Structures
+\citep{Arvind:IStructures}, which provide the mechanism for communication
+between tasks. I-Structures are mutable cells with write-once semantics.
+The disciplined use of I-Structures in the \verb|Par| Monad are what ensure
+deterministic parallelism.
+
 
 %\footnote{We found that running a similar experiment on a 4-core machine
 %did not improve the results by much.}
@@ -309,7 +362,7 @@ it depends on how the sparking is handled by the runtime.
 at runtime to better predict where parallelism can be exploited (Harris, Singh
 2007).
 
- \subsection{Semi-Implicit Parallelism}
+\subsection{Semi-Implicit Parallelism with Strategies}
     This section will look at things like `Strategies' to illustrate how a
 programmer can write the code they want to write (for the most part) and then
 use meta-techniques to make that code parallel.
@@ -381,3 +434,17 @@ This allows us to define \verb=parMap= as
 
 With this we could evaluate all the elements of a list to whatever level the
 first argument specifies.
+
+\subsection{Semi-Implicit Parallelism with Skeletons}
+
+There are many cases where the \emph{structure} of two programs in the same
+even though they are computing different results. As mentioned above,
+\verb|quicksort| shares a structure with many algorithms known as `divide and
+conquer'. Algorithmic skeletons allow for reuse of \emph{structural} parallelism
+between programs \tocite{Algorithmic Skeletons}.
+
+Skeletons are higher-order functions that are passed the computation specific actions
+of a program and ensure that the actions are parallelised according to the pre-defined
+structural parallelism.
+
+\todoinline{Give an example of a divide and conquer Skeleton}.

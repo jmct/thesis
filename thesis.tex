@@ -16,7 +16,9 @@
 \usepackage{alltt}
 \usepackage{color}
 
-\usepackage{todonotes}
+%%%% TODO Package %%%%
+\usepackage[colorinlistoftodos,prependcaption,textsize=small]{todonotes}
+\usepackage{xargs}
 \usepackage{amsmath}
 \usepackage{fancyvrb}
 \usepackage{latexsym}
@@ -28,6 +30,10 @@
 \usepackage{siunitx}
 \usepackage{etoolbox}
 
+\setcounter{tocdepth}{1}
+
+\newcommandx{\tocite}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{Cite: #2}}
+\newcommandx{\todoinline}[1]{\todo[inline]{#1}}
 
 \hypersetup{
  colorlinks,
@@ -146,6 +152,8 @@
 \chapter{Conclusions}
 
     And.... we're done.
+
+\listoftodos[Notes]
 
 \backmatter
 
