@@ -1,0 +1,234 @@
+In this section we provide a brief overview of the two
+predominant techniques for strictness analysis: \emph{abstract interpretation}
+and \emph{projection-based} analysis.  We then motivate our decision to use a
+projection-based analysis.
+
+\subsection{Projections}
+
+This explosion in cost motivated Wadler and Hughes to propose using
+\emph{projections} from domain theory to analyse strictness
+\citep{wadler1987projections}.
+
+
+Projection-based analysis provides two benefits over abstract interpretation:
+the ability to analyse functions over arbitrary structures, and a
+correspondence with parallel strategies \citep{marlow2010seq, strategies}. This
+allows us to use the projections provided by our analysis to produce an
+appropriate function to compute the strict arguments in parallel.
+
+Strictness analysis by abstract interpretation asks ``When passing $\bot$ as an
+argument is the result of the function call $\bot$?''. Projection-based
+strictness analysis instead asks ``If there is a certain degree of demand on
+the result of this function, what degree of demand is there on its
+arguments?''.
+
+What is meant by `demand'? As an example, the function \verb'length' requires
+that the input list be finite, but no more. We can therefore say that
+\verb'length' \emph{demands} the spine of the argument list. The function
+\verb'append' is a more interesting example:
+
+\begin{alltt}
+        append :: [a] -> [a] -> [a]
+        append []     ys = ys
+        append (x:xs) ys = x : append xs ys
+\end{alltt}
+
+By studying the function we can tell that the first argument must be defined to
+the first cons, but we cannot know whether the second argument is ever needed. However, what
+if the \emph{result} of \verb'append' needs to be a finite list? For example:
+
+\begin{alltt}
+
+    lengthOfBoth :: [a] -> [a] -> Int
+    lengthOfBoth xs ys = length (append xs ys)
+\end{alltt}
+
+In this case \emph{both} arguments to \verb'append' must be finite. Projections
+can be used to formalise this type of context \citep{wadler1987projections,
+hinze1995projection}.
+
+\subsection{Semantics of Projections}
+
+Given a domain $D$, a projection on $D$ is a continuous function
+$\pi \ : \ D \rightarrow D$ that satisfies
+
+\begin{align}
+\pi \sqsubseteq ID \\
+\pi \circ \pi = \pi
+\end{align}
+
+Equation (3) ensures that a projection can not add any information to a value,
+i.e. all projections approximate the identity function. Idempotence (4) ensures
+that projecting the same demand twice on a value has no additional effect. This
+aligns with our intuition of demand. If we demand that a list is spine-strict,
+demanding spine-strictness again does not change the demand on the list.
+
+Because we want the introduction of parallelism to be semantics-preserving we
+use the following safety condition for projections:
+
+\begin{equation}
+\gamma \ \circ \ f = \gamma \ \circ \ f \ \circ \ \pi
+\end{equation}
+
+Given a function $f \ : X \rightarrow Y$, and demand $\gamma$ on the
+\emph{result} of $f$, projection-based analysis propagates the demand given by
+$\gamma$ to the arguments of $f$. This results in the demand on the
+\emph{arguments} of $f$ given by $\pi$.  The analysis aims to find the
+\emph{smallest} $\pi$ for each $\gamma$, but approximating towards $ID$ (as
+it is always safe to project the identity).
+
+\paragraph{Demands on Primitives}
+On unlifted base types, such as unboxed integers, there are two demands,
+$ID$ and $BOT$, with the following semantics
+
+
+\begin{align}
+ID \ x \ &= \ x \\
+BOT \ x \ &= \ \bot
+\end{align}
+
+
+When an expression is in a $BOT$ context it means that non-termination is
+inevitable. You can safely evaluate an expression in this context because there
+is no danger of \emph{introducing} non-termination that is not already present.
+
+\paragraph{Demands on Lifted Types} Haskell's non-strict semantics means that
+most types we encounter are \emph{lifted} types.  Lifted types represent
+possibly unevaluated values. Given a demand $\pi$ on $D$, we can form two
+possible demands on $D_{\bot}$, $\pi!$ and $\pi?$; strict lift and lazy lift
+respectively. To paraphrase Kubiak et al.: $\pi!$ means we will definitely need
+the value demanded by this projection, and we will need $\pi$'s worth of it
+\citep{kubiak}. $\pi?$ does not tell us whether we need the value or not, but if
+we \emph{do} need the value, we will need it to satisfy $\pi$'s demand.
+
+\paragraph{Demands on Products} A projection representing a demand on a product
+can be formed by using the $\otimes$ operator with the following semantics
+
+\begin{align*}
+\langle \pi_{1} \otimes \dots \otimes \pi_{n} \rangle \ \bot &= \bot \\
+\langle \pi_{1} \otimes \dots \otimes \pi_{n} \rangle \ 
+\langle x_{1}, \dots, x_{n} \rangle &= \langle \pi_{1} x_{1}, \dots, \pi_{n} x_{n} \rangle
+\end{align*}
+
+\paragraph{Demands on Sums} If projections are functions on a domain, then
+$\oplus$, the operator that forms projections on sum-types performs the case-analysis.
+
+\begin{align*}
+[ID_{True} \oplus ID_{False}]  \ True &= True \\
+[ID_{True} \oplus BOT_{False}] \ False &= \bot
+\end{align*}
+
+\begin{figure}
+\begin{align*}
+    d ::=&\ BOT              & \text{Bottom (hyperstrict)} \\
+        |&\ ID               & \text{Top (the identity)} \\
+        |&\ \langle d_{1} \otimes d_{2} \dots \otimes d_{n} \rangle   & \text{Products} \\ 
+        |&\ [d_{1} \oplus d_{2} \dots \oplus d_{n}]    & \text{Sums} \\ 
+        |&\ \mu\beta . d     & \text{Recursive Demands} \\
+        |&\ d?               & \text{Strict Lift} \\
+        |&\ d!               & \text{Lazy Lift}
+\end{align*}
+\caption{Abstract Syntax for Contexts of Demand}
+\label{fig:ContextAST}
+\end{figure}
+
+
+Figure \ref{fig:ContextAST} presents a suitable abstract syntax for projections
+representing demand.  This form was introduced by Kubiak et al. and used in
+Hinze's work on projection-based analyses \citep{kubiak, hinze1995projection}.
+We have omitted the details on the representation of context variables (for
+polymorphic demands), for a comprehensive discussion we suggest Chapter 6 of Hinze's
+dissertation \citep{hinze1995projection}.
+
+In short, projections representing demand give us information about how defined
+a value must be to satisfy a function's demand on that value. Knowing that a
+value is definitely needed, and to what degree, allows us to evaluate the value
+before entering the function.
+
+\subsection*{Example Projections}
+
+Because our primitives can be modelled by a flat domain (just $ID$ and $BOT$),
+our lattice of projections corresponds with the two-point domain used in
+abstract interpretation.
+
+\hfill$\Box$
+
+For pairs of primitive values, possible contexts include:
+\begin{align}
+[\langle ID? \otimes ID? \rangle] \label{IDPairs} \\
+[\langle ID! \otimes ID? \rangle] \label{FSTPairs}
+\end{align}
+
+
+As Haskell's types are sums of products, pairs are treated as sums with only
+one constructor.  For product types each member of the product is lifted.
+Context \ref{IDPairs} is the top of the lattice for pairs, accepting all
+possible pairs. Context \ref{FSTPairs} requires that the first member be
+defined but does not require the second element. This is the demand that
+\verb-fst- places on its argument.
+
+\hfill$\Box$
+
+For polymorphic lists there are 7 principal contexts; 3 commonly occurring contexts are:
+
+\begin{align}
+    \mu\beta.&[ID \oplus \langle \gamma? \otimes \beta?\rangle] \label{IDList} \\
+    \mu\beta.&[ID \oplus \langle \gamma? \otimes \beta!\rangle] \label{FINList} \\
+    \mu\beta.&[ID \oplus \langle \gamma! \otimes \beta!\rangle] \label{FULLList}
+\end{align}
+
+
+Here $\mu$ binds the name for the `recursive call' of the projection and
+$\gamma$ is used to represent an appropriate demand for the element type of the
+list.  An important point is that this representation for recursive contexts
+restricts the representable contexts to \emph{uniform projections}: projections
+that define the same degree of evaluation on each of their recursive components
+as they do on the structure as a whole. The detailed reason for this
+restriction is given on page 89 of Hinze \citep{hinze1995projection}. This
+limitation does not hinder the analysis significantly as many functions on
+recursive structures are themselves uniform.
+
+With this in mind Context \ref{IDList} represents a lazy demand on the list,
+Context \ref{FINList} represents a \emph{tail strict} demand, and Context
+\ref{FULLList} represents a \emph{head and tail} strict demand on the list.
+
+\hfill$\Box$
+
+It will be useful to have abbreviation for a few of the contexts on lists. These
+abbreviation are presented in Figure \ref{contexts}.
+
+\begin{figure}[h!]
+\begin{itemize}
+    \item[] ID: accepts all lists
+    \item[] T (tail strict): accepts all finite lists
+    \item[] H (head strict): accepts lists where the head is defined
+    \item[] HT: accepts finite lists where every member is defined
+\end{itemize}
+\caption{Four contexts on lists as described in \citep{wadler1987projections}.}
+\label{contexts}
+\end{figure}
+
+We can now say more about the strictness properties of \verb'append'. The
+strictness properties of a function are presented as a \emph{context
+transformer} \citep{hinze1995projection}. 
+
+\begin{align*}
+    &append(ID) &\rightarrow &&ID!&;ID? \\
+    &append(T)  &\rightarrow &&T!&;T! \\
+    &append(H)  &\rightarrow &&H!&;H? \\
+    &append(HT) &\rightarrow &&HT!&;HT!
+\end{align*}
+
+This can be read as ``If the demand on the result of \verb-append- is $ID$
+then the first argument is strict with the demand $ID$ and the second
+argument is lazy, but if it \emph{is} needed, it is with demand $ID$.
+
+\hfill$\Box$
+
+Following Hinze \citep{hinze1995projection} we construct projections
+for every user-defined type. Each projection represents a
+specific strategy for evaluating the structure, as we shall define in section
+\ref{sec:proAndStrat}.  This provides us with the ability to generate
+appropriate parallel strategies for arbitrary types. Using a
+projection-based strictness analysis, we avoid the exponential blowup
+of domains required for abstract interpretation.

@@ -49,12 +49,31 @@ years of work in the area of implicit parallelism \citep{hogen1992automatic,
 PFPAnIntro, jones1993implicit} however we feel that many of our techniques
 would transfer well to other language paradigms.
 
-% \subsection{Contribution}
+This work argues that static analysis is necessary but not sufficient for the
+automatic exploitation of implicit parallelism. We argue that \emph{some} form
+of runtime feedback is necessary to better utilise the parallelism that is
+discovered via static analysis.
+
+\subsection{Contribution}
 
 The primary contribution of this thesis is to demonstrate that using search
-based on dynamic execution of the parallelised program is a robust way to help
-diminish the \emph{granularity} problem that is difficult for static analysis
-alone.  We show that for some programs, the combination of search and static
-analysis can achieve speed-ups without the need for programmer intervention.
+based on dynamic execution of an automatically parallelised program is a robust
+way to help diminish the \emph{granularity} problem that is difficult for
+static analysis to overcome.
+
+Our contributions can be seen as follows:
+
+\begin{itemize}
+    \item A method to automatically derive parallel strategies from a
+            \emph{demand context}
+    \item A novel use of heuristic search techniques in representing the
+            possible parallelism in a program as a multi-dimensional search space
+    \item The use of runtime profiles to \emph{disable} automatically introduced
+            parallelism in a program
+\end{itemize}
+
+We show that for some programs, the combination of
+search and static analysis can achieve speed-ups without the need for
+programmer intervention.
 
 % Additionally we show that runtime profile data is not necessary to utilise feedback directed improvement: we show improvements based on overall runtime without `peeking' into the runtime system.
