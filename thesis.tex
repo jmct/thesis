@@ -115,16 +115,18 @@
 
     \input{Static-Analysis/Preamble.tex}
 
-    \section{Defunctionalisation (or Higher-Order Specialisation)}
-    \input{Static-Analysis/Defunctionalisation.tex}
-
     \section{Strictness Analysis}
     \input{Static-Analysis/StrictnessAnalysis.tex}
 
     \section{Expressing Need, Strategically}
     \input{Static-Analysis/StrategyDerivation.tex}
     
-\chapter{Bitstring Search}
+\chapter{Experimental Platform}
+
+    \section{Defunctionalisation (or Higher-Order Specialisation)}
+    \input{Static-Analysis/Defunctionalisation.tex}
+
+\chapter{Run-time Directed Search}
 
     This chapter will talk about the work on blind-search with Simon.
 
@@ -143,11 +145,26 @@
     \label{sec:blind-Conclusion}
     \input{Blind/Conclusions.tex}
 
-\chapter{Informed Search}
+\chapter{Profile Directed Search}
 
     New things here.
     \label{sec:informed-search}
     \input{Informed/iip.tex}
+
+
+\chapter{Future Directions}
+
+    \section{Specialising on \underline{\hspace{2cm}}}
+
+    \section{Hybrid Approaches}
+
+        We have presented our work as being fully automated and requiring no
+        intervention by the programmer but if we loosen that requirement on
+        our technique we may be able to find a fruitful `middle-ground' between
+        fully automated parallelism and programmer effort.
+
+    \section{Automating Pipeline Parallelism}
+
 
 \chapter{Conclusions}
 
