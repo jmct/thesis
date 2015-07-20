@@ -1,0 +1,54 @@
+Before we discuss the techniques used for disabling the parallelism that is too
+costly, we must first discuss \emph{how} we determine which \verb|par| sites
+are not worthwhile.  This involves recording a significant amount of runtime
+information and a method for safely switching off the \verb-par- annotations.
+
+As mentioned earlier, our runtime system is designed in the tradition of
+projects like GranSim \citep{gransim}. The goal is to have as much control of
+the execution substrate as possible. This allows us to investigate certain
+trade-offs while ensuring that we minimise confounding variables.
+
+\subsection*{Logging}
+
+The runtime system maintains records of the following global statistics:
+
+    \begin{itemize}
+        \item Number of reduction cycles
+        \item Number of sparks
+        \item Number of blocked threads
+        \item Number of active threads
+    \end{itemize}
+
+These statistics are useful when measuring the overall performance of a
+parallel program, but tell us very little about the usefulness of the threads
+themselves.
+
+In order to ensure that the iterative feedback system is able to determine the
+overall `health' of a thread, it is important that we collect some statistics
+pertaining to each individual thread. We record the following metrics for each
+thread:
+
+    \begin{itemize}
+        \item Number of reduction cycles
+        \item Number of sparks generated
+        \item Number of threads blocked by this one
+        \item Which threads have blocked the current thread
+    \end{itemize}
+
+This allows us to reason about the productivity of the threads themselves.  An
+ideal thread will perform many reductions, block very few other threads, and be
+blocked rarely. A `bad' thread will perform few reductions and be blocked for
+long periods of time.
+
+\subsection{Adjusting the Cost of Parallelism}
+
+Because our simulator abstracts away from many of the bookkeeping details
+of the runtime system the creation and management of a thread is very close
+to free. In fact, the creation of a parallel task only costs the time
+of the \verb|par| function itself! Only a handful of instructions!
+
+This is clearly too optimistic. In order to better model the fact that
+creating and managing parallel tasks incurs \emph{real} cost, we must
+implement a method of simulating this overhead.
+
+\todoinline{Writer more here and show plots of different simulated overheads}

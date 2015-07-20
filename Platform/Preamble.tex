@@ -1,0 +1,58 @@
+Our discussion so far has simply assumed that there is a suitable implementation
+of the compiler and runtime system for F-Lite. In this chapter we discuss the
+actual implementation.
+
+Compilers for functional languages are not new. More importantly,
+implementations of functional compilers have been described in detail in the
+literature and provide a strong foundation for us to build upon. Most of what
+we have implemented is standard form for the compilers of lazy languages and
+apart from the automatic derivation of strategies detailed in the last chapter
+our contribution in the implementation is the incorporation of runtime
+feedback.
+
+For our compiler and runtime system we have opted to use a variant of the
+$G$-Machine \tocite{lazyML} that compiles F-lite programs to bytecode that is
+then executed/interpreted by a virtual machine. While more efficient methods of
+compilation are known (see the STG-Machine and its improvements \tocite{STG
+paper, fast curry, etc.}) an interpreter works for our purposes because we aim
+to \emph{simulate} parallel execution. The use of simulation for profiling,
+debugging, and analysing parallel programs is not new \tocite{GranSim and
+Colin's quasi}, it provides a few important benefits:
+
+\begin{enumerate}
+    \item Avoids non-determinism introduced by the operating system scheduler
+    \item We are able to log information without effecting the runtime of the
+            program
+    \item Ability to use simple memory management schemes without worry of
+            thread-safety
+\end{enumerate}
+
+Of course while simulation makes certain implementation tasks simpler it is
+only worthwhile if there is some correspondence between the simulated runtime
+and the actual runtime when run on a truly parallel system (such as GHC).
+Luckily, the work on GranSim and on the Quasi-Parallel evaluator for GRIP
+\tocite{GRIP?} show that this is indeed the case.
+
+Being freed from the non-determinism of the OS scheduler is a significant
+benefit for an iterative compiler. This allows the compiler to assume that a
+single execution is representative of the current program. With non-determinism
+in the running of the program, the compiler would have to perform repeat
+executions \emph{for each iteration}.  This greatly increases the cost of
+iterative compilation.
+
+\subsection*{Plan of the Chapter}
+
+As mentioned in Section \ref{sec:projections}, a higher-order analysis that is
+suitable for the derivation of parallel strategies does not yet exist\footnote{
+And is unfortunately out of the scope of this thesis.}. Section
+\ref{sec:defunctionalisation} describes the method we use to convert our
+higher-order input programs into a first-order equivalent. Next, in Section
+\ref{sec:hinzeImplementation} we provide a concrete implementation of the Hinze
+analysis and show some results from applying the analysis to F-lite programs.
+In Section \ref{sec:parPlacement} we show different methods of transforming the
+input program in order to introduce parallelism at the top level\footnote{We
+have derived our parallel strategies already, now we get to use them}. Section
+\ref{sec:logging} presents the runtime statistics that we are able to measure
+in our runtime system. Lastly, Section \ref{sec:parSwitching} discusses the
+method we use to incorporate the runtime profile data along with an alternative
+method that may be useful in future work. 

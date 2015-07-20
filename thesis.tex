@@ -128,20 +128,42 @@
     \input{Static-Analysis/Preamble.tex}
 
     \section{Two-Point Forward Analysis}
+    \label{sec:twoPoint}
+
     \section{Four-Point Forward Analysis}
+    \label{sec:fourPoint}
 
     \section{Projection-Based Analysis}
-    \input{Static-Analysis/Projections.tex}
     \label{sec:projections}
+    \input{Static-Analysis/Projections.tex}
 
 
     \section{Expressing Need, Strategically}
+    \label{sec:derivations}
     \input{Static-Analysis/StrategyDerivation.tex}
     
 \chapter{Experimental Platform}
 
+    \input{Platform/Preamble.tex}
+
     \section{Defunctionalisation (or Higher-Order Specialisation)}
-    \input{Static-Analysis/Defunctionalisation.tex}
+    \label{sec:defunctionalisation}
+    \input{Platform/Defunctionalisation.tex}
+
+    \section{An Implementation of Hinze's Projection-Based Analysis}
+    \label{sec:hinzeImplementation}
+    
+    \section{Placement of Top-level Parallelism}
+    \label{sec:parPlacement}
+    \input{Platform/Oracles.tex}
+
+    \section{Keeping Track of all the Threads}
+    \label{sec:logging}
+    \input{Platform/Logging.tex}
+
+    \section{Trying for \texttt{par}: Switching off Parallelism}
+    \label{sec:parSwitching}
+    \input{Platform/Switching.tex}
 
 \chapter{Run-time Directed Search}
 

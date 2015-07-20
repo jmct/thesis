@@ -1,0 +1,36 @@
+We are now able to describe the last piece of the puzzle. Once we have
+recorded our runtime feedback we must then \emph{modify} the amount of
+parallelism in the program. There are at least two suitable methods for
+accomplishing this task:
+
+    \begin{enumerate}
+        \item Have the compiler use the feedback before bytecode generation
+            and transform the program accordingly
+        \item Incorporate the feedback by modifying the bytecode itself
+    \end{enumerate}
+
+We have chosen the latter option as it suits our needs and provides sufficient
+foundation for further exploration. That being said there is an explicit
+trade-off that has occured\todo{wording}.
+
+\subsection{Switchable \texttt{par}s}
+\label{sec:switchPar}
+
+    In order to take advantage of runtime profiles we must be able to adapt the
+compilation based on any new information.  One choice is to recompile the
+program completely and create an oracle that uses the profiles. This way the
+oracle can better decide which subexpressions to parallelise. Our approach is to
+modify the runtime system so that it is able to \emph{disable} individual
+\verb-par- annotations. When a specific \verb=par= in the source program is
+deactivated it no longer creates any parallel tasks while still maintaining the
+semantics of the program.  The method has two basic steps:
+
+    \begin{itemize}
+        \item \verb=par='s are identified via the $G$-Code instruction
+                \verb=PushGlobal "par"= and each par is given a unique identifier.
+        \item When a thread creates the heap object representing the call to
+                \verb=par= the runtime system looks up the status of the \verb=par= using its
+                unique identifier. If the \verb=par= is `on' execution follows as normal. If the
+                \verb=par= is `off' the thread will ignore the $G$-Code instruction \verb=Par=.
+    \end{itemize}
+
