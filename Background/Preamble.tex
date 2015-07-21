@@ -3,6 +3,209 @@ functional language, both implicit and explicit. We do this so that
 we may better understand the trade-offs we accept when utilising
 implicit parallelism and the difficulties involved.
 
+Before diving into parallel functional programming it is important to
+understand how functional programs are evaluated. Because functional languages
+can be seen as enriched lambda calculi, we can study different evaluation
+orders\footnote{Many texts describe them as \emph{evaluation strategies}.  We
+use the term order to avoid confusion with parallel strategies, which are a
+different concept that play a central role in this thesis.} by demonstrating
+them on a simple lambda calculus. There are four main evaluation orders that
+can be used with the lambda calculus:
+
+    \begin{enumerate}
+        \item Call-by-value
+        \item Call-by-name
+        \item Call-by-need
+        \item Normal-order
+    \end{enumerate}
+
+The differences between the first 3 can be easily illustrated using the
+following function definitions:
+
+\begin{align*}
+    sqr \ x \  &= \  x * x \\
+    bot \ \_ \ &= \  \bot
+\end{align*}
+
+Now assume we want to evaluate the expressions \<sqr (5*5)\> and \<bot (5*5)\>.
+We can manually reduce each of these expressions using each of the evaluation
+orders.
+
+\paragraph{Call-by-value}
+
+\begin{figure}[!h]
+\centering
+\begin{multicols}{2}
+\noindent
+\begin{align*}
+     &sqr\ (5*5) \\
+  =\ &sqr\ 25 \\
+  =\ &let\ x\ =\ 25\ in\ x * x \\
+  =\ &25 * 25 \\
+  =\ &625
+\end{align*}
+\begin{align*}
+     &bot\ (5*5) \\
+  =\ &bot\ 25 \\
+  =\ &let\ x\ =\ 25\ in\ \bot \\
+  =\ &\bot
+\end{align*}
+\end{multicols}
+\caption{Call-by-value reduction}
+\label{fig:call-by-value}
+\end{figure}
+
+Note that the argument to \<sqr\> and \<bot\> is evaluated \emph{before}
+we enter the function's body. 
+
+\pagebreak
+
+\begin{figure}[!h]
+\centering
+\begin{multicols}{2}
+\noindent
+\begin{align*}
+     &sqr\ (5*5) \\
+  =\ &let\ x \  =\ (5*5)\ in\ x * x \\
+  =\ &let\ x \  =\ (5*5)\ in\ (5*5) * (5*5) \\
+  =\ &25 * (5*5) \\
+  =\ &25 * 25 \\
+  =\ &625
+\end{align*}
+\begin{align*}
+     &bot\ (5*5) \\
+  =\ &let\ x\ =\ 5*5\ in\ \bot \\
+  =\ &\bot
+\end{align*}
+\end{multicols}
+\caption{Call-by-name reduction}
+\label{fig:call-by-name}
+\end{figure}
+
+\paragraph{Call-by-name} Here reduction delays the evaluation of a function's
+argument until its use.  However, the result of evaluating a value is not
+shared with other references to that value. This results in computing \<5*5\>
+twice.
+
+\begin{figure}[!h]
+\centering
+\begin{multicols}{2}
+\noindent
+\begin{align*}
+     &sqr\ (5*5) \\
+  =\ &let\ x\ =\ 5 * 5\ in\ x * x \\
+  =\ &let\ x\ =\ 25\ in\ x * x \\
+  =\ &25 * 25 \\
+  =\ &625
+\end{align*}
+\begin{align*}
+     &bot\ (5*5) \\
+  =\ &let\ x\ =\ 5*5\ in\ \bot \\
+  =\ &\bot
+\end{align*}
+\end{multicols}
+\caption{Call-by-need reduction}
+\label{fig:call-by-need}
+\end{figure}
+
+\paragraph{Call-by-need} This is designed to avoid the duplication of work that
+is often a result of call-by-name evaluation. Notice that in this evaluation
+\<(5*5)\> is bound to \<x\> as before but the result of computing the value of
+\<x\> the first time \emph{updates} the binding. This is why call-by-need is
+often referred to as call-by-name \emph{with sharing}, or \emph{lazy}.
+
+An important point is that for languages without arbitrary side-effects call-by-name
+and call-by-need are semantically equivalent. Call-by-need is an optimisation in the
+\emph{implementation} of reduction.
+
+
+\begin{figure}[!h]
+\centering
+\begin{multicols}{2}
+\noindent
+\begin{align*}
+     &sqr\ (5*5) \\
+  =\ &let\ x\ =\ 5 * 5\ in\ x * x \\
+  =\ &let\ x\ =\ 5 * 5\ in\ 25 * x \\
+  =\ &let\ x\ =\ 5 * 5\ in\ 25 * 25 \\
+  =\ &625
+\end{align*}
+\begin{align*}
+     &bot\ (5*5) \\
+  =\ &\bot
+\end{align*}
+\end{multicols}
+\caption{Normal order reduction}
+\label{fig:normal-order}
+\end{figure}
+
+\paragraph{Normal order} This method of evaluation is the only method that
+obeys the semantic property that \<\(\lambda\) \_ \to \(\bot\) \(\equiv \
+\bot\)\>.  This is because normal order reduction will evaluate under a lambda
+\tocite{Abramsky's lazy lambda calculus paper}.
+
+Of the four, only the first three are commonly used as the basis for
+programming languages. Most languages are call-by-value, this includes
+functional languages such as Scheme, OCaml, SML, and Idris. Fewer languages
+are call-by-name, Algol 60 being the most notable case. Scala, while being
+call-by-value by default, does allow programmers to specify that some
+functions use call-by-name. Lastly, call-by-need is used by Haskell, Clean,
+Miranda, and our own F-lite.
+
+\todoinline{Explain Church-Rosser, at least a little bit}
+
+The Church-Rosser Theorem gives us a profound guarantee with our
+functional programs: Given a valid expression, there is only one normal form
+for the expression. This is true regardless of the order of reductions carried
+out (given that they are valid reductions). So given a program, there can be
+many possible reduction orders that all lead to the same result. What does this
+mean for sequential computation? Call-by-need evaluation For lazy languages,
+such as Haskell, this means that there is no fear of only evaluating
+expressions as they are needed and terminating with an incorrect result. There
+is the following caveat: while there is \emph{only one} normal form, it is
+possible that there could be a reduction order that does not terminate.
+
+With the Church-Rosser theorem in hand does the evaluation order we choose
+affect our aims with regard to automatic parallelisation? Systems designed to
+take advantage of implicit parallelism have been written for languages that use
+each of the three main evaluation orders \tocite{We can cite Jens Nicolay here
+and some loop unrolling method too}. We have decided on call-by-need semantics
+because it emphasises purity and has the sharing of computation built into the
+execution model. The focus on purity allows the compiler to take certain
+liberties with program transformation that may not otherwise be valid
+\citep{jones1998transformation}. In the case of auto-parallelisation, we
+are able to know that we could only alter the semantics of a program
+by introducing non-termination. As we will see in Chapter \ref{chap:discovery}
+there are methods to ensure we avoid this.
+
+\paragraph{An aside} Many languages, including functional languages, that use
+call-by-value semantics also provide the ability to perform arbitrary side
+effects and mutation. This greatly hampers the feasibility of implicit
+parallelisation because the \emph{sequence} of side-effects can alter the
+semantics of the program. While programmers \emph{could} write pure programs
+that do not rely on shared state, it is not enforced by the compiler as it is
+for languages like Haskell. That being said there are techniques that can be
+used to find safe parallelism in strict languages. \tocite{Matt Might's paper
+at least}
+
+
+\subsection*{Plan of the Chapter}
+
+The remainder of the chapter is organised as follows. We begin in Section
+\ref{sec:FPandPar} by discussing the benefits that functional languages provide
+for parallelisation, we will focus on call-by-need (or lazy) semantics. We then
+explore the various methods for the \emph{implementation} of lazy languages for
+sequential machines in Section \ref{sec:SequentialMachines}. Understanding how
+lazy languages can be executed we will then show in Section
+\ref{sec:ParallelMachines} how the techniques can be extended to allow for
+parallel execution\footnote{One of the nice things about lazy languages is that
+this step is not too difficult!}. We then turn our attention to the
+programmer's view of parallelism in a lazy language. Section
+\ref{sec:Approaches} explores the current state of the art for parallel
+programming (both explicit and implicit parallelism) in a lazy functional
+language. We explore the explicitly parallel techniques as well because they
+inform the way we approach implicit parallelism.
+
 
 General overview of why functional programming is considered `good' for
 parallelism \citep{hughes:thesis}.

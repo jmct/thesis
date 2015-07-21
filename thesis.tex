@@ -32,6 +32,8 @@
 \usepackage{siunitx}
 \usepackage{etoolbox}
 
+%%%% Haskell Style by Prof. Chakravarty %%%%
+\usepackage{haskell}
 
 \newcommandx{\tocite}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{Cite: #2}}
 \newcommandx{\todoinline}[1]{\todo[inline]{#1}}
@@ -82,7 +84,7 @@
 %% Tufte-LaTeX doesn't show subsections in the ToC or number the sections
 %% these two commands fix each one respectively
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\setcounter{tocdepth}{1}
+\setcounter{tocdepth}{1}
 \setcounter{secnumdepth}{2}
 
 \begin{document}
@@ -118,17 +120,28 @@
     \input{Background/Preamble.tex}
 
     \section{Functional Programming and Parallelism}
+    \label{sec:FPandPar}
     \input{Background/FuncProgPar.tex}
 
+    \section{Sequential Reduction Machines}
+    \label{sec:SequentialMachines}
+    \input{Background/SequentialMachines.tex}
+
+    \section{Parallel Reduction Machines}
+    \label{sec:ParallelMachines}
+    \input{Background/ParallelMachines.tex}
+
     \section{Approaches to Parallelism}
+    \label{sec:Approaches}
     \input{Background/Approaches.tex}
     
     %Review of Graph Reduction. Needs to focus more on the G-Machine and our
     %implementation. Will we convert to spineless G-Machine?
-    \section{Graph Reduction}
+    \section{History of Graph Reduction}
     \input{Background/funcProgGraphRedctn.tex}
 
 \chapter{The Discovery and Placement of Safe Parallelism}
+\label{chap:discovery}
 
     \input{Static-Analysis/Preamble.tex}
 
