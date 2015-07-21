@@ -1,0 +1,66 @@
+Research into parallelism in lazy purely functional languages has a long
+history that dates back to the early work on lazy functional languages
+\citep{hughes:thesis, vGMachine, dutchBook, SPJ:PIFPL}\footnote{For a
+comprehensive review we suggest \citep{hammond2000research}}. 
+
+
+We are able to illustrate the issue with a simple example.  The two reductions
+of $sqr$ in Figure \ref{fig:eagerandlazy} illustrate the key differences
+between lazy evaluation and eager, or strict, evaluation
+
+
+\begin{figure}[!h]
+\centering
+\begin{multicols}{2}
+\noindent
+\begin{align*}
+     \noalign{$\text{\underline{Eager Evaluation}}$}
+     &sqr\ (5*5) \\
+  =\ &sqr\ 25 \\
+  =\ &let\ x\ =\ 25\ in\ x * x \\
+  =\ &25 * 25 \\
+  =\ &625
+\end{align*}
+\begin{align*}
+     \noalign{$\text{\underline{Lazy Evaluation}}$}
+     &sqr\ (5*5) \\
+  =\ &let\ x\ =\ 5*5\ in\ x * x \\
+  =\ &let\ x\ =\ 25\ in\ x * x \\
+  =\ &25 * 25 \\
+  =\ &625
+\end{align*}
+\end{multicols}
+\caption{Eager and Lazy evaluation order for squaring a value.}
+\label{fig:eagerandlazy}
+\end{figure}
+
+In the case of eager evaluation the argument to $sqr$ is evaluated
+\emph{before} entering the function body. For lazy evaluation the argument is
+passed as a suspended computation that is only \emph{forced} when the value is
+needed (in this case when $x$ is needed in order to multiply $x*x$). Notice
+that under lazy evaluation $5*5$ is only evaluated once, even though it is
+used twice in the function. This is due to the \emph{sharing} of the result.
+This is why laziness is often described as call-by-need \emph{with sharing}
+\citep{hammond2000research}.
+
+\medskip
+
+In the case of $sqr$ in Figure \ref{fig:eagerandlazy}, both eager and lazy
+evaluation required the same number of \emph{reductions} to compute the final
+result. This is not always the case; take the following function definitions
+\begin{align*}
+    &bot \ :: \ Int\ \rightarrow\ Int \\
+    &bot\ x\ =\ x + bot \\
+    \quad & \\
+    &const\ :: \ a\ \rightarrow\ b\ \rightarrow\ a \\
+    &const\ x\ y\ =\ x
+\end{align*}
+\label{fig:botAndConst}
+
+In an eager language the expression $const\ 5\ bot$ will never terminate,
+while it would return $5$ in a lazy language as only the first argument
+to $const$ is actually \emph{needed} in its body.
+
+\medskip
+
+

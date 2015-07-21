@@ -1,6 +1,8 @@
 \documentclass[justified, twoside, a4paper, symmetric]{tufte-book}
 
-\title{Implicit Parallelism: Trying Again}
+\title{Improving \\
+       Implicit  \\
+       Parallelism}
 
 \author{Jos\'{e} Manuel Calder\'{o}n Trilla}
 
@@ -116,7 +118,10 @@
     \input{Background/Preamble.tex}
 
     \section{Functional Programming and Parallelism}
-    \input{Background/parFuncProg.tex}
+    \input{Background/FuncProgPar.tex}
+
+    \section{Approaches to Parallelism}
+    \input{Background/Approaches.tex}
     
     %Review of Graph Reduction. Needs to focus more on the G-Machine and our
     %implementation. Will we convert to spineless G-Machine?
@@ -126,6 +131,12 @@
 \chapter{The Discovery and Placement of Safe Parallelism}
 
     \input{Static-Analysis/Preamble.tex}
+
+    \section{Motivation}
+    \input{Static-Analysis/Motivation.tex}
+
+    \section{Overview}
+    \input{Static-Analysis/Overview.tex}
 
     \section{Two-Point Forward Analysis}
     \label{sec:twoPoint}
