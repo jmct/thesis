@@ -1,0 +1,14 @@
+We propose a new technique for exploiting the inherent parallelism in lazy
+functional programs. Known as \emph{implicit parallelism}, the goal of writing
+a sequential program and having the compiler improve its performance by
+determining what can be executed in parallel has been studied for many years.
+Our technique abandons the idea that a compiler should accomplish this feat in
+`one shot' with static analysis and instead allow the compiler to
+\emph{improve} upon the static analysis iterative feedback.
+
+We demonstrate that iterative feedback can be relatively simple when the source
+language is a lazy purely functional programming language. We present two main
+methods of feedback to the compiler: \emph{Black box} feedback and
+\emph{profile directed} feedback. These allow the compiler to base its
+adjustments on overall runtime alone and with access to runtime profile data
+respectively.

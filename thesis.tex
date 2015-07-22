@@ -1,10 +1,15 @@
-\documentclass[justified, twoside, a4paper, symmetric]{tufte-book}
+%\documentclass[justified, twoside, a4paper, symmetric]{tufte-book}
+\documentclass[dottedtoc, headinclude, footinclude=true, a4paper]{scrreprt}
 
-\title{Improving \\
-       Implicit  \\
-       Parallelism}
+\title{Improving Implicit Parallelism}
 
 \author{Jos\'{e} Manuel Calder\'{o}n Trilla}
+
+\usepackage[pdfspacing]{classicthesis}
+
+%%%%%% set the spacing
+\usepackage{setspace}
+\onehalfspacing
 
 \usepackage{graphicx}
 \usepackage{caption}
@@ -18,19 +23,22 @@
 \usepackage{alltt}
 \usepackage{color}
 
-%%%% TODO Package %%%%
+%%%% TODO Package %%%% 
 \usepackage[colorinlistoftodos,prependcaption,textsize=small]{todonotes}
+\let\marginpar\oldmarginpar
+
 \usepackage{xargs}
 \usepackage{amsmath}
 \usepackage{fancyvrb}
 \usepackage{latexsym}
 \usepackage{textcomp}
-\usepackage{cite}
+%\usepackage{cite}
 \usepackage{multicol}
 \usepackage{multirow}
 \usepackage{url}
 \usepackage{siunitx}
 \usepackage{etoolbox}
+\usepackage{appendix}
 
 %%%% Haskell Style by Prof. Chakravarty %%%%
 \usepackage{haskell}
@@ -47,7 +55,7 @@
 
 % Tufte-book imports natbib, so we can use \citet and \citep without
 % importing the package
-%\usepackage[round]{natbib}
+\usepackage[square]{natbib}
 
 \newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
 
@@ -84,8 +92,23 @@
 %% Tufte-LaTeX doesn't show subsections in the ToC or number the sections
 %% these two commands fix each one respectively
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\setcounter{secnumdepth}{2}
+\usepackage{tocloft}
 \setcounter{tocdepth}{1}
-\setcounter{secnumdepth}{2}
+
+\makeatletter
+
+\newcommand\frontmatter{%
+    \cleardoublepage
+  %\@mainmatterfalse
+  \pagenumbering{roman}}
+
+\newcommand\mainmatter{%
+    \cleardoublepage
+ % \@mainmattertrue
+  \pagenumbering{arabic}}
+
+\makeatother
 
 \begin{document}
 
@@ -95,9 +118,18 @@
 
 \maketitle
 
+\chapter*{Abstract}
+\input{FrontMatter/Abstract.tex}
+
 \tableofcontents
 \listoffigures
 \listoftables
+
+\chapter*{Acknowledgements}
+\input{FrontMatter/Acknowledgements.tex}
+
+\chapter*{Declaration}
+\input{FrontMatter/Declaration.tex}
 
 %% Now we start the whole thing off!
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -114,6 +146,10 @@
     \input{Intro/Overview.tex}
 
     \section{Thesis Roadmap}
+
+\part{The Idea}
+
+\chapter{Bird's eye view of our Technique}
 
 \chapter{Parallelism in a Functional Language}
 
@@ -140,7 +176,9 @@
     \section{History of Graph Reduction}
     \input{Background/funcProgGraphRedctn.tex}
 
-\chapter{The Discovery and Placement of Safe Parallelism}
+\part{The Discovery and Placement of Safe Parallelism}
+
+\chapter{Finding Safe Parallelism}
 \label{chap:discovery}
 
     \input{Static-Analysis/Preamble.tex}
@@ -162,10 +200,12 @@
     \input{Static-Analysis/Projections.tex}
 
 
+\chapter{Deriving Parallel Strategies}
     \section{Expressing Need, Strategically}
     \label{sec:derivations}
     \input{Static-Analysis/StrategyDerivation.tex}
     
+\part{Implementation}
 \chapter{Experimental Platform}
 
     \input{Platform/Preamble.tex}
@@ -215,16 +255,15 @@
     \input{Informed/iip.tex}
 
 
+\part{Conclusions and Future Directions}
 \chapter{Future Directions}
+    \include{Future-Work/Preamble.tex}
 
     \section{Specialising on \underline{\hspace{2cm}}}
+    \include{Future-Work/Specialising.tex}
 
     \section{Hybrid Approaches}
-
-        We have presented our work as being fully automated and requiring no
-        intervention by the programmer but if we loosen that requirement on
-        our technique we may be able to find a fruitful `middle-ground' between
-        fully automated parallelism and programmer effort.
+    \include{Future-Work/Hybrid.tex}
 
     \section{Automating Pipeline Parallelism}
 
@@ -233,9 +272,24 @@
 
     And.... we're done.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%% APPENDICES %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{appendices}
+
+\chapter{Benchmark Programs}
+
+
+\end{appendices}
+
 \listoftodos[Notes]
 
-\backmatter
+\if@openright
+  \cleardoublepage
+\else
+  \clearpage
+\fi
 
 \bibliography{literature}
 \bibliographystyle{plainnat}
