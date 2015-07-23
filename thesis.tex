@@ -135,142 +135,154 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \mainmatter
 
-\chapter{Introduction}
-
+    \chapter{Introduction}
+    \label{chap:intro}
     \input{Intro/Preamble.tex}
     
-    \section{Lazy Languages and Parallelism}
-    \input{Intro/Introduction.tex}
-
-    \section{Overview}
-    \input{Intro/Overview.tex}
-
-    \section{Thesis Roadmap}
+        \section{Lazy Languages and Parallelism}
+        \input{Intro/Introduction.tex}
+    
+        \section{Thesis Roadmap}
+        \input{Intro/Roadmap.tex}
 
 \part{The Idea}
+\label{part:idea}
 
-\chapter{Bird's eye view of our Technique}
+    \chapter{Bird's eye view of our Technique}
+    \label{chap:overview}
+    \input{Overview/Overview.tex}
 
-\chapter{Parallelism in a Functional Language}
-
+    \chapter{Parallelism in a Functional Language}
+    \label{chap:background}
     \input{Background/Preamble.tex}
-
-    \section{Functional Programming and Parallelism}
-    \label{sec:FPandPar}
-    \input{Background/FuncProgPar.tex}
-
-    \section{Sequential Reduction Machines}
-    \label{sec:SequentialMachines}
-    \input{Background/SequentialMachines.tex}
-
-    \section{Parallel Reduction Machines}
-    \label{sec:ParallelMachines}
-    \input{Background/ParallelMachines.tex}
-
-    \section{Approaches to Parallelism}
-    \label{sec:Approaches}
-    \input{Background/Approaches.tex}
     
-    %Review of Graph Reduction. Needs to focus more on the G-Machine and our
-    %implementation. Will we convert to spineless G-Machine?
-    \section{History of Graph Reduction}
-    \input{Background/funcProgGraphRedctn.tex}
+        \section{Functional Programming and Parallelism}
+        \label{sec:FPandPar}
+        \input{Background/FuncProgPar.tex}
+    
+        \section{Sequential Reduction Machines}
+        \label{sec:SequentialMachines}
+        \input{Background/SequentialMachines.tex}
+    
+        \section{Parallel Reduction Machines}
+        \label{sec:ParallelMachines}
+        \input{Background/ParallelMachines.tex}
+    
+        \section{Approaches to Parallelism}
+        \label{sec:Approaches}
+        \input{Background/Approaches.tex}
+        
+        %Review of Graph Reduction. Needs to focus more on the G-Machine and our
+        %implementation. Will we convert to spineless G-Machine?
+        \section{History of Graph Reduction}
+        \input{Background/funcProgGraphRedctn.tex}
 
 \part{The Discovery and Placement of Safe Parallelism}
+\label{part:static}
 
-\chapter{Finding Safe Parallelism}
-\label{chap:discovery}
-
+    \chapter{Finding Safe Parallelism}
+    \label{chap:discovery} 
     \input{Static-Analysis/Preamble.tex}
 
-    \section{Motivation}
-    \input{Static-Analysis/Motivation.tex}
-
-    \section{Overview}
-    \input{Static-Analysis/Overview.tex}
-
-    \section{Two-Point Forward Analysis}
-    \label{sec:twoPoint}
-
-    \section{Four-Point Forward Analysis}
-    \label{sec:fourPoint}
-
-    \section{Projection-Based Analysis}
-    \label{sec:projections}
-    \input{Static-Analysis/Projections.tex}
-
-
-\chapter{Deriving Parallel Strategies}
-    \section{Expressing Need, Strategically}
-    \label{sec:derivations}
-    \input{Static-Analysis/StrategyDerivation.tex}
+        \section{Motivation}
+        \input{Static-Analysis/Motivation.tex}
     
-\part{Implementation}
-\chapter{Experimental Platform}
+        \section{Overview}
+        \input{Static-Analysis/Overview.tex}
+    
+        \section{Two-Point Forward Analysis}
+        \label{sec:twoPoint}
+    
+        \section{Four-Point Forward Analysis}
+        \label{sec:fourPoint}
+    
+        \section{Projection-Based Analysis}
+        \label{sec:projections}
+        \input{Static-Analysis/Projections.tex}
 
+
+    \chapter{Deriving Parallel Strategies}
+    \label{chap:derivation}
+
+        \section{Expressing Need, Strategically}
+        \label{sec:derivations}
+        \input{Static-Analysis/StrategyDerivation.tex}
+    
+\part{Experimental Setup and Results}
+\label{part:implementation}
+
+    \chapter{Experimental Platform} 
+    \label{chap:platform}
     \input{Platform/Preamble.tex}
-
-    \section{Defunctionalisation (or Higher-Order Specialisation)}
-    \label{sec:defunctionalisation}
-    \input{Platform/Defunctionalisation.tex}
-
-    \section{An Implementation of Hinze's Projection-Based Analysis}
-    \label{sec:hinzeImplementation}
     
-    \section{Placement of Top-level Parallelism}
-    \label{sec:parPlacement}
-    \input{Platform/Oracles.tex}
-
-    \section{Keeping Track of all the Threads}
-    \label{sec:logging}
-    \input{Platform/Logging.tex}
-
-    \section{Trying for \texttt{par}: Switching off Parallelism}
-    \label{sec:parSwitching}
-    \input{Platform/Switching.tex}
-
-\chapter{Run-time Directed Search}
-
-    This chapter will talk about the work on blind-search with Simon.
-
-    \section{Introduction}
-    \input{Blind/Intro.tex}
-
-    \section{Implicit Parallelism in Functional Languages}
-    \label{sec:blind-ParFunc}
-    \input{Blind/ParFunc.tex}
-
-    \section{Experimental Setup and Results}
-    \label{sec:blind-Results}
-    \input{Blind/Results.tex}
-
-    \section{Conclusions of Bitstring Searching}
-    \label{sec:blind-Conclusion}
-    \input{Blind/Conclusions.tex}
-
-\chapter{Profile Directed Search}
-
-    New things here.
-    \label{sec:informed-search}
-    \input{Informed/iip.tex}
+        \section{Defunctionalisation (or Higher-Order Specialisation)}
+        \label{sec:defunctionalisation}
+        \input{Platform/Defunctionalisation.tex}
+    
+        \section{An Implementation of Hinze's Projection-Based Analysis}
+        \label{sec:hinzeImplementation}
+        
+        \section{Placement of Top-level Parallelism}
+        \label{sec:parPlacement}
+        \input{Platform/Oracles.tex}
+    
+        \section{Keeping Track of all the Threads}
+        \label{sec:logging}
+        \input{Platform/Logging.tex}
+    
+        \section{Trying for \texttt{par}: Switching off Parallelism}
+        \label{sec:parSwitching}
+        \input{Platform/Switching.tex}
+    
+    \chapter{Run-time Directed Search}
+    \label{chap:blind}
+    
+        This chapter will talk about the work on blind-search with Simon.
+    
+        \section{Introduction}
+        \input{Blind/Intro.tex}
+    
+        \section{Implicit Parallelism in Functional Languages}
+        \label{sec:blind-ParFunc}
+        \input{Blind/ParFunc.tex}
+    
+        \section{Experimental Setup and Results}
+        \label{sec:blind-Results}
+        \input{Blind/Results.tex}
+    
+        \section{Conclusions of Bitstring Searching}
+        \label{sec:blind-Conclusion}
+        \input{Blind/Conclusions.tex}
+    
+    \chapter{Profile Directed Search}
+    \label{chap:prof-search}
+    
+        New things here.
+        \label{sec:informed-search}
+        \input{Informed/iip.tex}
 
 
 \part{Conclusions and Future Directions}
-\chapter{Future Directions}
-    \include{Future-Work/Preamble.tex}
+\label{part:conclusion}
 
-    \section{Specialising on \underline{\hspace{2cm}}}
-    \include{Future-Work/Specialising.tex}
-
-    \section{Hybrid Approaches}
-    \include{Future-Work/Hybrid.tex}
-
-    \section{Automating Pipeline Parallelism}
-
-
-\chapter{Conclusions}
-
-    And.... we're done.
+    \chapter{Future Directions}
+    \label{chap:future}
+    
+        \include{Future-Work/Preamble.tex}
+    
+        \section{Specialising on \underline{\hspace{2cm}}}
+        \include{Future-Work/Specialising.tex}
+    
+        \section{Hybrid Approaches}
+        \include{Future-Work/Hybrid.tex}
+    
+        \section{Automating Pipeline Parallelism}
+    
+    
+    \chapter{Conclusions}
+    \label{chap:conclusions}
+    
+        And.... we're done.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%% APPENDICES %%%%%%%%%%%%%%%%%%%%%%%%%%
