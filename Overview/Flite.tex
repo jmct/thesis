@@ -8,6 +8,8 @@ analysis and transformation. This has been used to great effect in the Glasgow
 Haskell Compiler (GHC) which uses a small core language similar to ours
 \cite{peyton2002secrets, jones1998transformation}. 
 
+\subsection{Why be Lazy?}
+
 Functional languages vary widely in their syntax, features, and type systems,
 but almost all functional languages are either strict (eager) or non-strict
 (and usually lazy) in their evaluation model. It is important to understand the
@@ -162,29 +164,84 @@ Miranda, and our own F-lite.
 
 \todoinline{Explain Church-Rosser, at least a little bit}
 
-The Church-Rosser Theorem gives us a profound guarantee with our
-functional programs: Given a valid expression, there is only one normal form
-for the expression. This is true regardless of the order of reductions carried
-out (given that they are valid reductions). So given a program, there can be
-many possible reduction orders that all lead to the same result. What does this
-mean for sequential computation? Call-by-need evaluation For lazy languages,
-such as Haskell, this means that there is no fear of only evaluating
-expressions as they are needed and terminating with an incorrect result. There
-is the following caveat: while there is \emph{only one} normal form, it is
-possible that there could be a reduction order that does not terminate.
+The reader may have noticed that in our examples above the result of evaluation
+was always the same \emph{when it terminated}, regardless of evaluation order.
+This is an observation of a more general property about rewrite systems known
+as the \emph{confluence}. The lambda calculus was proven to be a confluent
+system by Church and Rosser in 1936 \tocite{The original Church-Rosser paper}.
+When discussing the lambda calculus specifically, it is referred to as the
+Church-Rosser property.
 
-With the Church-Rosser theorem in hand does the evaluation order we choose
-affect our aims with regard to automatic parallelisation? Systems designed to
-take advantage of implicit parallelism have been written for languages that use
-each of the three main evaluation orders \tocite{We can cite Jens Nicolay here
-and some loop unrolling method too}. We have decided on call-by-need semantics
-because it emphasises purity and has the sharing of computation built into the
-execution model. The focus on purity allows the compiler to take certain
-liberties with program transformation that may not otherwise be valid
-\citep{jones1998transformation}. In the case of auto-parallelisation, we
-are able to know that we could only alter the semantics of a program
-by introducing non-termination. As we will see in Chapter \ref{chap:discovery}
-there are methods to ensure we avoid this.
+\defineword{Church-Rosser Property}{The fact that the pure lambda calculus is
+\emph{confluent} means that if there is more than one possible reduction step,
+the choice of reduction does not alter the final result \emph{as long as the
+chosen reduction steps eventually terminate}.}
+
+We can illustrate the ramifications of the property with another simple
+example.  \<const\> is a function that takes two arguments are returns the
+first, \<inf\> is an infinite list of \<1\>s. 
+
+\begin{haskell*}
+    const x y = x \\
+    &\quad&\hfill \\
+    inf = 1 : inf
+\end{haskell*}
+
+The expression \<const ``NF'' inf\> has multiple reducible
+expressions (redexes), but only one normal form (NF): \<``NF''\>.
+
+\begin{figure}[!h]
+\centering
+\begin{multicols}{2}
+\noindent
+\begin{haskell*}
+     && const ``NF'' inf \\
+    &=& const ``NF'' (1:inf) \\
+    &=& const ``NF'' (1:1:inf) \\
+    &=& \(\dots\) \hscom{reduce forever}
+\end{haskell*}
+\begin{haskell*}
+     && const ``NF'' inf \\
+    &=& ``NF''
+\end{haskell*}
+\end{multicols}
+\caption{Eager (left) and Lazy (right) evaluation order for $const$}
+\label{fig:eagerandlazytake}
+\end{figure}
+
+The Church-Rosser property gives us a profound guarantee for our functional
+programs: Given a valid expression, there is only one normal form for the
+expression. This is true regardless of the order of reductions carried out
+(given that the series of reductions actually terminates). So given a program,
+there can be many possible reduction orders that all lead to the same result.
+Additionally, if \emph{any} reduction order terminates, than call-by-need
+evaluation terminates \cite{bird2014thinking}.  What does this mean for
+sequential computation? For lazy languages, such as Haskell, this means that
+there can only be non-termination if there would have been non-termination
+under any other evaluation model!
+
+
+With the Church-Rosser theorem in hand and knowing that call-by-need programs
+are more likely to terminate than call-by-value equivalents, does the
+evaluation order we choose affect our aims with regard to automatic
+parallelisation? The main motivator for choosing call-by-need is that the
+evaluation order makes purity\todo{define purity at some point} an essential
+part of the language. Because evaluation of an expression can be delayed for
+any amount of time, allowing arbitrary side-effects would make programming
+extremely difficult. By keeping the language pure we gain the full benefits
+of the Church-Rosser property.
+
+
+Systems designed to take advantage of implicit parallelism
+have been written for languages that use each of the three main evaluation
+orders \tocite{We can cite Jens Nicolay here and some loop unrolling method
+too}. We have decided on call-by-need semantics because it emphasises purity
+and has the sharing of computation built into the execution model. The focus on
+purity allows the compiler to take certain liberties with program
+transformation that may not otherwise be valid \citep{jones1998transformation}.
+In the case of auto-parallelisation, we are able to know that we could only
+alter the semantics of a program by introducing non-termination. As we will see
+in Chapter \ref{chap:discovery} there are methods to ensure we avoid this.
 
 \paragraph{An aside} Many languages, including functional languages, that use
 call-by-value semantics also provide the ability to perform arbitrary side
@@ -195,3 +252,44 @@ that do not rely on shared state, it is not enforced by the compiler as it is
 for languages like Haskell. That being said there are techniques that can be
 used to find safe parallelism in strict languages. \tocite{Matt Might's paper
 at least}
+
+\subsection{The Syntax and Semantics of F-lite}
+
+Having motivated our choice of a lazy language we can now present F-lite
+completely. We start with Figure \ref{fig:flite} where the abstract syntax
+of F-lite is defined.
+
+\begin{figure}
+\centering
+\begin{haskell*}
+type Prog &=& [Decl] \\
+      &\quad&\hfill \\
+data Decl &=& Func Id [Pat] Exp \\
+          &|& Data Id [Id] [(Id,[TypeExp])] \\
+      &\quad&\hfill \\
+type Id &=& String \\
+      &\quad&\hfill \\
+data Exp &=& App Exp [Exp] \\
+         &|& Case Exp [Alt] \\
+         &|& Let [Binding] Exp \\
+         &|& Var Id \\
+         &|& Con Id \\
+         &|& Fun Id \\
+         &|& Int Int \\
+         &|& Lam [Id] Exp \\
+         &|& Freeze Exp \\
+         &|& Unfreeze Exp
+\end{haskell*}
+\caption{Abstract Syntax for F-lite}
+\label{fig:flite}
+\end{figure}
+
+The language is an enriched lambda calculus with many of the usual
+conveniences: case expressions, recursive lets, and user defined types. A key
+point is the presence of expressions of the form \<Freeze e\> and \<Unfreeze e\>.
+These expression are not found in the concrete syntax but are instead
+added by the compiler to make the suspension and forcing of lazy values
+explicit. We will see the utility of these expressions in Chapter
+\ref{chap:discovery}.
+
+\todoinline{Semantics!}
