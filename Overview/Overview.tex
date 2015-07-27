@@ -97,7 +97,7 @@ In the literature it was common to use further static analysis to estimate the
 cost of evaluating an expression. This estimate would then be used to avoid
 introducing parallelism that is too \emph{fine grained}. This was commonly done
 with both heuristic oracles and/or using a static cost analysis
-\cite{hogen1992automatic} \tocite{A cost analysis paper}.
+\citep{hogen1992automatic} \tocite{A cost analysis paper}.
 
 % TODO: find a place for this, a discussion of collisions would be good.
 %This is best explained through a simple example:
@@ -136,7 +136,7 @@ with both heuristic oracles and/or using a static cost analysis
 %
 
 
-\subsection{Automatic Parallelism in the 21st Century}
+\subsection{Static Analysis is not Enough}
 
 The propensity for researchers to prefer static analysis over dynamic technique
 has many benefits, particularly the fact that they incur no runtime costs and
@@ -153,7 +153,107 @@ but instead annotate a program, profile the program and alter the program
 according to the results of profiling. We do we forbid compilers from utilising
 the same process?
 
+Program analysis does not have to pick sides, compilers can benefit (if the
+implementors choose to) from \emph{both} static and dynamic analysis. In the
+case of implicit parallelism this means having the compiler perform a form of
+static analysis that provides an initial decision about parallelism in the
+program, then having those decisions either confirmed or rejected by dynamic,
+profile-driven analysis. There are several ways to achieve this goal, the
+method we suggest is to utilise \emph{feedback-directed}
+compilation\footnote{Sometimes referred to as feedback-directed optimisation or
+iterative compilation}.
 
+\defineword{Feedback-Directed Compilation}{The use of runtime profiles from
+previous executions of the program in order to inform an aspect of compilation
+or optimisation.}
+
+This frees the compiler from having to answer all of the difficult questions
+statically (and in one shot). Might and Prabhu suggest that the compiler has
+two question it must ask when parallelising a sequential program \tocite{Might's stack reachability}:
+
+\begin{enumerate}
+    \item Where is parallelisation safe?
+    \item Where is parallelisation beneficial?
+\end{enumerate}
+
+Compiler writers have many tools available when wanting to answer the first:
+Strictness analysis, dependency analysis, control-flow analysis, etc.
+\citep{hogen1992automatic, might2009interprocedural}. In fact, these analyses
+are very good at answering the first question. The issue that has plagued work
+in automatic parallelisation is that there is often \emph{too much} safe
+parallelism\footnote{This is true for pure languages, in languages that allow
+arbitrary side-effects finding safe parallelism can be more difficult.}.
+Determining the answer to the second question then becomes essential.
+Unfortunately statically determining the cost (or benefit) of evaluating an
+expression in parallel is notoriously difficult to do statically
+\citep{hogen1992automatic, might2009interprocedural}.
+
+
+The problem is that while the safety of parallelising an expression is a static
+property of the program, the benefit is also affected by extrinsic factors such
+as the architecture the program is executed on. To be more precise: If there is
+a minimum cost to create parallelism, static analysis can determine that some
+expression are definitely \emph{not} worthwhile (by approximating the cost of
+evaluating an expression `upwards'), however, static analysis cannot determine
+that an expression is \emph{definitely} worthwhile. This is because the benefit
+of parallelising an expression is a function of \emph{more} than the static
+semantics of a program.
+
+Let us consider simple thought experiment:
+
+First consider an ideal parallel machine that has an infinite number of
+processing units, zero-cost communication, and no context switches (each task
+gets its own processor)\footnote{We did say \emph{ideal} machine.}. The only
+cost to creating parallelism is the exact cost of the machine instructions used
+to initialise the parallel task. If a task requires less time than the
+initialisation cost, it is a net cost to the program and not worthwhile for
+parallelism. While unrealistic, this scenario demonstrates that there are some
+expressions that will not be worthwhile no matter the final program substrate
+\todo{substrate?}.
+
+Now consider the same machine except with a finite number of processing units.
+Because each task is no longer able to retain a processor to itself, the machine
+must schedule tasks, which imposes a context-switch cost on the tasks that
+are interrupted. Now, whether a task is worthwhile depends not only on its
+intrinsic cost, but on the effect it has on the rest of the computation by
+interrupting other tasks. It is easy to see that more context-switches occur
+as the number of processing units available is reduced.
+
+The difficulty of predicting the benefit of a parallel task becomes even more
+difficult as the machine becomes more realistic. Because of this we feel that
+it is sensible to ask: ``Why have the compiler try at all?''. Instead of
+having the compiler approximate this complex program property, we can run
+the program itself and have the compiler `see' the effect its parallelisation
+has on the final program.
+
+One question remains: In what way do we combine the static analysis with the
+feedback-directed compilation? There are several apparent approaches:
+
+\begin{enumerate}
+    \item Have the compiler introduce parallelism sparsely, and use the
+        iteration to introduce more parallelism
+    \item Have the compiler introduce what seems to be \emph{too much}
+        parallelism and have the iteration remove some of the parallelism
+    \item Have the compiler provide an initial `reasonable' parallelisation
+        and have the iteration introduce/remove parallelism as necessary
+\end{enumerate}
+
+In choosing our approach we chose to play to the strengths of the language we
+are conducting our experiments with. In pure functional languages there is an
+abundance of safe parallelism. Historically, parallelism in pure lazy languages
+often suffers more from the granularity problem than from a lack of available
+parallelism \tocite{someone}. For this reason we have opted to use the second
+approach: Use static analysis to introduce as much parallelism as possible and
+use runtime feedback to disable some of the introduced parallelism.
+
+We note that for a language that allows arbitrary side-effects it may be more
+beneficial to use the first approach as the runtime feedback would aid in
+determining which tasks were actually independent.
+
+Later in Chapter \ref{chap:future} we will explore a variant of the third
+approach.
+
+\subsection{Automatic Parallelism in the 21st Century}
 
 In order to address this issue we take advantage of
 two key properties of our \verb-par- annotations:
@@ -276,7 +376,7 @@ Jones2009Tuning}. To combat this we run the program as presented in Figure
 each \verb-par- is responsible for. The \verb-par-s that do not introduce
 a worthwhile amount of parallelism (see discussion in \S\ref{sec:iterate})
 are disabled, freeing the program from incurring the overhead of managing
-threads for tasks with insufficient granularity \footnote{This can be seen
+threads for tasks with insufficient granularity\footnote{This can be seen
 as a more extreme variation of Clack and Peyton Jones' ``Evaluate and die!''
 model of parallelism \citep{clack1986four}: Evaluate \emph{a lot} or die!}.
 
