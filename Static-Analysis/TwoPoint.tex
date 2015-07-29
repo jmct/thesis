@@ -1,0 +1,72 @@
+As mentioned in the Introduction \todo{Check where that was} the majority of
+functional languages use either call-by-need or call-by-value semantics.  While
+call-by-need has many attractive properties the delaying of computation incurs
+an overhead cost on all computations. Call-by-value, in contrast, has an
+execution model that is more easily mapped to conventional hardware, allowing
+for simpler implementations that achieved good performance \tocite{SPJ or
+someone}. Mycroft used this tension to motivate his development of strictness
+analysis \tocite{mycroft thesis}:
+
+\begin{displayquote}
+
+The above arguments suggest that call-by-value is more efficient but
+call-by-need preferable on aesthetic/definedness considerations. So techniques
+are herein developed which allow the system to present a call-by-need interface
+to the user but which performs a pre-pass on his program annotating those
+arguments which can validly be passed using call-by-value.
+
+\end{displayquote}
+
+By determining which arguments can be safely passed using call-by-value
+we diminish the overhead of call-by-need, paying the overhead of
+suspending computation only when necessary to ensure that call-by-need
+semantics are maintained.
+
+While this was the original motivation for strictness analysis it also serves
+in identifying potential parallelism in a program. When an argument is suitable
+to be passed as call-by-value it is also suitable to be evaluated in parallel.
+For this use the suspension becomes a future \tocite{futures}, the value is
+evaluated in parallel to the original thread, synchronisation is then
+accomplished via the same mechanism as laziness except a thread can be blocked
+while waiting for another thread to complete its evaluation.
+
+\subsection{Safety First}
+
+Strictness analysis is chiefly concerned with \emph{safety}. In order to retain
+the origin call-by-need semantics the runtime can only alter the evaluation order
+when doing so guarantees the same termination properties of the program.
+
+We will refer to this notion of safety as the \emph{strictness} properties
+of an argument. Take a function $f$ of $n$ arguments
+
+\begin{equation*}
+f \ x_{1} \ \dots x_{i} \ \dots \ x_{n} \ = \langle \texttt{function body} \rangle
+\end{equation*}
+
+The $i$th argument of $f$ is said to be strict \emph{if and only if}
+
+\begin{equation}
+f \ x_{1} \ \dots \bot_{i} \ \dots \ x_{n} \ =  \bot
+\end{equation}
+\label{eq:idealSafety}
+
+For any possible values of $x_{1}-x_{i-1},x_{i+1}-x_{n}$\footnote{Throughout this
+dissertation $\bot$ is used to represent all forms of non-termination.}.
+
+Equation \ref{eq:idealSafety} can be read as ``$f$ is strict in $x_{i}$ when $f$
+fails to terminate if $x_{i}$ fails to terminate''. The reason this allows us
+to evaluate the $i$th argument before its needed is because doing so would only result
+in introducing non-termination if the program would have resulted in non-termination
+otherwise.
+
+\subsection{Abstract Domains}
+
+Now that we have established what it means to be strict we can expand on how we
+analyse programs for this property. As with any abstract interpretation
+\todo{ensure this term is defined} this involves the choice of an abstract domain.
+
+In the case of basic strictness analysis a two-point domain is used. The bottom
+of the lattice, $\bot$, as implied above, represents \emph{definitely
+non-terminating} expressions. The top of the lattice, $\top$, is used to represent
+\emph{potentially terminating}\footnote{Remember that program analysis must approximate
+in the general case.} expressions.

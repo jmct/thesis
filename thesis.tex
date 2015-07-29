@@ -40,6 +40,8 @@
 \usepackage{etoolbox}
 \usepackage{appendix}
 
+\usepackage{csquotes}
+
 %%%% Haskell Style by Prof. Chakravarty %%%%
 \usepackage{haskell}
 
@@ -192,14 +194,16 @@
     \label{chap:discovery} 
     \input{Static-Analysis/Preamble.tex}
 
-        \section{Motivation}
+        \section{Original Motivation vs. Our Motivation}
         \input{Static-Analysis/Motivation.tex}
     
         \section{Overview}
+        \label{sec:strictnessOverview}
         \input{Static-Analysis/Overview.tex}
     
         \section{Two-Point Forward Analysis}
         \label{sec:twoPoint}
+        \input{Static-Analysis/TwoPoint.tex}
     
         \section{Four-Point Forward Analysis}
         \label{sec:fourPoint}
