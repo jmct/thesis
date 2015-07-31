@@ -65,8 +65,100 @@ Now that we have established what it means to be strict we can expand on how we
 analyse programs for this property. As with any abstract interpretation
 \todo{ensure this term is defined} this involves the choice of an abstract domain.
 
-In the case of basic strictness analysis a two-point domain is used. The bottom
-of the lattice, $\bot$, as implied above, represents \emph{definitely
-non-terminating} expressions. The top of the lattice, $\top$, is used to represent
-\emph{potentially terminating}\footnote{Remember that program analysis must approximate
-in the general case.} expressions.
+In non-strict languages types like integers and Booleans form a flat domain;
+either we have a value of that type, or we have $\bot$. This is depicted in
+Figure \ref{fig:flatInts}. We can form an intuition of these orderings by
+thinking about how much we \emph{know} about a certain value. While the
+interger value $5$ maybe more greater than the integer value $4$, we know the
+same amount about each of them, their values. However, if we have a procedure
+that is meant to compute an integer, and therefore has the type \<Int\>, and it
+loops forever, we cannot know know that integer's value. Therefore we know less
+about a non-terminating value.
+
+%% Hasse diagram for the flat domain of integers.
+%%
+%% We have a horizontal 'number line' from -infity to infinity and edges from each
+%% number to _|_ which is centered below the numbers.
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+    \node [hasse, label=above:\Large$0$]                (zero) at (0,0) {};
+    \node [hasse, right = of zero, label=above:\Large$1$] (one)   {};
+    \node [hasse, right = of one, label=above:\Large$2$]  (two)   {};
+    \node [hasse, left = of zero, label=above:\Large$-1$]  (neg1)  {};
+    \node [hasse, left = of neg1, label=above:\Large$-2$]  (neg2)  {};
+    \node [hasse, left = of neg2, label=above:\Large$\dots$]  (ldots) {};
+    \node [hasse, right = of two, label=above:\Large$\dots$]  (rdots) {};
+    \node [hasse, left = of ldots, label=above:\Large$-\infty$] (nInf)  {};
+    \node [hasse, right = of rdots, label=above:\Large$\infty$](inf)   {};
+
+    \node [hasse, below = of zero, label=below:\Large$\bot$] (bot)   {};
+
+    \draw[black] (zero) -- (bot);
+    \draw[black] (one) -- (bot);
+    \draw[black] (two) -- (bot);
+    \draw[black] (neg1) -- (bot);
+    \draw[black] (neg2) -- (bot);
+    \draw[black] (ldots) -- (bot);
+    \draw[black] (rdots) -- (bot);
+    \draw[black] (inf) -- (bot);
+    \draw[black] (nInf) -- (bot);
+\end{tikzpicture}
+\caption{Flat Domain}
+\label{fig:flatInts}
+\end{figure}
+
+This fits nicely with call-by-need semantics: an argument to a function of
+type \<Int\> is really a computation that can either result in a value, or
+result in non-termination. In terms of strictness analysis, this allows us to
+abstract our real domain of integers to the simple two-point domain shown in
+figure \ref{fig:twoPointNice}.
+
+This is the domain we use for basic strictness analysis. The bottom of the
+lattice, $\bot$, as implied above, represents \emph{definitely non-terminating}
+expressions. The top of the lattice, $\top$, is used to represent
+\emph{potentially terminating}\footnote{Remember that program analysis must
+approximate in the general case.} expressions. This approximation is can seem
+counterintuitive; why are we allowing the analysis to say some results are
+potentially terminating when they could be non-terminating? The reasoning is
+that non-termination is okay under non-strict semantics! If we approximated in
+the opposite direction (as analyses for other purposes sometimes do) we may
+accidentally compute a value that was never needed, defeating the purpose of
+call-by-need evaluation.
+
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+    \node [hasse, label=above:\Large$\top$]                 (top) {};
+    \node [hasse, below = of top, label=below:\Large$\bot$] (bot) {};
+
+    \draw[black] (top) -- (bot);
+\end{tikzpicture}
+\caption{Two-point Domain}
+\label{fig:twoPointNice}
+\end{figure}
+
+\subsubsection{Abstracting Functions}
+
+Now that we know what it means to be strict and why we represent flat domains
+as a two-point domain the next step is to abstract the functions in our
+program.
+
+The idea is simple: for every function in our program of type \<A\> we must
+produce a function of type \<A^{\#}\> that works on the abstracted
+values\footnote{Some texts represent an abstracted type by a number \<N\> where
+$N$ is the number of points in the abstract domain. We prefer to retain the
+context of where this abstract domain came from.}.
+
+We begin with the set of primitive arithmetic functions. In the case of F-Lite,
+each numeric primitive is strict in both arguments, providing us with the
+following definition:
+
+\begin{haskell*}
+prim &::& Int^{\#} -> Int^{\#} -> Int^{\#} \\
+prim \(\top\) \(\top\) &=& \(\top\) \\
+prim \(\top\) \(\bot\) &=& \(\bot\) \\
+prim \(\bot\) \(\top\) &=& \(\bot\) \\
+prim \(\bot\) \(\bot\) &=& \(\bot\)
+\end{haskell*}

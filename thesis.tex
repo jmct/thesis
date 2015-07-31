@@ -40,6 +40,8 @@
 \usepackage{etoolbox}
 \usepackage{appendix}
 
+\usepackage{tikz}
+
 \usepackage{csquotes}
 
 %%%% Haskell Style by Prof. Chakravarty %%%%
@@ -47,6 +49,7 @@
 
 \newcommandx{\tocite}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{Cite: #2}}
 \newcommandx{\todoinline}[1]{\todo[inline]{#1}}
+\newcommandx{\todofig}[1]{\todo[inline]{Make figure: #1}}
 
 \hypersetup{
  colorlinks,
@@ -79,6 +82,14 @@
 \hspace{-0.3\boxwidth}\right]%
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Tikz styles
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tikzset{
+    hasse/.style={shape=circle, scale=0.35, draw}
+}
+
 
 %% Sometimes we want to give a definition; this is how we do that
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -207,6 +218,7 @@
     
         \section{Four-Point Forward Analysis}
         \label{sec:fourPoint}
+        \input{Static-Analysis/FourPoint.tex}
     
         \section{Projection-Based Analysis}
         \label{sec:projections}

@@ -1,0 +1,84 @@
+As noted in the last section \todo{write that part!}, two-point domains are
+quite limited when dealing with lazy structures. A more formal explanation for
+this limitation is that the two-point domain really represents reduction to
+WHNF or $\bot$, and nothing else. In the case of flat domains this is
+sufficient because WHNF is all there is! For nested data types the reality is
+much different. 
+
+For functions that work on lists, like \<sum\> or \<append\>, strictness up to
+WHNF is not much benefit. Strictness analysis as described in the previous
+section would be able to tell us that \<sum\> requires its argument to be
+defined, allowing us to evaluate it before entering the function (or in
+parallel). But it is only safe up to WHNF! Once the first \<Cons\> is reached
+we must stop evaluation of the list of risk introducing non-termination.
+Through the lens of implicit parallelism it seems that we are unlikely to
+benefit from introducing parallel evaluation when we are limited to
+WHNF\footnote{Indeed most uses of the basic strictness information were for
+improving the code generation to avoid building unnecessary suspension.} This
+is clearly a problem.
+
+The solution seems clear: We must extend the abstract domains for non-flat data
+types so that we can have more detailed strictness information. For some data
+types, extending the technique is straightforward. In Haskell, pairs can be
+defined as follows.
+
+\begin{haskell*}
+data Pair \alpha \beta = MkPair \alpha \beta
+\end{haskell*}
+
+Representing pairs of values from the two-point domain gives us the following
+lattice
+
+\todoinline{make lattice for pairs}
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+    \node [hasse, label=above:\Large\<Just \(\top\)\>]       (top)  {};
+    \node [hasse, label=right:\Large\<Just \(\bot\)\>]       (just) {};
+    \node [hasse, below = of just, label=below:\Large$\bot$] (bot)  {};
+
+    \draw[black] (top) -- (just);
+    \draw[black] (just) -- (bot);
+\end{tikzpicture}
+\caption{Three-point Domain}
+\label{fig:threepoint}
+\end{figure}
+
+Because this domain is still finite we are able to incorporate it into the
+framework developed by Mycroft without much issue.  The main issue is that
+extending the technique to non-flat domains in the obvious way introduces
+infinite domains for recursive types, losing a lot of the power of abstract
+interpretation \tocite{John Hughes work on non-flat domains before wadler}.
+
+The first practical solution was proposed by Wadler involving a four-point
+domain for lists \citep{wadler1987strictness}. Instead of representing
+the recursive structure of lists directly in the domain, which creates
+an infinite domain, Wadler chose a domain that represents four degrees
+of definedness for lists.
+
+\todofig{Four point domain}
+
+Because lists are one of the most common structures in functional programming,
+this development allowed strictness analysis to be useful in a wide variety of
+`real' systems. This also make strictness analysis's use for parallelism more
+realistic. We can now tell the machine to evaluate lists in parallel up to the
+degree that it is safe to do so. Some of the more successful attempts at
+implicit parallelism were based on using this strictness information, most
+notably Burn's work on parallelisation of functional programs for a Spineless
+$G$-Machine \tocite{Burn's thesis} and Hogen, et. al.'s work on automatically
+parallelising programs for a distributed reduction machine
+\citep{hogen1992automatic}.
+
+While this four-point domain made strictness analysis much more flexible it
+suffers from a few considerable shortcomings:
+
+\begin{enumerate}
+    \item An argument is only considered strict for a function if it is strict
+        in \emph{all} possible uses of that function
+    \item For other structures similar domains must be \emph{designed}, i.e.
+        there does not seem to be straightforward way to derive a `good' finite
+        domain for every recursive type
+    \item The calculation of fixed points becomes prohibitively expensive when
+        the technique is extended similarly to complex recursive types
+\end{enumerate}
