@@ -19,45 +19,130 @@ is clearly a problem.
 
 The solution seems clear: We must extend the abstract domains for non-flat data
 types so that we can have more detailed strictness information. For some data
-types, extending the technique is straightforward. In Haskell, pairs can be
+types, extending the technique is straightforward. In F-Lite, pairs can be
 defined as follows.
 
 \begin{haskell*}
-data Pair \alpha \beta = MkPair \alpha \beta
+data Pair \hasalpha \hasbeta = MkPair \hasalpha \hasbeta
 \end{haskell*}
 
-Representing pairs of values from the two-point domain gives us the following
-lattice
+Many languages, such as Haskell, Clean, and the ML family provide the following
+syntactic sugar for pairs (and other $N$-tuples): \<(\hasalpha,\hasbeta)\>.
 
-\todoinline{make lattice for pairs}
+A first try at representing pairs of values from the two-point domain could
+give us the lattice in Figure \ref{fig:unboxedPairs}.
 
 \begin{figure}
 \centering
 \begin{tikzpicture}
-    \node [hasse, label=above:\Large\<Just \(\top\)\>]       (top)  {};
-    \node [hasse, label=right:\Large\<Just \(\bot\)\>]       (just) {};
-    \node [hasse, below = of just, label=below:\Large$\bot$] (bot)  {};
+    \node [center] (cent) {};
+    \node [hasse, above = of cent, label=above:{\large\<(\(\top\),\(\top\))\>}]  (top)   {};
+    \node [hasse, left = of cent, label=left:{\large\<(\(\top\),\(\bot\))\>}]    (left)  {};
+    \node [hasse, right = of cent, label=right:{\large\<(\(\bot\),\(\top\))\>}]  (right) {};
+    \node [hasse, below = of cent, label=below:{\large\<(\(\bot\),\(\bot\))\>}] (bot)   {};
 
-    \draw[black] (top) -- (just);
-    \draw[black] (just) -- (bot);
+    \draw[black] (top) -- (left);
+    \draw[black] (top) -- (right);
+    \draw[black] (right) -- (bot);
+    \draw[black] (left) -- (bot);
 \end{tikzpicture}
-\caption{Three-point Domain}
-\label{fig:threepoint}
+\caption{Domain for pairs of flat-domain values}
+\label{fig:unboxedPairs}
+\end{figure}
+
+The meaning of this lattice is fairly intuitive. When we posses a pair of
+flat-domain values there are four possibilities, we can have
+
+\begin{enumerate}
+    \item The pair structure itself (\<MkPair\>) but accessing either value
+        results in non-termination
+    \item The pair structure itself, but accessing the \<fst\> element 
+        results in non-termination
+    \item The pair structure itself, but accessing the \<snd\> element
+        results in non-termination
+    \item The pair structure itself and both values are fully defined
+\end{enumerate}
+
+Notice that possibilites 2 and 3 are similar in that there are one defined and
+one undefined item in each. Suggesting that one of 2 or 3 is more defined than
+the other would make little sense.  For this reason we say that they are
+\emph{incomparable}, i.e. they are neither more nor less defined than each
+other.
+
+However, the lattice in Figure \ref{fig:unboxedPairs} is only valid for
+\emph{unlifted} pairs, where the constructor value, \<(,)\>, is defined.
+The reality for non-strict languages is that \emph{any} value may be
+undefined, including the constructors for product types.
+
+This means that we must \emph{lift} the domain, adding a further bottom value
+that represents a failure to construct the pair's outermost constructor
+(\<MkPair\> in the F-Lite case). The result, shown in Figure
+\ref{fig:boxedPairs}, is typical of domains for strictness analysis on finite
+types. You can construct an appropriate domain assuming that the structure is
+itself defined, then lift the resulting lattice with an additional $\bot$ that
+represents a failure to construct the structure.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+    \node [center] (cent) {};
+    \node [hasse, above = of cent, label=above:{\large\<(\(\top\),\(\top\))\>}]  (top)   {};
+    \node [hasse, left = of cent, label=left:{\large\<(\(\top\),\(\bot\))\>}]    (left)  {};
+    \node [hasse, right = of cent, label=right:{\large\<(\(\bot\),\(\top\))\>}]  (right) {};
+    \node [hasse, below = of cent, label=315:{\large\<(\(\bot\),\(\bot\))\>}] (bot)   {};
+    \node [hasse, below = of bot, label=below:{\large$\bot$}] (Bot)   {};
+
+    \draw[black] (top) -- (left);
+    \draw[black] (top) -- (right);
+    \draw[black] (right) -- (bot);
+    \draw[black] (left) -- (bot);
+    \draw[black] (bot) -- (Bot);
+\end{tikzpicture}
+\caption{Domain for pairs of flat-domain values}
+\label{fig:boxedPairs}
 \end{figure}
 
 Because this domain is still finite we are able to incorporate it into the
-framework developed by Mycroft without much issue.  The main issue is that
-extending the technique to non-flat domains in the obvious way introduces
-infinite domains for recursive types, losing a lot of the power of abstract
-interpretation \tocite{John Hughes work on non-flat domains before wadler}.
+framework developed by Mycroft without much issue, simply defining the
+appropriate \<meet\> and \<join\> on the lattice and the strictness properties
+for any primitives that work with pairs. The main issue is that extending the
+technique to non-flat domains in the obvious way introduces infinite domains
+for recursive types, losing a lot of the power of abstract interpretation
+\tocite{John Hughes work on non-flat domains before wadler}.
 
 The first practical solution was proposed by Wadler involving a four-point
-domain for lists \citep{wadler1987strictness}. Instead of representing
-the recursive structure of lists directly in the domain, which creates
-an infinite domain, Wadler chose a domain that represents four degrees
-of definedness for lists.
+domain for lists \citep{wadler1987strictness}. Instead of representing the
+recursive structure of lists directly, which creates an infinite domain, Wadler
+chose a domain that represents four degrees of definedness for lists.
 
-\todofig{Four point domain}
+The result, as shown in Figure \ref{fig:listDomain}, can be described, from least
+to most defined as follows:
+
+\begin{enumerate}
+    \item $\bot$ represents all undefined lists
+    \item $\infty$ represents all undefined lists, lists  with undefined tails
+        and all infinite lists
+    \item $\bot_{\in}$ represents all of the above in addition to all finite
+        lists with at least one undefined element
+    \item $\top_{\in}$ represents fully defined lists along with all of the above
+\end{enumerate}
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+    \node [hasse, label=above:{\large$\top_{\in}$}]                   (full)   {};
+    \node [hasse, below = of full, label=right:{\large$\bot_{\in}$}]  (finite) {};
+    \node [hasse, below = of finite, label=right:{\large$\infty$}]    (inf)    {};
+    \node [hasse, below = of inf, label=below:{\large$\bot$}]         (bot)    {};
+
+    \draw[black] (full) -- (finite);
+    \draw[black] (finite) -- (inf);
+    \draw[black] (inf) -- (bot);
+\end{tikzpicture}
+\caption{Wadler's Four-point Domain}
+\label{fig:listDomain}
+\end{figure}
+
 
 Because lists are one of the most common structures in functional programming,
 this development allowed strictness analysis to be useful in a wide variety of

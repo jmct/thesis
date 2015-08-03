@@ -47,6 +47,10 @@
 %%%% Haskell Style by Prof. Chakravarty %%%%
 \usepackage{haskell}
 
+\def \hasalpha {\(\alpha\)}
+\def \hasbeta {\(\beta\)}
+\def \hasphi {\(\phi\)}
+
 \newcommandx{\tocite}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{Cite: #2}}
 \newcommandx{\todoinline}[1]{\todo[inline]{#1}}
 \newcommandx{\todofig}[1]{\todo[inline]{Make figure: #1}}
@@ -90,6 +94,9 @@
     hasse/.style={shape=circle, scale=0.35, draw}
 }
 
+\tikzset{
+    center/.style={shape=circle, scale=0.35}
+}
 
 %% Sometimes we want to give a definition; this is how we do that
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

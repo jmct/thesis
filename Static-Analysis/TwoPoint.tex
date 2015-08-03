@@ -143,7 +143,7 @@ call-by-need evaluation.
 
 Now that we know what it means to be strict and why we represent flat domains
 as a two-point domain the next step is to abstract the functions in our
-program.
+program. 
 
 The idea is simple: for every function in our program of type \<A\> we must
 produce a function of type \<A^{\#}\> that works on the abstracted
@@ -153,12 +153,66 @@ context of where this abstract domain came from.}.
 
 We begin with the set of primitive arithmetic functions. In the case of F-Lite,
 each numeric primitive is strict in both arguments, providing us with the
-following definition:
+following for each of \<(+), (-), (*), (/)\>:
 
 \begin{haskell*}
-prim &::& Int^{\#} -> Int^{\#} -> Int^{\#} \\
-prim \(\top\) \(\top\) &=& \(\top\) \\
-prim \(\top\) \(\bot\) &=& \(\bot\) \\
-prim \(\bot\) \(\top\) &=& \(\bot\) \\
-prim \(\bot\) \(\bot\) &=& \(\bot\)
+(\(\odot\)) &::& Int^{\#} -> Int^{\#} -> Int^{\#} \\
+\(\top\) \(\odot\) \(\top\) &=& \(\top\) \\
+\(\top\) \(\odot\) \(\bot\) &=& \(\bot\) \\
+\(\bot\) \(\odot\) \(\top\) &=& \(\bot\) \\
+\(\bot\) \(\odot\) \(\bot\) &=& \(\bot\)
 \end{haskell*}
+
+We must also be able combine results from different paths in a program. This
+requires both conjunction and disjunction. We can use the \<meet\> ($\sqcap$)
+and \<join\> $\sqcup$ from our lattice which are fully described in Figure
+\ref{fig:twopointMeet}.
+
+\begin{figure}
+\centering
+\begin{minipage}{.5\textwidth}
+\begin{haskell*}
+\(\top\) \(\sqcap\) \(\top\) &=& \(\top\) \\
+\(\top\) \(\sqcap\) \(\bot\) &=& \(\bot\) \\
+\(\bot\) \(\sqcap\) \(\top\) &=& \(\bot\) \\
+\(\bot\) \(\sqcap\) \(\bot\) &=& \(\bot\)
+\end{haskell*}
+\end{minipage}
+\quad\quad
+\begin{minipage}{.5\textwidth}
+\begin{haskell*}
+\(\top\) \(\sqcup\) \(\top\) &=& \(\top\) \\
+\(\top\) \(\sqcup\) \(\bot\) &=& \(\top\) \\
+\(\bot\) \(\sqcup\) \(\top\) &=& \(\top\) \\
+\(\bot\) \(\sqcup\) \(\bot\) &=& \(\bot\)
+\end{haskell*}
+\end{minipage}
+\label{fig:twopointMeet}
+\caption{The \emph{meet} ($\sqcap$) and \emph{join} ($\sqcup$) for our lattice}
+\end{figure}
+
+We can now define an abstract interpretation, $\mathcal{A}$, that takes
+expressions in our language and gives us their abstracted values.
+
+\begin{figure}
+\begin{haskell*}
+\mathcal{A} &::& Exp \to Env^{\#} \to Exp^{\#} \\
+\mathcal{A}\Sem{Var v} \hasphi &=& \hasphi v \\
+\mathcal{A}\Sem{Int i} \hasphi &=& \(\top\) \\
+\mathcal{A}\Sem{Con c} \hasphi &=& \(\top\) \\
+\mathcal{A}\Sem{App (Fun f) as} \hasphi &=& f^{\#} (map \mathcal{A} as) \\
+\mathcal{A}\Sem{Let bs e}       \hasphi &=& \mathcal{A}\Sem{e} \\
+\mathcal{A}\Sem{Case e alts}    \hasphi &=& \mathcal{A}\Sem{e} \(\sqcap\) \mathcal{C}\Sem{alts} \hasphi \\
+\quad&\quad&\quad \\
+\mathcal{C}\Sem{alt_{1}, alt_{2}, \(\dots\), alt_{n}} \hasphi &=& \mathcal{A}\Sem{alt_{1}} \hasphi \(\sqcup\) \mathcal{A}\Sem{alt_{2}} \hasphi \(\sqcup \dots\) \(\sqcup\) \mathcal{A}\Sem{alt_{n}} \hasphi
+\end{haskell*}
+\end{figure}
+
+\todoinline{Fix rule C so that we take into account the vars introduced by case
+alternatives (they should all be approximated as Top)}
+
+
+
+%
+%data Exp &=& App Exp [Exp] \\ &|& Case Exp [Alt] \\ &|& Let [Binding] Exp \\
+%&|& Fun Id \\

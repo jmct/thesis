@@ -3,7 +3,7 @@ TEX=pdflatex
 FLAGS=-halt-on-error
 TARGET=1000
 
-all: pdf count
+all: pdf
 
 test: pdf testcount
 
@@ -12,6 +12,8 @@ pdf: *.tex literature.bib Background/*.tex Blind/*.tex Static-Analysis/*.tex Int
 	bibtex $(THESIS)
 	$(TEX) -draftmode $(FLAGS) $(THESIS).tex
 	$(TEX) $(FLAGS) $(THESIS).tex
+	detex thesis.tex | wc -w
+    
 
 count: *.tex Background/*.tex Blind/*.tex Static-Analysis/*.tex Intro/*.tex
 	echo "$$(date +"%F %T"),$$(detex thesis.tex | wc -w)" >> wordcount.csv
