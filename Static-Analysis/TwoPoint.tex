@@ -82,17 +82,17 @@ about a non-terminating value.
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}
-    \node [hasse, label=above:\Large$0$]                (zero) at (0,0) {};
-    \node [hasse, right = of zero, label=above:\Large$1$] (one)   {};
-    \node [hasse, right = of one, label=above:\Large$2$]  (two)   {};
-    \node [hasse, left = of zero, label=above:\Large$-1$]  (neg1)  {};
-    \node [hasse, left = of neg1, label=above:\Large$-2$]  (neg2)  {};
-    \node [hasse, left = of neg2, label=above:\Large$\dots$]  (ldots) {};
-    \node [hasse, right = of two, label=above:\Large$\dots$]  (rdots) {};
-    \node [hasse, left = of ldots, label=above:\Large$-\infty$] (nInf)  {};
-    \node [hasse, right = of rdots, label=above:\Large$\infty$](inf)   {};
+    \node [hasse, label=above:\large$0$]                (zero) at (0,0) {};
+    \node [hasse, right = of zero, label=above:\large$1$] (one)   {};
+    \node [hasse, right = of one, label=above:\large$2$]  (two)   {};
+    \node [hasse, left = of zero, label=above:\large$-1$]  (neg1)  {};
+    \node [hasse, left = of neg1, label=above:\large$-2$]  (neg2)  {};
+    \node [hasse, left = of neg2, label=above:\large$\dots$]  (ldots) {};
+    \node [hasse, right = of two, label=above:\large$\dots$]  (rdots) {};
+    \node [hasse, left = of ldots, label=above:\large$-\infty$] (nInf)  {};
+    \node [hasse, right = of rdots, label=above:\large$\infty$](inf)   {};
 
-    \node [hasse, below = of zero, label=below:\Large$\bot$] (bot)   {};
+    \node [hasse, below = of zero, label=below:\large$\bot$] (bot)   {};
 
     \draw[black] (zero) -- (bot);
     \draw[black] (one) -- (bot);
@@ -130,8 +130,8 @@ call-by-need evaluation.
 \begin{figure}
 \centering
 \begin{tikzpicture}
-    \node [hasse, label=above:\Large$\top$]                 (top) {};
-    \node [hasse, below = of top, label=below:\Large$\bot$] (bot) {};
+    \node [hasse, label=above:\large$\top$]                 (top) {};
+    \node [hasse, below = of top, label=below:\large$\bot$] (bot) {};
 
     \draw[black] (top) -- (bot);
 \end{tikzpicture}
@@ -149,7 +149,18 @@ The idea is simple: for every function in our program of type \<A\> we must
 produce a function of type \<A^{\#}\> that works on the abstracted
 values\footnote{Some texts represent an abstracted type by a number \<N\> where
 $N$ is the number of points in the abstract domain. We prefer to retain the
-context of where this abstract domain came from.}.
+context of where this abstract domain came from.}. This abstracted program
+is then interpreted using an abstract semantics that provides us with the
+strictness information for each function in our program.
+
+\todoinline{standard abstract interpretation diagram}
+
+
+While this separation of abstracting the program and then performing an
+abstract interpretation is useful from the theoretical point of view, many
+compilers skip the intermediate representation of an abstracted program and
+perform the abstract interpretation with the original AST
+\citep{hinze1995projection, kubiak, SergeyDemand}.
 
 We begin with the set of primitive arithmetic functions. In the case of F-Lite,
 each numeric primitive is strict in both arguments, providing us with the
@@ -187,8 +198,8 @@ and \<join\> $\sqcup$ from our lattice which are fully described in Figure
 \(\bot\) \(\sqcup\) \(\bot\) &=& \(\bot\)
 \end{haskell*}
 \end{minipage}
-\label{fig:twopointMeet}
 \caption{The \emph{meet} ($\sqcap$) and \emph{join} ($\sqcup$) for our lattice}
+\label{fig:twopointMeet}
 \end{figure}
 
 We can now define an abstract interpretation, $\mathcal{A}$, that takes
