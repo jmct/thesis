@@ -1,9 +1,8 @@
-As noted in the last section \todo{write that part!}, two-point domains are
-quite limited when dealing with lazy structures. A more formal explanation for
-this limitation is that the two-point domain really represents reduction to
-WHNF or $\bot$, and nothing else. In the case of flat domains this is
-sufficient because WHNF is all there is! For nested data types the reality is
-much different. 
+As noted in the last section, two-point domains are quite limited when dealing
+with lazy structures. A more formal explanation for this limitation is that the
+two-point domain really represents reduction to WHNF or $\bot$, and nothing
+else. In the case of flat domains this is sufficient because WHNF is all there
+is! For nested data types the reality is much different. 
 
 For functions that work on lists, like \<sum\> or \<append\>, strictness up to
 WHNF is not much benefit. Strictness analysis as described in the previous
@@ -34,6 +33,7 @@ give us the lattice in Figure \ref{fig:unboxedPairs}.
 
 \begin{figure}
 \centering
+\begin{subfigure}{0.4\textwidth}
 \begin{tikzpicture}
     \node [center] (cent) {};
     \node [hasse, above = of cent, label=above:{\large\<(\(\top\),\(\top\))\>}]  (top)   {};
@@ -46,8 +46,29 @@ give us the lattice in Figure \ref{fig:unboxedPairs}.
     \draw[black] (right) -- (bot);
     \draw[black] (left) -- (bot);
 \end{tikzpicture}
-\caption{Domain for pairs of flat-domain values}
+\caption{Unlifted Pairs}
 \label{fig:unboxedPairs}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.4\textwidth}
+\begin{tikzpicture}
+    \node [center] (cent) {};
+    \node [hasse, above = of cent, label=above:{\large\<(\(\top\),\(\top\))\>}]  (top)   {};
+    \node [hasse, left = of cent, label=left:{\large\<(\(\top\),\(\bot\))\>}]    (left)  {};
+    \node [hasse, right = of cent, label=right:{\large\<(\(\bot\),\(\top\))\>}]  (right) {};
+    \node [hasse, below = of cent, label=315:{\large\<(\(\bot\),\(\bot\))\>}] (bot)   {};
+    \node [hasse, below = of bot, label=below:{\large$\bot$}] (Bot)   {};
+
+    \draw[black] (top) -- (left);
+    \draw[black] (top) -- (right);
+    \draw[black] (right) -- (bot);
+    \draw[black] (left) -- (bot);
+    \draw[black] (bot) -- (Bot);
+\end{tikzpicture}
+\caption{Lifted Pairs}
+\label{fig:boxedPairs}
+\end{subfigure}
+\caption{Domain for pairs of flat-domain values}
 \end{figure}
 
 The meaning of this lattice is fairly intuitive. When we posses a pair of
@@ -70,9 +91,9 @@ the other would make little sense.  For this reason we say that they are
 other.
 
 However, the lattice in Figure \ref{fig:unboxedPairs} is only valid for
-\emph{unlifted} pairs, where the constructor value, \<(,)\>, is defined.
-The reality for non-strict languages is that \emph{any} value may be
-undefined, including the constructors for product types.
+\emph{unlifted} pairs, where the constructor value, \<(,)\>, is always defined.
+The reality for non-strict languages is that \emph{any} value may be undefined,
+including the constructors for product types.
 
 This means that we must \emph{lift} the domain, adding a further bottom value
 that represents a failure to construct the pair's outermost constructor
@@ -82,33 +103,14 @@ types. You can construct an appropriate domain assuming that the structure is
 itself defined, then lift the resulting lattice with an additional $\bot$ that
 represents a failure to construct the structure.
 
-\begin{figure}
-\centering
-\begin{tikzpicture}
-    \node [center] (cent) {};
-    \node [hasse, above = of cent, label=above:{\large\<(\(\top\),\(\top\))\>}]  (top)   {};
-    \node [hasse, left = of cent, label=left:{\large\<(\(\top\),\(\bot\))\>}]    (left)  {};
-    \node [hasse, right = of cent, label=right:{\large\<(\(\bot\),\(\top\))\>}]  (right) {};
-    \node [hasse, below = of cent, label=315:{\large\<(\(\bot\),\(\bot\))\>}] (bot)   {};
-    \node [hasse, below = of bot, label=below:{\large$\bot$}] (Bot)   {};
-
-    \draw[black] (top) -- (left);
-    \draw[black] (top) -- (right);
-    \draw[black] (right) -- (bot);
-    \draw[black] (left) -- (bot);
-    \draw[black] (bot) -- (Bot);
-\end{tikzpicture}
-\caption{Domain for pairs of flat-domain values}
-\label{fig:boxedPairs}
-\end{figure}
-
 Because this domain is still finite we are able to incorporate it into the
 framework developed by Mycroft without much issue, simply defining the
 appropriate \<meet\> and \<join\> on the lattice and the strictness properties
 for any primitives that work with pairs. The main issue is that extending the
 technique to non-flat domains in the obvious way introduces infinite domains
 for recursive types, losing a lot of the power of abstract interpretation
-\tocite{John Hughes work on non-flat domains before wadler}.
+\tocite{John Hughes work on non-flat domains before wadler and mycroft's thesis
+pg 82}.
 
 The first practical solution was proposed by Wadler involving a four-point
 domain for lists \citep{wadler1987strictness}. Instead of representing the
@@ -142,6 +144,80 @@ to most defined as follows:
 \caption{Wadler's Four-point Domain}
 \label{fig:listDomain}
 \end{figure}
+
+Because we are now concerning ourselves with values from different domains in
+our analysis we must now know the types of expressions in our program. This
+ensures that we do not accidentally try to \<meet\> or \<join\> values from
+different domains. 
+
+To incorporate the four-point domain into the abstract interpretation from the
+previous section we need a few new primitives. The \<Cons\> constructor is
+given the abstract definition shown in Figure \ref{fig:cons4}. \<Nil\> is
+always $\top_{\in}$.  There are a few points worth mentioning about the
+definition of \<cons^{\#}\>.  First, none of the equations result in $\bot$.
+This makes sense with our understanding of lazy evaluation, if we have the
+outermost constructor we have a value in WHNF and therefore it is definitely
+\emph{not} $\bot$. Additionally, notice that \<cons\>ing a defined value onto
+$\bot_{\in}$ also results in $\bot_{\in}$, this keeps \<cons^{\#}\> monotonic
+in addition to aligning with our intuitions. 
+
+\begin{figure}
+\centering
+\begin{minipage}{.5\textwidth}
+\begin{haskell*}
+cons^{\#} \(\top\) \(\top_{\in}\) &= \(\top_{\in}\) \\
+cons^{\#} \(\top\) \(\bot_{\in}\) &= \(\bot_{\in}\) \\
+cons^{\#} \(\top\) \(\infty\)     &= \(\infty\) \\
+cons^{\#} \(\top\) \(\bot\)       &= \(\infty\) \\
+\end{haskell*}
+\end{minipage}
+\quad\quad
+\begin{minipage}{.5\textwidth}
+\begin{haskell*}
+cons^{\#} \(\bot\) \(\top_{\in}\) &= \(\bot_{\in}\) \\
+cons^{\#} \(\bot\) \(\bot_{\in}\) &= \(\bot_{\in}\) \\
+cons^{\#} \(\bot\) \(\infty\)     &= \(\infty\) \\
+cons^{\#} \(\bot\) \(\bot\)       &= \(\infty\)
+\end{haskell*}
+\end{minipage}
+\caption{Definition of $cons^{\#}$ for a Four-Point Domain}
+\label{fig:cons4}
+\end{figure}
+
+In addition to \<Cons\> and \<Nil\>, we need to define new interpretations
+for \<Case\> expressions. Pattern matching on a value from the four-point
+domain will require a different interpretation than the previous section.
+Furthermore, we must have \emph{four} different interpretations for \<Case\>
+statements. This is because we must be able to handle the four combinations
+of scrutinee type and result type. 
+
+When both the scrutinee and the result of a \<Case\> are in the two-point
+domain we retain the interpretation from the previous section. When the
+scrutinee is a list but the results are two-point value, we only check if the
+list is defined above $\bot$ (i.e. $\infty$ or above). When the scrutinee and
+the results are both from the four-point domain we can just use the \<meet\>
+from the four-point domain.
+
+\todoinline{New rules for $\mathcal{A}$}
+
+\<meet\> and \<join\> are easily defined for the four-point domain. If we
+assign each point in the domain a value according to its position in the lattice,
+with $\bot$ being $0$ and $\top_{\in}$ being $3$, we can define \meet as \<min\>
+and \join as \<max\>.
+
+With everything in place, we can now see if an analysis using this four-point
+domain is more suitable for implicit parallelism.
+
+\subsubsection{Sum}
+
+If we perform this analysis on \<sum\> we see that we can in fact use the
+result in a way that allows us to take advantage of more parallelism.
+
+\subsubsection{The \emph{use} of a Function}
+
+If we analyse \<append\> we can see that while the first list is always
+strict up to WHNF, the second list is not strict. This is unfortunate because
+we know that \<append\> is strict in both arguments under certain conditions.
 
 
 Because lists are one of the most common structures in functional programming,

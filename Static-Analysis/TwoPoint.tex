@@ -177,7 +177,7 @@ following for each of \<(+), (-), (*), (/)\>:
 
 We must also be able combine results from different paths in a program. This
 requires both conjunction and disjunction. We can use the \<meet\> ($\sqcap$)
-and \<join\> $\sqcup$ from our lattice which are fully described in Figure
+and \<join\> ($\sqcup$) from our lattice which are fully described in Figure
 \ref{fig:twopointMeet}.
 
 \begin{figure}
@@ -365,8 +365,8 @@ The analysis for the second argument proceeds as follows
 }
 \end{haskell*}
 
-The other language constructs are interpreted similarly. We do not attempt to
-analyse functions with free variables, instead we take advantage of
+The other language constructs are interpreted similarly. Do note that we do not
+attempt to analyse functions with free variables, instead we take advantage of
 lambda-lifting in order to remove nested functions to the top level. We are not
 the first to use lambda lifting in order to avoid this problem
 \citep{clack1985strictness}. Luckily lambda lifting is done regardless for
@@ -413,6 +413,68 @@ cases. Clack and Peyton Jones developed an algorithm for the efficient
 calculation of an AKC \citep{clack1985strictness}.
 
 \hfill$\Box$
+
+\subsubsection{Discussion of Two-Point Strictness Analysis}
+
+We have now seen how to use rule $\mathcal{A}$ from Figure \ref{fig:twoPointAI}
+to analyse functions in our programs. Now we can see how the results help us in
+our ultimate aim of implicit parallelism. For this discussion we will forget
+that parallelism is not always beneficial and focus on how we would utilise
+all the possible parallelism.
+
+Imagine we have a function $f$ with a call to $g$ in its body.
+
+\begin{haskell*}
+f \dots = \dots g e_{1} e_{2} e_{3} \dots
+\end{haskell*}
+
+Out analysis may determine that $g$ is strict in its first two arguments,
+providing us with an opportunity for parallelism. This would allow us
+to safely rewrite $f$ as the following
+
+\begin{haskell*}
+f \dots = \dots \hslet{x &= e_{1}\\
+                       y &= e_{2}
+                       }{%
+                       x `par` y `par` g x y e_{3} \dots
+                       }
+\end{haskell*}
+
+The expressions $e_{1}$ and $e_{2}$ are bound to the names $x$ and $y$
+in a \<let\> expression so that the results of parallel evaluation are
+shared with the body of $g$.
+
+As mentioned above, the two-point domain informs us about strictness up to
+WHNF.  sSo if $e_{1}$ or $e_{2}$ are values from a flat domain, this
+transformation will provide all the benefit possible to $g$\footnote{Again,
+ignoring the fact that it may not actually be a positive benefit.}. But what if
+these arguments are of a non-flat type, like pairs or lists?
+
+Because we aim for safe parallelism, we cannot evaluate $e_{1}$ or $e_{2}$ any
+further than WHNF, already eliminating a vast quantity of potential parallelism!
+Take the function \<sum\> for example:
+
+\begin{haskell*}
+f \dots = \dots \hslet{xs &= e_{1}
+                       }{%
+                       xs `par` sum xs \dots
+                       }
+\end{haskell*}
+
+When a programmer wants to express this idiom in their code they often use
+\emph{parallel strategies} as illustrated in Section \ref{sec:Approaches}.
+This allows the programmer to write an expression similar to \<xs `using`
+parList\>. This forces the evaluation of the list beyond WHNF. Because our
+two-point domain does not guarantee the safety of evaluating beyond WHNF we are
+not able to use a strategy like \<parList\>. This means that even though we
+`know' that \<sum\> requires the list fully, the analysis has no way to
+represent this, and can only determine that the outermost constructor is
+needed!
+
+Because of this shortcoming, strictness analysis in this form is inappropriate
+for discovering the parallelism in a program that uses nested structures. In
+the next section we will see how this deficiency is overcome by choosing
+suitable domains for non-flat structures.
 
 %
 %data Exp &=& App Exp [Exp] \\ &|& Case Exp [Alt] \\ &|& Let [Binding] Exp \\
