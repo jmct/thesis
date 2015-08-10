@@ -1,16 +1,68 @@
-After parsing the next stage of the compiler applies a defunctionalising
+After parsing the next stage of the compiler applies a
+defunctionalising\footnote{Some have taken issue with our use of the term
+`defunctionalisation'. Many see defunctionalisation as the \emph{specific}
+transformation introduced by Reynolds \citep{reynoldsDefun} to remove
+higher-order functions from programs. However, we feel that defunctionalisation
+is the \emph{concept} of transforming a higher-order program to a first-order
+program. Reynold's transformation is but one instantiation of this concept.}
 transformation to the input programs. Our defunctionalisation method is limited
 in scope, but sufficient for our purposes. It specialises higher-order
 functions defining separate instances for different functional arguments. We
 are careful to preserve sharing during this transformation. Here we give our
 motivation for introducing this transformation.
 
-Central to our design is the concept of \verb-par- placement within a program.
+A significant motivator is that our chosen strictness analysis can not cope
+with higher-order programs. However, it would certainly be possible to extend
+such an analysis to higher-order function if required, but our use-case
+provides other incentives to remove higher-order functions. When taken together
+we do not see defunctionalisation as a compromise but as an enabling mechanism
+for implicit parallelism.
+
+Central to our thesis is the concept of \verb-par- placement within a program.
 Each \verb-par- application can be identified by its \emph{position} in the
 AST. In a higher-order program basing our parallelism on the location of a
-\verb-par- would very likely lead to undesirable consequences. For example, a common pattern
-in parallel programs is to introduce a parallel version of the \verb-map-
-function
+\verb-par- would very likely lead to undesirable consequences. This is because
+parallelising the application of a function to its arguments becomes more
+difficult when the function in question is unknown. Take \<foo\> below, which
+takes a functional argument \<g\>.
+
+\begin{haskell*}
+\hscom{`g' is a functional argument} \\
+foo g = \dots g e_{1} e_{2} \dots
+\end{haskell*}
+
+Our goal is to parallelise the evaluation of \<e_{1}\> and \<e_{2}\> when it is
+safe to do so, but because we lack concrete information about the strictness of
+\<g\> it is not possible to know when it is.
+
+By defunctionalising we gain an new instance of \<foo\> for every unique
+functional argument. If \<foo\> was passed the functions \<bar\> and \<qux\>
+in our program that would leave us with the following function defintions.
+
+\begin{haskell*}
+foo_bar &=& \dots bar e_{1} e_{2} \dots \\
+foo_qux &=& \dots qux e_{1} e_{2} \dots
+\end{haskell*}
+
+Now we are able to analyse the instantiations of \<foo\> independently. If
+\<bar\> is strict in both its arguments but \<qux\> is not we face no dilema.
+
+\begin{haskell*}
+foo_bar &=& \dots \hslet{e^{'}_{1} &= e_{1}\\
+                         e^{'}_{2} &= e_{2}}{%
+                         e^{'}_{1} `par` e^{'}_{2} `par` bar e_{1} e_{2}
+                         } \dots \\
+\quad&\quad&\quad \\
+foo_qux &=& \dots qux e_{1} e_{2} \dots
+\end{haskell*}
+
+We can have out cake and eat it too! We retain our safety but are able to
+maximise the parallelism that our compiler introduces.
+
+In addition to allowing the compiler to introduce more parallelism,
+defunctionalisation aides in the interative portion of our work.  For example,
+a common pattern in parallel programs is to introduce a parallel version of the
+\verb-map- function
 
 \begin{alltt}
     parMap :: (a -> b) -> [a] -> [b]
@@ -32,8 +84,6 @@ off the \verb-par- for \verb-parMap g- without losing the useful parallelism of
 of \verb-parMap-. By specialising \verb-parMap- we create two separate
 functions: \verb-parMap_f- and \verb-parMap_g-, with distinct \verb-par-
 annotations in \emph{each} of the instances of \verb-parMap-.
-
-\pagebreak
 
 \begin{alltt}
     parMap_f []     = []
@@ -106,13 +156,18 @@ this becomes
   & \qquad \qquad \quad = e[x_{i}/g\ y_{1} \dots y_{m}]
   \end{split}
  \end{align}
-\caption{Rules for Defunctionalisation. $\#f$ and $\#g$ represent the arities of the functions.
+\caption[Defunctionalisation Rules]{%
+        Rules for Defunctionalisation. $\#f$ and $\#g$ represent the arities of the functions.
         (1) refers to the transformation at the \emph{call site},
         (2) describes the transformation of the definition, creating a new version of $f$ that has
         been specialised at its $i$th argument with function $g$ and $m$ arguments to $g$.}
 \label{defunRules}
 \end{figure}
 
-Another important benefit of applying defunctionalisation to the program is
-that it allows the use of Hinze's projection-based strictness analysis
-\citep{hinze1995projection}, which we discuss next.
+The defunctionalisation rules are admittedly simple and we do not claim a
+contribution with this method. A production system would likely need to develop
+a more robust method of defunctionalisation or opt for a higher-order
+strictness analysis.
+
+Now that our programs are defunctionalised we are able to take advantage of our
+chosen strictness analysis.

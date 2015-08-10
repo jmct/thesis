@@ -13,8 +13,8 @@ with the goals of performance through parallelism: if we have parallel
 processing resources, we wish to use them to do as much work as possible to
 shorten execution time \citep{tremblay1995impact}.
 
-Call-by-need semantics forces the compiler to take care in deciding which
-sub-expressions can safely be executed in parallel.  Having a simple
+Call-by-need semantics forces our compiler to take care in deciding which
+sub-expressions can safely be executed in parallel. Having a simple
 parallelisation heuristic such as `compute all arguments to functions in
 parallel' can alter the semantics of a non-strict language, introducing
 non-termination or runtime errors that would not have occurred during a
