@@ -9,3 +9,19 @@ We therefore turn our attention to the future and discuss some of the possible
 avenues of exploration.
 
 \subsection*{Plan of the Chapter}
+
+There are many possible extensions and improvements that can be made to our
+general technique. The most direct would be to use the runtime information for
+function specialisation, similar to what we already do for the different
+demands on a function in Section \ref{sec:specialiseDemand}, we discuss this
+idea in Section \ref{sec:specialiseDepth}.
+
+This thesis is predicated on the idea that implicit parallelism is our goal, and
+we still believe that this is a worthy goal. But it does not have to be \emph{only}
+implicit parallelism. There may be situations where the programmer would like to
+specify that certain expressions are evaluated in parallel. We explore what such
+hybrid systems might look like in Section \ref{sec:hybrid}.
+
+It is also possible that the demand properties of a program would be useful in
+identifying pipeline-parallelism automatically. Section \ref{sec:autoPipe}
+explores how one might design such a system. 

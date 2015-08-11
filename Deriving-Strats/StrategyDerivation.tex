@@ -1,5 +1,5 @@
 \section{Deriving Strategies from Projections}
-\label{sec:proAndStrat}
+\label{sec:derivation}
 
 One of the reasons that projections were chosen for our strictness analysis is
 their correspondence to parallel strategies.  Strategies are functions whose
@@ -104,6 +104,7 @@ This means that if a structure has only one field then its field will be evaluat
 using \verb-seq-.
 
 \subsection{Specialising on Demand}
+\label{sec:specialiseDemand}
 
 The key reason for performing a strictness analysis in our work is to know when
 it is \emph{safe} to perform work before it is needed. This work can then be

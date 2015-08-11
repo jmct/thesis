@@ -236,13 +236,18 @@
         \input{Static-Analysis/Projections.tex}
 
 
-    \chapter{Deriving Parallel Strategies}
+    \chapter{Derivation and Use of Parallel Strategies}
     \label{chap:derivation}
     \input{Deriving-Strats/Preamble.tex}
 
         \section{Expressing Need, Strategically}
-        \label{sec:derivations}
+        \label{sec:expressingNeed}
         \input{Deriving-Strats/StrategyDerivation.tex}
+
+        \section{Using Derived Strategies}
+        \label{sec:parPlacement}
+        \input{Platform/Oracles.tex}
+    
     
 \part{Experimental Setup and Results}
 \label{part:implementation}
@@ -258,10 +263,6 @@
         \section{An Implementation of Hinze's Projection-Based Analysis}
         \label{sec:hinzeImplementation}
         
-        \section{Placement of Top-level Parallelism}
-        \label{sec:parPlacement}
-        \input{Platform/Oracles.tex}
-    
         \section{Keeping Track of all the Threads}
         \label{sec:logging}
         \input{Platform/Logging.tex}
@@ -303,16 +304,18 @@
 
     \chapter{Future Directions}
     \label{chap:future}
-    
-        \include{Future-Work/Preamble.tex}
+    \input{Future-Work/Preamble.tex}
     
         \section{Specialising on \underline{\hspace{2cm}}}
-        \include{Future-Work/Specialising.tex}
+        \label{sec:specialiseDepth}
+        \input{Future-Work/Specialising.tex}
     
         \section{Hybrid Approaches}
-        \include{Future-Work/Hybrid.tex}
+        \label{sec:hybrid}
+        \input{Future-Work/Hybrid.tex}
     
         \section{Automating Pipeline Parallelism}
+        \label{sec:autoPipe}
     
     
     \chapter{Conclusions}
