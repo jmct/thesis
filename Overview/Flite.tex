@@ -165,9 +165,9 @@ Miranda, and our own F-lite.
 \todoinline{Explain Church-Rosser, at least a little bit}
 
 The reader may have noticed that in our examples above the result of evaluation
-was always the same \emph{when it terminated}, regardless of evaluation order.
-This is an observation of a more general property about rewrite systems known
-as the \emph{confluence}. The lambda calculus was proven to be a confluent
+was always the same \emph{when they terminated}, regardless of evaluation
+order.  This is an observation of a more general property about rewrite systems
+known as \emph{confluence}. The lambda calculus was proven to be a confluent
 system by Church and Rosser in 1936 \tocite{The original Church-Rosser paper}.
 When discussing the lambda calculus specifically, it is referred to as the
 Church-Rosser property.
@@ -215,7 +215,7 @@ expression. This is true regardless of the order of reductions carried out
 (given that the series of reductions actually terminates). So given a program,
 there can be many possible reduction orders that all lead to the same result.
 Additionally, if \emph{any} reduction order terminates, than call-by-need
-evaluation terminates \cite{bird2014thinking}.  What does this mean for
+evaluation terminates \citep{bird2014thinking}.  What does this mean for
 sequential computation? For lazy languages, such as Haskell, this means that
 there can only be non-termination if there would have been non-termination
 under any other evaluation model!

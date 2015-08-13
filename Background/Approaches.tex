@@ -269,8 +269,9 @@ to the function. An additional parameter can be be added to the function that
 acts as a count for the depth.
 
 \begin{verbatim}
-        parQuicksort (x:xs) depth = if depth <= 0 then quicksort (x:xs)
-                                                  else ...
+        parQuicksort (x:xs) depth = if depth <= 0
+                                    then quicksort (x:xs)
+                                    else ...
 \end{verbatim}
 
     In this version we check to see if the desired maximum depth has been

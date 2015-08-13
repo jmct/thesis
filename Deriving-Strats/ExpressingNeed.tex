@@ -1,0 +1,19 @@
+Burns introduced the idea of \emph{evaluation transformers} as a way to specify
+the how much of a value can be reduced safely before it is needed
+\citep{burn1987evaluation}. By using the results of a four-point strictness
+analysis Burns was able to annotate expressions based on how much of the
+structure could be safely evaluated. The main insight was that each annotation
+represented a demand on the values and that demand could be propagated to the
+sub-expressions in a well defined way.
+
+Burns defined four `evaluators', each for lists, with the following meanings
+
+
+\begin{itemize}
+    \item ? performs no evaluation
+    \item ? evaluates its argument to WHNF
+    \item ? evaluates the spine of its argument
+    \item ? evaluates the spine of its argument and each element to WHNF
+\end{itemize}
+
+These correspond directly to each point in Wadler's four-point domain.
