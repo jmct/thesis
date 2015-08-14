@@ -36,7 +36,7 @@ decided that an `standard' language was needed to unify the study of lazy
 functional programming\citep{HistoryOfHaskell}, however, the first Haskell
 report was not published until 1990 \citep{Haskell98Book}}
 \citep{HistoryOfHaskell, Haskell98Book}. Haskell as defined by the Haskell
-Report \citep{haskellReport} does not have parallelism as part of the language.
+Report \citep{Haskell98Book} does not have parallelism as part of the language.
 However, functional programming has a long history of parallel implementations
 and Haskell is no different in this regard. Even the early implementations of
 Haskell had facilities for parallel computation.
@@ -63,109 +63,108 @@ multiprocessors (SMP), that are nearly ubiquitous with the rise of multi-core
 architectures in modern CPUs. The GHC project provides several ways to utilise
 parallel-capable machines.
 
-The first method is through the \verb=par= and \verb=seq=\footnote{While
+The first method is through the \<par\> and \<seq\>\footnote{While
 \texttt{seq} was introduced into Haskell for Haskell '98 \citep{Haskell98Book}
 it was used for many years before that \citep{HistoryOfHaskell}. One of the
 earliest descriptions was by Hughes who introduced a \texttt{synch} combinator
 that performed the same function in 1983 \citep{hughes:thesis}.} combinators.
-The \verb=seq= combinator has the following type.
+The \<seq\> combinator has the following type.
 
-\begin{verbatim}
-        seq :: a -> b -> b 
-\end{verbatim}
+\begin{haskell}
+seq &::& \hasalpha \to \hasbeta \to \hasbeta
+\end{haskell}
 
-An expression of the form \verb=seq a b= first forces the evaluation of its
+An expression of the form \<seq a b\> first forces the evaluation of its
 first argument to WHNF\footnote{For an expression to be in Weak Head Normal
 Form it must be evaluated enough such that the outermost constructor is known.
 To say that a function is in WHNF means that the function is partially
 applied.} and then returns its second argument. This allows a programmer to
-express sequential evaluation. It is important to note that \verb=seq= $\bot$
-\verb=b= results in $\bot$.
+express sequential evaluation. It is important to note that \<seq\> $\bot$
+\<b\> results in $\bot$.
 
-It is important to realise that GHC's implementation of \verb=seq= is
+It is important to realise that GHC's implementation of \<seq\> is
 \emph{not} guaranteed to force the evaluation of its first argument
 \emph{before} its second argument. The compiler may find an optimisation that
 circumvents the sequencing created by the combinator. In order to provide a
 combinator that \emph{does} provide this guarantee GHC provides the
-\verb-pseq-\footnote{The `p' in \texttt{pseq} stands for parallel.  The idea
+\<pseq\>\footnote{The `p' in \texttt{pseq} stands for parallel.  The idea
 being that parallel programs are more likely than sequential programs to
 require that \texttt{seq} guarantees its behavior.} combinator.
 
-In the literature, the \verb=par= combinator appears in one of two forms
+In the literature, the \<par\> combinator appears in one of two forms
 \citep{HistoryOfHaskell, hughes:thesis}. In order to differentiate between the
 two forms we will refer to the earlier version as the \emph{applicative} par, or
-\verb=parAp=, and the more recent (and more common) version as \emph{Haskell}
-\verb=par=\footnote{The reason we will be referring to this as Haskell par is
+\<parAp\> and the more recent (and more common) version as \emph{Haskell}
+\<par\>\footnote{The reason we will be referring to this as Haskell par is
 because most users will know this version of the combinator from their use of
 Haskell}.
 
-Haskell \verb=par= takes the same form as \verb=seq= and has the same type
+Haskell \<par\> takes the same form as \<seq\> and has the same type
 signature. The combinator takes two arguments, sparks off the first for
 evaluation in parallel, and returns the second.
 
-\begin{verbatim}
-        par :: a -> b -> b
+\begin{haskell}
+par &::& \hasalpha \to \hasbeta \to \hasbeta \\
+par a b &=& b
+\end{haskell}
 
-        par a b = b
-\end{verbatim}
-
-The applicative \verb|parAp| expresses a function application whose parameter has been
+The applicative \<parAp\> expresses a function application whose parameter has been
 sparked off to be evaluated in parallel. Semantically, this means that the
 applicative par has the following form
 
-\begin{verbatim}
-        parAp :: (a -> b) -> a -> b
+\begin{haskell}
+parAp &::& (\hasalpha \to \hasbeta) \to \hasalpha \to \hasbeta \\
+parAp f x &=& f x
+\end{haskell}
 
-        parAp f x = f x
-\end{verbatim}
+% TODO maybe find a place to show this
+%The strictness of the function being applied can have a huge effect on the
+%parallelism from this combinator. In fact, we will see in section
+%\ref{sec:experiments} that in same cases, the compilation of the
+%function being applied can have large effects on \verb=parAp='s use.
 
-The strictness of the function being applied can have a huge effect on the
-parallelism from this combinator. In fact, we will see in section
-\ref{sec:experiments} that in same cases, the compilation of the
-function being applied can have large effects on \verb=parAp='s use.
-
-Interestingly, the version of \verb=par= that an implementation chooses does
-not change the expressiveness. Each version of \verb-par- can actually be
+Interestingly, the version of \<par\> that an implementation chooses does
+not change the expressiveness. Each version of \<par\> can actually be
 defined in terms of the other. Defining the applicative par in terms of Haskell
 par gives us
 
-\begin{verbatim}
-        parAp f x = par x (f x)
-\end{verbatim}
+\begin{haskell}
+parAp f x = par x (f x)
+\end{haskell}
 
 In order to define Haskell par in terms of applicative par we must use the
-\verb=k= combinator
+\<k\> combinator
 
-\begin{verbatim}
-        k x y = x
+\begin{haskell}
+k x y &=& x \\
+\quad&&\quad \\
+par x y &=& parAp (k y) x
+\end{haskell}
 
-        par x y = parAp (k y) x
-\end{verbatim}
-
-The benefit of \verb|parAp| is that you get the sharing of the parallel computation
+The benefit of \<parAp\> is that you get the sharing of the parallel computation
 without needing to give a name to a subexpression. For example, the following use of
-\verb|parAp| is very typical.
+\<parAp\> is very typical.
 
-\begin{verbatim}
-        parAp f (g 10)
-\end{verbatim}
+\begin{haskell}
+parAp f (g 10)
+\end{haskell}
 
-This does as you would expect, evaluate \verb|g 10| and share that with
-\verb|f|. In order to achieve the same effect using Haskell \verb|par| we must
-give \verb|g 10| a name.
+This does as you would expect, evaluate \<g 10\> and share that with
+\<f\>. In order to achieve the same effect using Haskell \<par\> we must
+give \<g 0\> a name.
 
-\begin{verbatim}
-        let x = g 10
-        in par x (f x)
-\end{verbatim}
+\begin{haskell}
+\hslet{x = g 10}{%
+       par x (f x)}
+\end{haskell}
 
 
 While language implementors may have strong preferences for one over the other,
-there are a few good arguments for the use of Haskell \verb=par=. Haskell
-\verb=par= is the simpler of the two versions, using it as an infix combinator
+there are a few good arguments for the use of Haskell \<par\> Haskell
+\<par\> is the simpler of the two versions, using it as an infix combinator
 makes it easy to spark an arbitrary number of expressions easily,
-\verb-a `par` b `par` c-, and the use-case for applicative \verb=par= can be easily
-expressed using Haskell \verb|par|, as shown above.
+\<a `par` b `par` c\>, and the use-case for applicative \<par\> can be easily
+expressed using Haskell \<par\>, as shown above.
 
 \todoinline{It may be nice to instrument and profile the quicksort example that comes
     next. Since we have the space to do it, showing how we get a better performing
@@ -176,73 +175,73 @@ Now that we have our essential combinators we are able to define a parallel
 algorithm. One of the big sellers of functional programming is the wonderfully
 concise Quicksort definition
 
-\begin{verbatim}
-        quicksort :: (Ord a) => [a] -> [a]
-        quicksort (x:xs) = less ++ x:greater
-            where
-                less    = quicksort [y | y <- xs, y <= x]
-                greater = quicksort [y | y <- xs, y > x]
-        quicksort _ = []
-\end{verbatim}
+\begin{haskell}
+quicksort &:: (Ord \hasalpha) \Rightarrow [\hasalpha] \to [\hasalpha]\\
+quicksort (x:xs) &= less \hsapp x:greater
+            \hswhere{less    &= quicksort [y \mid y \hsfrom xs, y \leq x] \\
+                     greater &= quicksort [y \mid y \hsfrom xs, y > x]} \\
+quicksort \_ &= []
+\end{haskell}
 
 The obvious way to parallelise this algorithm is to ensure that each of the two
 recursive calls can be executed in parallel, this is a common form of
 paralellism known as `divide and conquer' \tocite{Either Hammond or something
 earlier}. This can be done by changing the second line to
 
-\begin{verbatim}
-        quicksort (x:xs) = greater `par` (less ++ x:greater)
-\end{verbatim}
+\begin{haskell}
+quicksort (x:xs) = greater `par` (less \hsapp x:greater)
+\end{haskell}
 
 The issue with the above is that while the left-hand side is sparked off in
 parallel, it will only be evaluated to WHNF if the spark catches. This will
-result in only the first \verb=cons= of the list. The rest of the list will
-only be evaluated if/when \verb=greater= is needed\footnote{Because of
+result in only the first \<cons\> of the list. The rest of the list will
+only be evaluated if/when \<greater\> is needed\footnote{Because of
 laziness it is possible that \texttt{greater} will never be needed. An
 example would be if only the head of the sorted list is requested.}. This
 fails to exploit all of the parallelism we desire and highlights the sometimes
 conflicting nature of parallelism and laziness.
 
     In order to help us attain the parallelism we are aiming for, we can
-introduce a function \verb=force= that ensures that its parameters are evaluated
+introduce a function \<force\> that ensures that its parameters are evaluated
 fully. As found in the textbook `Real World Haskell'' \citep{realWorld}
 
-\begin{verbatim}
-        force :: [a] -> ()
-        force list = force' list `pseq` ()
-            where force' (_:xs) = force' xs
-                  force' []     = 1
-\end{verbatim}
+\begin{haskell}
+force &:: [\hasalpha] \to ()\\
+force list &= force' list `pseq` ()
+\hswhere{force' (_:xs) &= force' xs \\
+         force' []     &= 1
+        }
+\end{haskell}
 
 This function takes a list and enforces spine-strictness. As long as the list is
 not an infinite structure the use of this function is safe. With this function
 in hand we could adapt our basic parallel Quicksort into a better performing one.
 
-An interesting point is that this definition of force can be much simpler
+An interesting point is that this definition of \<force\> can be much simpler
 
-\begin{verbatim}
-        force :: [a] -> ()
-        force force (_:xs) = force' xs
-              force []     = ()
-\end{verbatim}
+\begin{haskell}
+force &:: [\hasalpha] \to () \\
+force (\_:xs) &= force xs\\
+force []           &= ()
+\end{haskell}
 
 Because the function is fully saturated, the recursive call will continue
 evaluating through the entirety of the list. This only goes to show that even
-experts sometimes misunderstand when combinators like \verb=seq= are needed.
+experts sometimes misunderstand when combinators like \<seq\> and \<pseq\> are
+needed.
 
-\begin{verbatim}
-        parQuicksort :: (Ord a) => [a] -> [a]
-        parQuicksort (x:xs) = force greater `par`
-                           (force lesser `pseq` (less ++ x:greater))
-            where
-                less    = parQuicksort [y | y <- xs, y <= x]
-                greater = parQuicksort [y | y <- xs, y > x]
-        parQuicksort _ = []
-\end{verbatim}
+\begin{haskell}
+parQuicksort &:: (Ord \hasalpha) \Rightarrow [\hasalpha] \to [\hasalpha]\\
+parQuicksort (x:xs) &= force greater `par` (force lesser `pseq` (less ++ x:greater))
+\hswhere{less &= parQuicksort [y \mid y \hsfrom xs, y \leq x]\\
+         greater &= parQuicksort [y \mid y \hsfrom xs, y > x]
+        }
+parQuicksort \_ = []
+\end{haskell}
 
-Notice that there were a few more changes than just calling \verb=force= with
-the parallel spark. By also forcing the evaluation of \verb=lesser= before
-appending the two lists we ensure that both \verb=greater= and \verb=lesser=
+Notice that there were a few more changes than just calling \<force\> with
+the parallel spark. By also forcing the evaluation of \<lesser\> before
+appending the two lists we ensure that both \<greater\> and \<lesser\>
 are constructed completely. While this version of a parallel Quicksort does
 execute its recursive calls in parallel it has come at a cost. First, the
 resulting list is no longer lazy. Using this function for determining the head
@@ -268,17 +267,17 @@ worth it.
 to the function. An additional parameter can be be added to the function that
 acts as a count for the depth.
 
-\begin{verbatim}
-        parQuicksort (x:xs) depth = if depth <= 0
-                                    then quicksort (x:xs)
-                                    else ...
-\end{verbatim}
+\begin{haskell}
+parQuicksort (x:xs) depth = \hsif{depth \leq 0\\}{%
+                                  quicksort (x:xs)}{%
+                                    else \dots}
+\end{haskell}
 
     In this version we check to see if the desired maximum depth has been
 reached and if so then the recursive call is to the standard sequential sorting
 algorithm. If the max depth is not reached then we use the body of the
 parQuicksort defined above, with the depth argument to each recursive call being
-\verb=depth - 1=. The desired maximum depth is determined by the value given as
+\<depth - 1\> The desired maximum depth is determined by the value given as
 the depth argument at the top-level call of the function. This method of
 controlling the granularity is a useful one and allows for easy experimentation
 on the maximum depth for the problem at hand. The downside is that it
@@ -298,26 +297,26 @@ should be sparked.
 
 \subsection{Explicit Parallelism with the \texttt{Par} Monad}
 
-One of the main benefits of using \verb|par| and \verb|seq| is that they
+One of the main benefits of using \<par\> and \<seq\> is that they
 provide a simple interface for expressing parallel computation without
 the need to worry about concurrency issues such as task/thread creation
 and synchronisation. The communication is via the same mechanism that
-allows for lazy evaluation \citep{SPF:PIFPL}. However, laziness can
+allows for lazy evaluation \citep{SPJ:PIFPL}. However, laziness can
 be difficult to reason about and gaining the maximum benefit from parallelism
 can often require the \emph{forcing} of values beyond WHNF. \todo{Reference the forcing in quicksort}
-This motivated another approach to deterministic parallelism, the \verb|Par|
+This motivated another approach to deterministic parallelism, the \<Par\>
 Monad \citep{marlow2011monad}.
 
-The \verb|Par| Monad makes the following trade-off: For the cost of making the
+The \<Par\> Monad makes the following trade-off: For the cost of making the
 dependencies between computations explicit and prohibiting the use of shared
 lazy structures, users gain predictable performance and the ability to reason
 about when evaluation takes place. The library provides an API for dataflow
 parallelism in Haskell.
 
-Internally the \verb|Par| Monad is implemented using I-Structures
+Internally the \<Par\> Monad is implemented using I-Structures
 \citep{Arvind:IStructures}, which provide the mechanism for communication
 between tasks. I-Structures are mutable cells with write-once semantics.
-The disciplined use of I-Structures in the \verb|Par| Monad are what ensure
+The disciplined use of I-Structures in the \<Par\> Monad are what ensure
 deterministic parallelism.
 
 
@@ -339,15 +338,16 @@ program can yield promising results. This analysis has been named
 \emph{strictness analysis} \citep{ritabook, SPJ:PIFPL}. A trivial example is that
 of the addition of two expressions, such as the fibonacci sequence.
 
-\begin{verbatim}
-        nfib n
-            | n <= 0    = 0
-            | n == 1    = 1
-            | otherwise = nfib (n-1) + nfib (n-2)
-\end{verbatim}
+\begin{haskell}
+nfib n \hsbody{%
+            &\mid n \leq 0   &= 0 \\
+            &\mid n \equiv 1    &= 1 \\
+            &\mid otherwise  &= nfib (n-1) + nfib (n-2)
+            }
+\end{haskell}
 
-Because the \verb=(+)= function is strict in both its arguments we know that
-both recursive calls to \verb=nfib= will be required. This fact, that we
+Because the \<(+)\> function is strict in both its arguments we know that
+both recursive calls to \<nfib\> will be required. This fact, that we
 \emph{know} that the arguments to a function will be required by the function,
 is what enables us to exploit the parallelism that is inherent in the program.
 
@@ -357,9 +357,9 @@ the idea that sparking an expression that will definitely be required by the
 program is not seen as risky. While for the most part this is true, in reality
 it depends on how the sparking is handled by the runtime.
 
-    There are also techniques that involve using a program's statistics gathered
-at runtime to better predict where parallelism can be exploited (Harris, Singh
-2007).
+    There are also techniques that involve using a program's statistics
+    gathered at runtime to better predict where parallelism can be exploited
+    \citep{feedbackImplicit}.
 
 \subsection{Semi-Implicit Parallelism with Strategies}
     This section will look at things like `Strategies' to illustrate how a
@@ -372,9 +372,9 @@ simple to understand and easy to use effectively.
 
 The type declaration for a Strategy is
 
-\begin{verbatim}
-        type Strategy a = a -> ()
-\end{verbatim}
+\begin{haskell}
+\hskwd{type} Strategy \hasalpha = \hasalpha \to ()
+\end{haskell}
 
 The key point to take away from this is that Strategies do not, and can not,
 contribute to the end result of the computation.
@@ -383,53 +383,55 @@ It is possible, and useful, to define strategies that do not introduce
 parallelism, but instead ensure that evaluation is carried out to some degree.
 For example, the strategy for doing nothing
 
-\begin{verbatim}
-        r0 :: Strategy a
-        r0 _ = ()
-\end{verbatim}
+\begin{haskell}
+r0 :: Strategy a\\
+r0 \_ = ()
+\end{haskell}
 
 And for evaluating the argument to WHNF
 
-\begin{verbatim}
-        rwhnf :: Strategy a
-        rwhnf x = x `seq` ()
-\end{verbatim}
+\begin{haskell}
+rwhnf   &:: Strategy \hasalpha\\
+rwhnf x &= x `seq` ()
+\end{haskell}
 
 These strategies are not often used on their own, but are used in conjunction
 with other strategies to achieve a goal. For example, applying a strategy to
 each element of a list can be expressed as
 
-\begin{verbatim}
-        seqList :: Strategy a -> Strategy [a]
-        seqList strat [] = ()
-        seqLIst strat (x:xs) = strat x `seq` (seqList strat xs)
+\todoinline{fix pagebreak}
 
-        parList :: Strategy a -> Strategy [a]
-        parList strat [] = ()
-        parList strat (x:xs) = strat x `par` (parList strat xs)
-\end{verbatim}
+\begin{haskell}
+seqList &:: Strategy \hasalpha \to Strategy [\hasalpha]\\
+seqList strat [] &= ()\\
+seqLIst strat (x:xs) &= strat x `seq` (seqList strat xs)\\
+\quad&\quad \\
+parList &:: Strategy \hasalpha \to Strategy [\hasalpha] \\
+parList strat [] &= () \\
+parList strat (x:xs) &= strat x `par` (parList strat xs)
+\end{haskell}
 
 Both of these functions are common strategies for working on lists. In the first
-case, \verb=seqList=, elements in the list are \emph{sequentially} evaluated
-using \verb=strat=. In \verb=parList=, each element is evaluated in parallel
-using \verb=strat=, this gives no guarantee of the evaluation order, only that
+case, \<seqList\> elements in the list are \emph{sequentially} evaluated
+using \<strat\> In \<parList\> each element is evaluated in parallel
+using \<strat\> this gives no guarantee of the evaluation order, only that
 the sparks will point to each element of the list.
 
-In order to use a strategy, the function \verb=using= was defined; taking an
+In order to use a strategy, the function \<using\> was defined; taking an
 expression and a strategy, it bridges the gap between the specified algorithm
 and the desired strategy.
 
-\begin{verbatim}
-        using :: a -> Strategy a -> a
-        using x s = s x `seq` x
-\end{verbatim}
+\begin{haskell}
+using &:: \hasalpha \to Strategy \hasalpha \to \hasalpha\\
+using x s &= s x `seq` x
+\end{haskell}
 
-This allows us to define \verb=parMap= as
+This allows us to define \<parMap\> as
 
-\begin{verbatim}
-        parMap :: Strategy b -> (a -> b) -> [a] -> [b]
-        parMap strat f xs = map f xs `using` parList strat
-\end{verbatim}
+\begin{haskell}
+parMap &:: Strategy \hasbeta \to (\hasalpha \to \hasbeta) \to [\hasalpha] \to [\hasbeta]\\
+parMap strat f xs &= map f xs `using` parList strat
+\end{haskell}
 
 With this we could evaluate all the elements of a list to whatever level the
 first argument specifies.
@@ -438,7 +440,7 @@ first argument specifies.
 
 There are many cases where the \emph{structure} of two programs in the same
 even though they are computing different results. As mentioned above,
-\verb|quicksort| shares a structure with many algorithms known as `divide and
+\<quicksort\> shares a structure with many algorithms known as `divide and
 conquer'. Algorithmic skeletons allow for reuse of \emph{structural} parallelism
 between programs \tocite{Algorithmic Skeletons}.
 
@@ -447,3 +449,7 @@ of a program and ensure that the actions are parallelised according to the pre-d
 structural parallelism.
 
 \todoinline{Give an example of a divide and conquer Skeleton}.
+
+\subsection{Semi-Implicit Parallelism via Rewriting}
+
+A 

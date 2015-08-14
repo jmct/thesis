@@ -1,12 +1,12 @@
 The use of a small functional language as the internal representation of a
-compiler is a common technique in functional compilers \cite{dutchBook,
+compiler is a common technique in functional compilers \citep{dutchBook,
 PeytonJones:IFL, Augustsson:LazyMLCompiler, UHC}. By using a small core
 language as an internal representation source language features are simply
 syntactic sugar that is translated to a simpler but no less expressive
 language. This provides compiler writers with a smaller surface area for
 analysis and transformation. This has been used to great effect in the Glasgow
 Haskell Compiler (GHC) which uses a small core language similar to ours
-\cite{peyton2002secrets, jones1998transformation}. 
+\citep{peyton2002secrets, jones1998transformation}. 
 
 \subsection{Why be Lazy?}
 
@@ -262,23 +262,23 @@ of F-lite is defined.
 \begin{figure}
 \centering
 \begin{haskell*}
-type Prog &=& [Decl] \\
+\hskwd{type} Prog &=& [Decl] \\
       &\quad&\hfill \\
-data Decl &=& Func Id [Pat] Exp \\
-          &|& Data Id [Id] [(Id,[TypeExp])] \\
+\hskwd{data} Decl &=& Func Id [Pat] Exp \\
+                  &|& Data Id [Id] [(Id,[TypeExp])] \\
       &\quad&\hfill \\
-type Id &=& String \\
+\hskwd{type} Id &=& String \\
       &\quad&\hfill \\
-data Exp &=& App Exp [Exp] \\
-         &|& Case Exp [Alt] \\
-         &|& Let [Binding] Exp \\
-         &|& Var Id \\
-         &|& Con Id \\
-         &|& Fun Id \\
-         &|& Int Int \\
-         &|& Lam [Id] Exp \\
-         &|& Freeze Exp \\
-         &|& Unfreeze Exp
+\hskwd{data} Exp &=& App Exp [Exp] \\
+                 &|& Case Exp [Alt] \\
+                 &|& Let [Binding] Exp \\
+                 &|& Var Id \\
+                 &|& Con Id \\
+                 &|& Fun Id \\
+                 &|& Int Int \\
+                 &|& Lam [Id] Exp \\
+                 &|& Freeze Exp \\
+                 &|& Unfreeze Exp
 \end{haskell*}
 \caption{Abstract Syntax for F-lite}
 \label{fig:flite}
@@ -286,10 +286,11 @@ data Exp &=& App Exp [Exp] \\
 
 The language is an enriched lambda calculus with many of the usual
 conveniences: case expressions, recursive lets, and user defined types. A key
-point is the presence of expressions of the form \<Freeze e\> and \<Unfreeze e\>.
-These expression are not found in the concrete syntax but are instead
+point is the presence of expressions of the form \<Freeze e\> and \<Unfreeze
+e\>.  These expression are not found in the concrete syntax but are instead
 added by the compiler to make the suspension and forcing of lazy values
-explicit. We will see the utility of these expressions in Chapter
-\ref{chap:discovery}.
+explicit. This is a common technique when analysing non-strict programs with
+projections \citep{patersonCompProj, hinze1995projection}. We will see the
+utility of these expressions in Chapter \ref{chap:discovery}.
 
 \todoinline{Semantics!}
