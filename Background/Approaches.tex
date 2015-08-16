@@ -452,4 +452,20 @@ structural parallelism.
 
 \subsection{Semi-Implicit Parallelism via Rewriting}
 
-A 
+
+Some recent work has shown promising results with the use of rewriting. The
+programmer uses pre-selected idioms (which is what makes these techniques
+semi-implicit) and the compiler uses pre-defined rewrite rules to convert the
+high-level idiom to low level parallel code \tocite{The ICFP 2015 paper
+``Generating Performance Portable Code using Rewrite Rules: From High-level
+Functional Expressions to High-Performance OpenCL Code''}. This technique frees
+the programmer from concerning themselves with the low-level optimisation
+techniques, which in the case of GPU programming are often vendor specific. The
+compiler writers provide different sets of reqrite rules for each target
+platform, providing portable parallelism for specific functional idioms.
+
+Another rewriting approach uses a \emph{proof} of the program in seperation
+logic \citep{hurlinProof}, to automatically parallelise the program where
+it is safe, having the safety guaranteed by the provided proof. The proof can
+be transformed as teh program is transformed providing assurance that the
+resulting program has the same semantic behavior.

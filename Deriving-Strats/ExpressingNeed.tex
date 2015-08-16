@@ -10,10 +10,26 @@ Burns defined four `evaluators', each for lists, with the following meanings
 
 
 \begin{itemize}
-    \item ? performs no evaluation
-    \item ? evaluates its argument to WHNF
-    \item ? evaluates the spine of its argument
-    \item ? evaluates the spine of its argument and each element to WHNF
+    \item $\xi_{0}$ performs no evaluation
+    \item $\xi_{1}$ evaluates its argument to WHNF
+    \item $\xi_{2}$ evaluates the spine of its argument
+    \item $\xi_{3}$ evaluates the spine of its argument and each element to WHNF
 \end{itemize}
 
-These correspond directly to each point in Wadler's four-point domain.
+These correspond directly to each point in Wadler's four-point domain. The
+compiler can apply the relevant evaluation transformer to each expression that
+it is safe to do so. Burns realised that the strictness of certain functions
+can be dependent on which evaluation transfomer forced the evaluation of the
+function itself. With hindsight we can see that this is very similar to the
+motivation behind projection based analysis (and indeed Burns' noted this
+relationship in later work \tocite{Burns' paper on projections and
+ETs}.Additionally, the runtime system can keep track of which evaluation
+transformer is used on each expression. This allows the runtime system to
+propogate the evaluation where possible.
+
+There are two downsides with this approach: The level of evaluation is limited
+to pre-determined types (in this case lists and basic values) and it is the
+\emph{runtime system} that determines how the evaluation transformers are
+propogated. Ideally the propagation of demand would be static so that the
+runtime system does not have the additional bookeeping and management involved
+in the method introduced by Burns.
