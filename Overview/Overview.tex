@@ -287,16 +287,21 @@ discussion will center around the code presented in Figure \ref{sumLast}. In
 order to understand the code, it is useful to understand the architecture of the
 compiler.
 
+\todoinline{Canibalise some of the following for the overview above. Some of
+the content is good but it needs to be integrated with the above, right now
+it's just repetition with a few new things (how to read the code, introduce
+defunctionalisation, etc.)}
+
 \subsection{A Program Before Iteration}
 
-\begin{figure}[t!]
-  \input{Informed/SumPhases/SumEulerProcessed.core}
-\caption{Core representation of \texttt{SumEuler} after defunctionalisation, demand
-         analysis, and the introduction of initial \texttt{par} sites along
-         with their associated strategies.(Auto-generated names have been
-         replaced for better readability)}
-\label{sumLast}
-\end{figure}
+%\begin{figure}[t!]
+%  \input{Informed/SumPhases/SumEulerProcessed.core}
+%\caption{Core representation of \texttt{SumEuler} after defunctionalisation, demand
+%         analysis, and the introduction of initial \texttt{par} sites along
+%         with their associated strategies.(Auto-generated names have been
+%         replaced for better readability)}
+%\label{sumLast}
+%\end{figure}
 
 The code listed in Figure \ref{sumLast} is the resulting core representation
 of the program in Figure \ref{sumOrig} after our analysis and transformations.
