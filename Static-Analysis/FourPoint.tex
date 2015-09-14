@@ -253,11 +253,11 @@ occurrences of \<x\> out of \<e\>. This results in a function equivalent to
 
 \begin{haskell*}
 \mathcal{A}\Sem{Case xs [Nil \to e_{1}, Cons y ys \to e_{2}]} \hasphi &=&
-    xs^{\#} \(\sqcap\) (a^{\#} \(\sqcup\) f^{\#} y ys)
+    xs^{\#} \(\sqcap\) (a^{\#} \(\sqcup\) f^{\#} \(\top \ \top_{\in}\))
     \hswhere{%
     &xs^{\#} &= \mathcal{A}\Sem{xs} \hasphi \\
     &a^{\#}  &= \mathcal{A}\Sem{e_{1}} \hasphi \\
-    &f^{\#}  &= \mathcal{A}\Sem{[ys][y]e_{2}} \hasphi
+    &f^{\#}  &= [ys][y](\mathcal{A}\Sem{e_{2}} \hasphi)
     }
 \end{haskell*}
 
@@ -276,7 +276,9 @@ In this case, \<a^{\#}\> will always be $\top$, when we abstract the function
 to get \<xs^{\#} \(\sqcap\) (\(\top\) \(\sqcup\) f^{\#} y ys)\> the result
 would only ever be $\bot$ if \<xs \(\equiv \bot\)\>. Therefore it is only safe
 for us to evaluate the list up to WHNF, when \<sum\> clearly needs a
-fully-defined list!
+fully-defined list! Not only that, but because we may lack information about
+the definedness of \<xs\> we must be safe and approximate \<y\> and \<ys\> to
+the top of their lattices ($\top$ and $\top_{\in}$, respectively). 
 
 Wadler's key insight was that the use of pattern matching allowed us to retain
 information that would otherwise be lost when performing abstract
@@ -318,11 +320,29 @@ The absence of a rule for $\bot$ is due to the fact that we would never match
 on an undefined value, resulting in $\bot$ regardless of the values of the
 alternatives. We can also remove several of the alternatives in the cases for
 $\infty$ and $\bot_{\in}$ due to the necessity for the abstraction of the
-alternative branches to be monotonic \citep{wadler1987strictness}\footnote{See
-Appendix \ref{chap:domain} for a more detailed explanation.}.
+alternative branches to be monotonic \citep{wadler1987strictness}\footnote{For
+example, with \(\bot_{\in}\) we will always have \(f^{\#} \bot \bot_{\in}
+\sqsubseteq f^{\#} \top \bot_{\in}\), making \(f^{\#} \bot \bot_{\in}\)
+unnecessary since \(x \sqcup y \equiv y\) when \(x \sqsubseteq y\). Applying
+this reasoning to \(\infty\) leaves us with only \(f^{\#} \top \infty\) to
+consider.}.
 
+Taking these insights into account leaves us with the following rule for
+pattern matching on lists.
 
-\todoinline{New rules for $\mathcal{A}$}
+\begin{haskell*}
+\mathcal{A}\Sem{Case xs [Nil \to e_{1}, Cons y ys \to e_{2}]} \hasphi && \\
+\hsbody{%
+    \quad\quad &\mid xs^{\#} == \(\top_{\in}\) &= a^{\#} \(\sqcup\) f^{\#} \(\top\ \top_{\in}\) \\
+    \quad\quad &\mid xs^{\#} == \(\bot_{\in}\) &= f^{\#} \(\bot\ \top_{\in}\) \(\sqcup\) f^{\#} \(\top\ \bot_{\in}\) \\
+    \quad\quad &\mid xs^{\#} == \(\infty\)     &= f^{\#} \(\top\ \infty\)\\
+    \quad\quad &\mid otherwise                 &= \bot
+} \hswhere{%
+    &xs^{\#} &= \mathcal{A}\Sem{xs} \hasphi \\
+    &a^{\#}  &= \mathcal{A}\Sem{e_{1}} \hasphi \\
+    &f^{\#}  &= [ys][y](\mathcal{A}\Sem{e_{2}} \hasphi)
+    }
+\end{haskell*}
 
 \<meet\> and \<join\> are easily defined for the four-point domain. If we
 assign each point in the domain a value according to its position in the lattice,

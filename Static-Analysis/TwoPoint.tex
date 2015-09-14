@@ -237,17 +237,21 @@ is just applying the environment to the identifier.
 %
 \quad&\quad&\quad \\
 %
-\hsnoalign{\mathcal{C}\Sem{alt_{1}, alt_{2}, \(\dots\), alt_{n}} \hasphi =
-        \mathcal{A}\Sem{alt_{1}} \hasphi \(\sqcup\)
-        \mathcal{A}\Sem{alt_{2}} \hasphi \(\sqcup \dots\) \(\sqcup\)
-        \mathcal{A}\Sem{alt_{n}} \hasphi}
+\hsnoalign{\mathcal{C}\Sem{c_{1}\ vars_{1} \to e_{n}, \(\dots\), c_{n}\ vars_{n} \to e_{n})} \hasphi =
+        e^{\#}_{1} \(\sqcup \dots \sqcup\) e^{\#}_{n}
+        \hswhere{%
+            e^{\#}_{1} &= \mathcal{A}\Sem{e_{1}} \hasphi[vars_{1} \(\mapsto \top\)] \\
+            & \vdots \\
+            e^{\#}_{n} &= \mathcal{A}\Sem{e_{n}} \hasphi[vars_{i} \(\mapsto \top\)]
+        }
+        }
 \end{haskell*}
 \caption{An Abstract Semantics for Strictness Analysis on a Two-Point Domain}
 \label{fig:twoPointAI}
 \end{figure}
 
-\todoinline{Fix rule C so that we take into account the vars introduced by case
-alternatives (they should all be approximated as Top)}
+%\todoinline{Fix rule C so that we take into account the vars introduced by case
+%alternatives (they should all be approximated as Top)}
 
 \subsection{Some Examples}
 

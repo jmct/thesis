@@ -278,7 +278,13 @@ of F-lite is defined.
                  &|& Int Int \\
                  &|& Lam [Id] Exp \\
                  &|& Freeze Exp \\
-                 &|& Unfreeze Exp
+                 &|& Unfreeze Exp \\
+      &\quad&\hfill \\
+\hskwd{data} Alt &=& (Pat, Exp) \\
+      &\quad&\hfill \\
+\hskwd{type} Binding &=& (Id, Exp) \\
+      &\quad&\hfill \\
+\hskwd{type} Pat &=& Exp \hscom{Applications of \<Con\>s to \<Var\>s}
 \end{haskell*}
 \caption{Abstract Syntax for F-lite}
 \label{fig:flite}
