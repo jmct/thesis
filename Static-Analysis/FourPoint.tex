@@ -13,7 +13,7 @@ we must stop evaluation of the list of risk introducing non-termination.
 Through the lens of implicit parallelism it seems that we are unlikely to
 benefit from introducing parallel evaluation when we are limited to
 WHNF\footnote{Indeed most uses of the basic strictness information were for
-improving the code generation to avoid building unnecessary suspension.} This
+improving the code generation to avoid building unnecessary suspensions.} This
 is clearly a problem.
 
 The solution seems clear: We must extend the abstract domains for non-flat data
@@ -152,16 +152,16 @@ different domains.
 
 To incorporate the four-point domain into the abstract interpretation from the
 previous section we need a few new primitives. The \<Cons\> constructor is
-given the abstract definition shown in Figure \ref{fig:cons4}. \<Nil\> is
-always $\top_{\in}$.  There are a few points worth mentioning about the
-definition of \<cons^{\#}\>.  First, none of the equations result in $\bot$.
-This makes sense with our understanding of lazy evaluation, if we have the
-outermost constructor we have a value in WHNF and therefore it is definitely
-\emph{not} $\bot$. Additionally, notice that \<cons\>ing a defined value onto
-$\bot_{\in}$ also results in $\bot_{\in}$, this keeps \<cons^{\#}\> monotonic
-in addition to aligning with our intuitions (\<cons\>ing a defined element to
-the beginning of a list with possibly undefined elements does not suddenly make
-the list fully defined). 
+given the abstract definition shown in Figure \ref{fig:cons4}. \<Nil\>, being a
+fully defined list, is always abstracted as $\top_{\in}$.  There are a few
+points worth mentioning about the definition of \<cons^{\#}\>.  First, none of
+the equations result in $\bot$.  This makes sense with our understanding of
+lazy evaluation, if we have the outermost constructor we have a value in WHNF
+and therefore it is definitely \emph{not} $\bot$. Additionally, notice that
+\<cons\>ing a defined value onto $\bot_{\in}$ also results in $\bot_{\in}$,
+this keeps \<cons^{\#}\> monotonic in addition to aligning with our intuitions
+(\<cons\>ing a defined element to the beginning of a list with possibly
+undefined elements does not suddenly make the list fully defined). 
 
 \begin{figure}
 \centering
@@ -327,9 +327,7 @@ unnecessary since \(x \sqcup y \equiv y\) when \(x \sqsubseteq y\). Applying
 this reasoning to \(\infty\) leaves us with only \(f^{\#} \top \infty\) to
 consider.}.
 
-Taking these insights into account leaves us with the following rule for
-pattern matching on lists.
-
+\begin{figure}[t!]
 \begin{haskell*}
 \mathcal{A}\Sem{Case xs [Nil \to e_{1}, Cons y ys \to e_{2}]} \hasphi && \\
 \hsbody{%
@@ -343,6 +341,13 @@ pattern matching on lists.
     &f^{\#}  &= [ys][y](\mathcal{A}\Sem{e_{2}} \hasphi)
     }
 \end{haskell*}
+\caption{Abstraction of Case Expressions on Lists}
+\label{fig:absCase}
+\end{figure}
+
+
+Taking these insights into account leaves us with the rule for
+pattern matching on lists seen if Figure \ref{fig:absCase}.
 
 \<meet\> and \<join\> are easily defined for the four-point domain. If we
 assign each point in the domain a value according to its position in the lattice,
@@ -352,10 +357,11 @@ and \join as \<max\>.
 With everything in place, we can now see if an analysis using this four-point
 domain is more suitable for implicit parallelism.
 
-\subsubsection{Length}
+\subsubsection{Length and Sum}
 
 We will use the simple recursive \<length\> function for our first example of
-using this analysis.
+using this analysis (\<sum\> is defined similarly, replacing the \<1\> with
+\<y\>).
 
 \begin{haskell*}
 length xs &=& \hscase{xs}{%
@@ -364,16 +370,33 @@ length xs &=& \hscase{xs}{%
     }
 \end{haskell*}
 
-\subsubsection{Sum}
+Because \<length\> and \<sum\> take only one argument, which is a list, we must
+analyse the functions at each of the four points in our domain for lists.
+Recursion can be dealt with in the same manner as shown in Section
+\ref{sec:twoPoint}. Once a fixed-point is reached we are left with the
+following results.
 
-If we perform this analysis on \<sum\> we see that we can in fact use the
-result in a way that allows us to take advantage of more parallelism.
+\begin{table}[h!]
+\centering
+\caption{Analysis of \(length^{\#}\) and \(sum^{\#}\) Using 4-point Domains}
+\vspace{10pt}
+\begin{tabular}{c || c c}
+    $xs^{\#}$ & \<length^{\#} xs^{\#}\> & \<sum^{\#} xs^{\#}\> \\
+    \hline
+    $\top_{\#}$ & $\top$                & $\top$ \\
+    $\bot_{\#}$ & $\top$                & $\bot$ \\
+    $\infty$ & $\bot$                   & $\bot$ \\
+    $\bot$ & $\bot$                     & $\bot$
+\end{tabular}    
+\label{tab:lengthSum}
+\end{table}
 
-\subsubsection{The \emph{use} of a Function}
-
-If we analyse \<append\> we can see that while the first list is always
-strict up to WHNF, the second list is not strict. This is unfortunate because
-we know that \<append\> is strict in both arguments under certain conditions.
+The results in Table \ref{tab:lengthSum} are exactly what we would expect. If
+\<length\> or \<sum\> are passed infinite lists then program will result in
+non-termination. \<sum\> has the additional constraint that all \emph{elements}
+of its input list must also be defined. This analysis would allow us to
+evaluate the argument to \<sum\> fully, in parallel, making it a significant
+improvement to the simple two-point analysis from Section \ref{sec:twoPoint}.
 
 \subsubsection{Discussion of Four-Point Strictness Analysis}
 
@@ -401,7 +424,37 @@ suffers from a few considerable shortcomings:
         the technique is extended similarly to complex recursive types
 \end{enumerate}
 
-The limitations due to the first point were well known at the time of Wadler's
+To illustrate the first problem we can study the results of applying this
+analysis to the \<append\> function, which can be seen in Table
+\ref{tab:append}.
+
+\begin{table}[h!]
+\centering
+\caption{Analysis of \(append^{\#}\ xs^{\#}\ ys^{\#}\) Using 4-point Domains}
+\vspace{10pt}
+\begin{tabular}{c c || c c c c}
+                               & \multicolumn{1}{c}{} & \multicolumn{4}{c}{$ys^{\#}$}            \\
+                               &             & $\top_{\in}$ & $\bot_{\in}$ & $\infty$ & $\bot$   \\
+    \cline{2-6}
+    \multirow{4}{*}{$xs^{\#}$} & $\top_{\#}$ & $\top_{\in}$ & $\bot_{\in}$ & $\infty$ & $\infty$ \\
+                               & $\bot_{\#}$ & $\bot_{\in}$ & $\bot_{\in}$ & $\infty$ & $\infty$ \\
+                               & $\infty$    & $\infty$     & $\infty$     & $\infty$ & $\infty$ \\
+                               & $\bot$      & $\bot$       & $\bot$       & $\bot$   & $\bot$
+\end{tabular}    
+\label{tab:append}
+\end{table}
+
+
+We can see that while the first list is always strict up to WHNF, the second
+list is not strict. This is unfortunate because we know that \<append\> is
+strict in both arguments under certain conditions.
+
+For example, if we pass the result of \<append\> to \<length\> then we know
+that \emph{both} argument lists for \<append\> must be finite for the result
+of the call the \<length\> to terminate. The inability for this analysis
+to express that form of strictness is a major weakness.
+
+The limitations due to this first point were well known at the time of Wadler's
 paper on the four-point domain. However, the solutions seemed ad-hoc and were
 on shaky theoretical grounds \tocite{Hughe's first paper on contexts}. The
 introduction of the four-point domain was successful in part to it fitting
