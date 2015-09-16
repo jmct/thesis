@@ -1,26 +1,19 @@
-In this section we provide a brief overview of the two
-predominant techniques for strictness analysis: \emph{abstract interpretation}
-and \emph{projection-based} analysis.  We then motivate our decision to use a
-projection-based analysis.
+The shortcomings of the analyses based on the abstract interpretation of
+programs motivated Wadler and Hughes to propose using \emph{projections} from
+domain theory to analyse strictness \citep{wadler1987projections}.
 
-\subsection{Projections}
-
-This explosion in cost motivated Wadler and Hughes to propose using
-\emph{projections} from domain theory to analyse strictness
-\citep{wadler1987projections}.
-
-
-Projection-based analysis provides two benefits over abstract interpretation:
-the ability to analyse functions over arbitrary structures, and a
-correspondence with parallel strategies \citep{marlow2010seq, strategies}. This
-allows us to use the projections provided by our analysis to produce an
+For our purposes projection-based analysis provides two benefits over abstract
+interpretation: the ability to analyse functions over arbitrary structures, and
+a correspondence with parallel strategies \citep{marlow2010seq, strategies}.
+This allows us to use the projections provided by our analysis to produce an
 appropriate function to compute the strict arguments in parallel.
 
-Strictness analysis by abstract interpretation asks ``When passing $\bot$ as an
-argument is the result of the function call $\bot$?''. Projection-based
-strictness analysis instead asks ``If there is a certain degree of demand on
-the result of this function, what degree of demand is there on its
-arguments?''.
+We can frame the differences in the two approaches by thinking about what each
+analysis is answering. Strictness analysis by abstract interpretation asks
+``When passing $\bot$ as an argument is the result of the function call
+$\bot$?''. Projection-based strictness analysis instead asks ``If there is a
+certain degree of demand on the result of this function, what degree of demand
+is there on its arguments?''.
 
 What is meant by `demand'? As an example, the function \verb'length' requires
 that the input list be finite, but no more. We can therefore say that
@@ -33,19 +26,31 @@ that the input list be finite, but no more. We can therefore say that
         append (x:xs) ys = x : append xs ys
 \end{alltt}
 
-By studying the function we can tell that the first argument must be defined to
-the first cons, but we cannot know whether the second argument is ever needed. However, what
-if the \emph{result} of \verb'append' needs to be a finite list? For example:
+As mentioned in the previous section the first argument must be defined to the
+first cons, but we cannot know whether the second argument is ever needed.
+However, what if the \emph{result} of \verb'append' needs to be a finite list?
+For example:
 
 \begin{alltt}
-
     lengthOfBoth :: [a] -> [a] -> Int
     lengthOfBoth xs ys = length (append xs ys)
 \end{alltt}
 
 In this case \emph{both} arguments to \verb'append' must be finite. Projections
 can be used to formalise this type of context \citep{wadler1987projections,
-hinze1995projection}.
+hinze1995projection}, which we call a \emph{demand context}.
+
+\defineword{Demand Context}
+           {The depth of a structure that is needed by the consumer of a
+            function's result.}
+
+Demand Contexts allow us to reason about the \emph{use} of a function's result,
+letting us reason about functions like \<append\> more accurately. This, combined
+with their ability to analyse functions of arbitrary types without the need to
+design abstract domains by hand make projection-based analysis the most
+realistic for our purposes of utilising implicit parallelism.
+
+\pagebreak
 
 \subsection{Semantics of Projections}
 
@@ -232,3 +237,29 @@ specific strategy for evaluating the structure, as we shall define in section
 appropriate parallel strategies for arbitrary types. Using a
 projection-based strictness analysis, we avoid the exponential blowup
 of domains required for abstract interpretation.
+
+\subsection{Lattice of Projections}
+
+Having an intuition  of what projections are we can now define how we combine
+differing demands on values. In the previous analyses we used the \meet and
+\join operations directly. Projections also have \meet and \join, but because
+our projections are representing demand contexts we do not actually want to use
+\meet. Instead we use $\&$, where $\alpha\ \&\ \gamma$ represents the
+\emph{joint} demand of both $\alpha$'s and $\gamma$'s demand taken together.
+
+\todo{fill this figure in based on Hinze 6.21}
+
+\begin{figure}
+\centering
+\begin{multicols}{2}
+  \begin{haskell*}
+    BOT       &\sqcap& \hasgamma  &= BOT \\
+    \hasgamma &\sqcap& BOT        &= BOT
+  \end{haskell*}
+  \begin{haskell*}
+    BOT        &\sqcup& \hasgamma  &= \hasgamma \\
+    \hasgamma  &\sqcup& BOT        &= \hasgamma
+  \end{haskell*}
+\end{multicols}
+\caption{Conjunction ($\&$) and Disjunction ($\sqcup$) on Projections}
+\end{figure}
