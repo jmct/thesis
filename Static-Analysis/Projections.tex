@@ -116,29 +116,32 @@ can be formed by using the $\otimes$ operator with the following semantics
 \end{align*}
 
 \paragraph{Demands on Sums} If projections are functions on a domain, then
-$\oplus$, the operator that forms projections on sum-types performs the case-analysis.
+\nolinebreak $|$, the operator that forms projections on sum-types performs the
+case-analysis. Each summand is tagged with the constructor it corresponds to.
+Sometimes we will omit the constructor name when presenting projections on
+types with a single summand (such as anonymous tuples).
 
 \begin{align*}
-[ID_{True} \oplus ID_{False}]  \ True &= True \\
-[ID_{True} \oplus BOT_{False}] \ False &= \bot
+[True\ ID | False\ ID]  \ True &= True \\
+[True\ ID | False\ BOT] \ False &= \bot
 \end{align*}
 
 \begin{figure}
 \begin{align*}
-    d ::=&\ BOT              & \text{Bottom (hyperstrict)} \\
+    \pi ::=&\ BOT              & \text{Bottom (hyperstrict)} \\
         |&\ ID               & \text{Top (the identity)} \\
-        |&\ \langle d_{1} \otimes d_{2} \dots \otimes d_{n} \rangle   & \text{Products} \\ 
-        |&\ [d_{1} \oplus d_{2} \dots \oplus d_{n}]    & \text{Sums} \\ 
-        |&\ \mu\beta . d     & \text{Recursive Demands} \\
-        |&\ d?               & \text{Strict Lift} \\
-        |&\ d!               & \text{Lazy Lift}
+        |&\ \langle \pi_{1} \otimes \pi_{2} \dots \otimes \pi_{n} \rangle   & \text{Products} \\ 
+        |&\ [C_{1} \ \pi_{1} | C_{2} \ \pi_{2} \dots | C_{n} \ \pi_{n}]    & \text{Sums} \\ 
+        |&\ \mu\beta . \pi     & \text{Recursive Demands} \\
+        |&\ \pi?               & \text{Strict Lift} \\
+        |&\ \pi!               & \text{Lazy Lift}
 \end{align*}
 \caption{Abstract Syntax for Contexts of Demand}
 \label{fig:ContextAST}
 \end{figure}
 
 
-Figure \ref{fig:ContextAST} presents a suitable abstract syntax for projections
+Figure \ref{fig:ContextAST} \todo{Add CVars and CRec to AST} presents a suitable abstract syntax for projections
 representing demand.  This form was introduced by Kubiak et al. and used in
 Hinze's work on projection-based analyses \citep{kubiak, hinze1995projection}.
 We have omitted the details on the representation of context variables (for
@@ -177,9 +180,9 @@ defined but does not require the second element. This is the demand that
 For polymorphic lists there are 7 principal contexts; 3 commonly occurring contexts are:
 
 \begin{align}
-    \mu\beta.&[ID \oplus \langle \gamma? \otimes \beta?\rangle] \label{IDList} \\
-    \mu\beta.&[ID \oplus \langle \gamma? \otimes \beta!\rangle] \label{FINList} \\
-    \mu\beta.&[ID \oplus \langle \gamma! \otimes \beta!\rangle] \label{FULLList}
+    \mu\beta.&[Nil\ ID | Cons\ \langle \gamma? \otimes \beta?\rangle] \label{IDList} \\
+    \mu\beta.&[Nil\ ID | Cons\ \langle \gamma? \otimes \beta!\rangle] \label{FINList} \\
+    \mu\beta.&[Nil\ ID | Cons\ \langle \gamma! \otimes \beta!\rangle] \label{FULLList}
 \end{align}
 
 
@@ -244,22 +247,99 @@ Having an intuition  of what projections are we can now define how we combine
 differing demands on values. In the previous analyses we used the \meet and
 \join operations directly. Projections also have \meet and \join, but because
 our projections are representing demand contexts we do not actually want to use
-\meet. Instead we use $\&$, where $\alpha\ \&\ \gamma$ represents the
-\emph{joint} demand of both $\alpha$'s and $\gamma$'s demand taken together.
+\meet. Instead we use $\pmeet$, where $\alpha\ \pmeet\ \gamma$ represents the
+\emph{joint} demand of both $\alpha$'s and $\gamma$'s demand taken together. In
+other words, the projection $\alpha\ \pmeet\ \gamma$ only accepts values that
+are accepted by $\alpha$ and $\gamma$, and returns $\bot$ otherwise (motivating
+the use of `conjunction' to describe the operation).
 
-\todo{fill this figure in based on Hinze 6.21}
+Figure \ref{fig:conjDisBasic} shows the rules for performing conjunction and
+disjunction of projections on basic values (either $BOT$ or $ID$) and for
+lifted values. Note that when we perform $\pmeet$ on two projections with
+different lifts we must ensure that the resulting projection is not more strict
+than the strictly lifted input, this ensure that we maintain our desired safety
+condition.
 
 \begin{figure}
-\centering
 \begin{multicols}{2}
-  \begin{haskell*}
-    BOT       &\sqcap& \hasgamma  &= BOT \\
-    \hasgamma &\sqcap& BOT        &= BOT
-  \end{haskell*}
-  \begin{haskell*}
-    BOT        &\sqcup& \hasgamma  &= \hasgamma \\
-    \hasgamma  &\sqcup& BOT        &= \hasgamma
-  \end{haskell*}
+\noindent
+
+\begin{align*}
+BOT       &\pmeet\  \gamma        &=&\quad BOT \\
+\gamma    &\pmeet\  BOT           &=&\quad BOT \\
+ID        &\pmeet\  ID            &=&\quad ID \\
+\quad &\             &\ &  \\
+\alpha!        &\pmeet\  \gamma!  &=&\quad (\alpha \pmeet \gamma)! \\
+\alpha!        &\pmeet\  \gamma?  &=&\quad (\alpha \sqcup \alpha \pmeet \gamma)! \\
+\alpha?        &\pmeet\  \gamma!  &=&\quad (\alpha \pmeet \gamma \sqcup \gamma)! \\
+\alpha?        &\pmeet\  \gamma?  &=&\quad (\alpha \sqcup \gamma)?
+\end{align*}% what?
+
+\begin{align*}
+BOT            &\sqcup\  \gamma   &=&\quad \gamma \\
+\gamma         &\sqcup\  BOT      &=&\quad \gamma \\
+ID             &\sqcup\  ID       &=&\quad ID \\
+\quad \ \quad  &                  &\ & \\
+\alpha!        &\sqcup\  \gamma!  &=&\quad (\alpha \sqcup \gamma)! \\
+\alpha!        &\sqcup\  \gamma?  &=&\quad (\alpha \sqcup \gamma)? \\
+\alpha?        &\sqcup\  \gamma!  &=&\quad (\alpha \sqcup \gamma)? \\
+\alpha?        &\sqcup\  \gamma?  &=&\quad (\alpha \sqcup \gamma)?
+\end{align*}
 \end{multicols}
-\caption{Conjunction ($\&$) and Disjunction ($\sqcup$) on Projections}
+\caption[Conjunction and Disjunction for Projections 1]{Conjunction $\pmeet$ and Disjunction $\sqcup$ for Projections on Basic and Lifted Values}
+\label{fig:conjDisBasic}
+\end{figure}
+
+Figure \ref{fig:conjDisSum} shows the same operations for projections on sum
+and product types. The only surprising aspect of the definitions is that we are
+forced to normalise the result of a conjunction on product types. This is
+because it possible for $\pmeet$ for form a projection denoting $BOT$ even when
+both arguments are not $BOT$. For example, applying $\&$ to a projection that
+only accepts $True$ and a projection that only accepts $False$ results in the
+$BOT$ projection. This is because there is no possible Boolean value that the
+resulting projection will accept, despite neither constituent projection
+denoting $BOT$.
+
+The \<norm\> function recognises these projections and transforms them to the
+direct representation of $BOT$.
+
+\begin{figure}
+\noindent
+
+\begin{align*}
+[C_{1} \alpha_{1} | \dots | C_{n} \alpha_{n}] \pmeet&
+[C_{1} \gamma_{1} | \dots | C_{n} \gamma_{n}] &&= \quad
+[C_{1} (\alpha_{1} \pmeet \gamma_{1}) | \dots | C_{n} (\alpha_{n} \pmeet \gamma_{n})] \\
+[C_{1} \alpha_{1} | \dots | C_{n} \alpha_{n}] \sqcup&
+[C_{1} \gamma_{1} | \dots | C_{n} \gamma_{n}] &&= \quad
+[C_{1} (\alpha_{1} \sqcup \gamma_{1}) | \dots | C_{n} (\alpha_{n} \sqcup \gamma_{n})]
+\end{align*}% what
+
+\begin{align*}
+\langle \alpha_{1} \otimes \dots \otimes \alpha_{n} \rangle \pmeet&
+\langle \gamma_{1} \otimes \dots \otimes \gamma_{n} \rangle &&= \quad
+norm \big( \langle (\alpha_{1} \pmeet \gamma_{1}) \otimes \dots \otimes (\alpha_{n} \pmeet \gamma_{n})\rangle \big) \\
+\langle \alpha_{1} \otimes \dots \otimes \alpha_{n} \rangle \sqcup&
+\langle \gamma_{1} \otimes \dots \otimes \gamma_{n} \rangle &&= \quad
+\langle (\alpha_{1} \sqcup \gamma_{1}) \otimes \dots \otimes (\alpha_{n} \sqcup \gamma_{n})\rangle \big)
+\end{align*}
+\caption[Conjunction and Disjunction for Projections 2]{Conjunction and Disjunction for Projections on Products and Sums}
+\label{fig:conjDisSum}
+\end{figure}
+
+For conjunction of projections on recursive types we have to perform additional
+analysis to ensure that we maintain uniformity, which is the property that the
+demand on the `recursive call' of the type is equal to the demand on the type
+itself. The reasons for this are detailed in \cite{hinze1995projection} Section
+6.4.
+
+\begin{figure}
+\begin{align*}
+(\mu\beta.\alpha) \sqcup& (\mu\beta.\gamma) &&= \quad \mu\beta.\alpha \sqcup \gamma &&\\
+(\mu\beta.\alpha) \pmeet& (\mu\beta.\gamma) &&| \quad \pi' \sqsubseteq \beta_{1} \& \beta_{2} &&= norm \big(\mu\beta.\alpha \& \gamma \big) \\
+\quad                   &   \               &&| \quad \pi' \sqsubseteq \beta_{1} \sqcup \beta_{1} \pmeet \beta_{2} &&= \mu\beta.\alpha \sqcup \alpha \pmeet \gamma \\
+\quad                   &   \               &&| \quad \pi' \sqsubseteq \beta_{1} \pmeet \beta_{2} \sqcup \beta_{2} &&= \mu\beta.\alpha \pmeet \gamma \sqcup \gamma \\
+\quad                   &   \               &&| \quad \pi' \sqsubseteq \beta_{1} \sqcup \beta_{2} &&= \mu\beta.\alpha \sqcup \gamma
+\end{align*}
+\caption[Conjunction and Disjunction for Projections 3]{Conjunction and Disjuntion for Projections on Recursive Types}
 \end{figure}
