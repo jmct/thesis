@@ -53,6 +53,7 @@ realistic for our purposes of utilising implicit parallelism.
 \pagebreak
 
 \subsection{Semantics of Projections}
+\label{sec:projSem}
 
 Given a domain $D$, a projection on $D$ is a continuous function
 $\pi \ : \ D \rightarrow D$ that satisfies
@@ -133,6 +134,7 @@ types with a single summand (such as anonymous tuples).
         |&\ \langle \pi_{1} \otimes \pi_{2} \dots \otimes \pi_{n} \rangle   & \text{Products} \\ 
         |&\ [C_{1} \ \pi_{1} | C_{2} \ \pi_{2} \dots | C_{n} \ \pi_{n}]    & \text{Sums} \\ 
         |&\ \mu\beta . \pi     & \text{Recursive Demands} \\
+        |&\ \beta              & \text{Recursive Binding} \\
         |&\ \pi?               & \text{Strict Lift} \\
         |&\ \pi!               & \text{Lazy Lift}
 \end{align*}
@@ -192,9 +194,9 @@ list.  An important point is that this representation for recursive contexts
 restricts the representable contexts to \emph{uniform projections}: projections
 that define the same degree of evaluation on each of their recursive components
 as they do on the structure as a whole. The detailed reason for this
-restriction is given on page 89 of Hinze \citep{hinze1995projection}. This
-limitation does not hinder the analysis significantly as many functions on
-recursive structures are themselves uniform.
+restriction is given on page 89 of \cite{hinze1995projection}. This limitation
+does not hinder the analysis significantly as many functions on recursive
+structures are themselves uniform.
 
 With this in mind Context \ref{IDList} represents a lazy demand on the list,
 Context \ref{FINList} represents a \emph{tail strict} demand, and Context
@@ -251,7 +253,9 @@ our projections are representing demand contexts we do not actually want to use
 \emph{joint} demand of both $\alpha$'s and $\gamma$'s demand taken together. In
 other words, the projection $\alpha\ \pmeet\ \gamma$ only accepts values that
 are accepted by $\alpha$ and $\gamma$, and returns $\bot$ otherwise (motivating
-the use of `conjunction' to describe the operation).
+the use of `conjunction' to describe the operation). Using $\pmeet$ instead of
+$\sqcap$ is standard when dealing with projections that act on demands
+\citep{wadler1987projections, hinze1995projection, SergeyDemand}.
 
 Figure \ref{fig:conjDisBasic} shows the rules for performing conjunction and
 disjunction of projections on basic values (either $BOT$ or $ID$) and for
@@ -265,14 +269,14 @@ condition.
 \noindent
 
 \begin{align*}
-BOT       &\pmeet\  \gamma        &=&\quad BOT \\
-\gamma    &\pmeet\  BOT           &=&\quad BOT \\
-ID        &\pmeet\  ID            &=&\quad ID \\
+BOT       &\pmeet  \gamma        &=&\quad BOT \\
+\gamma    &\pmeet  BOT           &=&\quad BOT \\
+ID        &\pmeet  ID            &=&\quad ID \\
 \quad &\             &\ &  \\
-\alpha!        &\pmeet\  \gamma!  &=&\quad (\alpha \pmeet \gamma)! \\
-\alpha!        &\pmeet\  \gamma?  &=&\quad (\alpha \sqcup \alpha \pmeet \gamma)! \\
-\alpha?        &\pmeet\  \gamma!  &=&\quad (\alpha \pmeet \gamma \sqcup \gamma)! \\
-\alpha?        &\pmeet\  \gamma?  &=&\quad (\alpha \sqcup \gamma)?
+\alpha!        &\pmeet  \gamma!  &=&\quad (\alpha \pmeet \gamma)! \\
+\alpha!        &\pmeet  \gamma?  &=&\quad (\alpha \sqcup \alpha \pmeet \gamma)! \\
+\alpha?        &\pmeet  \gamma!  &=&\quad (\alpha \pmeet \gamma \sqcup \gamma)! \\
+\alpha?        &\pmeet  \gamma?  &=&\quad (\alpha \sqcup \gamma)?
 \end{align*}% what?
 
 \begin{align*}
@@ -301,7 +305,8 @@ resulting projection will accept, despite neither constituent projection
 denoting $BOT$.
 
 The \<norm\> function recognises these projections and transforms them to the
-direct representation of $BOT$.
+direct representation of $BOT$\footnote{$norm$ is defined in
+\cite{hinze1995projection} Section 6.3.}.
 
 \begin{figure}
 \noindent
@@ -328,10 +333,15 @@ norm \big( \langle (\alpha_{1} \pmeet \gamma_{1}) \otimes \dots \otimes (\alpha_
 \end{figure}
 
 For conjunction of projections on recursive types we have to perform additional
-analysis to ensure that we maintain uniformity, which is the property that the
+analysis to ensure that we maintain uniformity , which is the property that the
 demand on the `recursive call' of the type is equal to the demand on the type
-itself. The reasons for this are detailed in \cite{hinze1995projection} Section
-6.4.
+itself (as mentioned in Section \ref{sec:projSem}). The simplest way to
+maintain uniformity is to simply take the least upperbound ($\sqcup$) of the
+two projections.  However, this would be too conservative and we would lose out
+on some strictness information that is present. Luckily, Hinze provides us with
+a method that allows us to use more accurate approximations when it is safe to
+do so, relying on \join only when necessary (the last guard in Figure
+\ref{fig:conjRec}).
 
 \begin{figure}
 \begin{align*}
@@ -342,4 +352,5 @@ itself. The reasons for this are detailed in \cite{hinze1995projection} Section
 \quad                   &   \               &&| \quad \pi' \sqsubseteq \beta_{1} \sqcup \beta_{2} &&= \mu\beta.\alpha \sqcup \gamma
 \end{align*}
 \caption[Conjunction and Disjunction for Projections 3]{Conjunction and Disjuntion for Projections on Recursive Types}
+\label{fig:conjRec}
 \end{figure}

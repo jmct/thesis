@@ -55,12 +55,14 @@
 \def \haslambda {\(\lambda\)}
 
 \def \meet {\<meet\> ($\sqcap$) }
-\def \pmeet {\bm{\&}}
+%\def \pmeet {\bm{\&}}
 \def \join {\<join\> ($\sqcup$) }
 
 \newcommandx{\tocite}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{Cite: #2}}
 \newcommandx{\todoinline}[1]{\todo[inline]{#1}}
 \newcommandx{\todofig}[1]{\todo[inline]{Make figure: #1}}
+
+\DeclareMathOperator{\pmeet}{\&}
 
 \hypersetup{
  colorlinks,
