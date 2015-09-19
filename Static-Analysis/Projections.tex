@@ -143,12 +143,13 @@ types with a single summand (such as anonymous tuples).
 \end{figure}
 
 
-Figure \ref{fig:ContextAST} \todo{Add CVars and CRec to AST} presents a suitable abstract syntax for projections
-representing demand.  This form was introduced by Kubiak et al. and used in
-Hinze's work on projection-based analyses \citep{kubiak, hinze1995projection}.
-We have omitted the details on the representation of context variables (for
-polymorphic demands), for a comprehensive discussion we suggest Chapter 6 of Hinze's
-dissertation \citep{hinze1995projection}.
+Figure \ref{fig:ContextAST} \todo{Add CVars and CRec to AST} presents a
+suitable abstract syntax for projections representing demand.  This form was
+introduced by Kubiak et al. and used in Hinze's work on projection-based
+analyses \citep{kubiak, hinze1995projection}.  We have omitted the details on
+the representation of context variables (for polymorphic demands), for a
+comprehensive discussion we suggest Chapter 6 of Hinze's dissertation
+\citep{hinze1995projection}.
 
 In short, projections representing demand give us information about how defined
 a value must be to satisfy a function's demand on that value. Knowing that a
@@ -205,17 +206,17 @@ Context \ref{FINList} represents a \emph{tail strict} demand, and Context
 \hfill$\Box$
 
 It will be useful to have abbreviation for a few of the contexts on lists. These
-abbreviation are presented in Figure \ref{contexts}.
+abbreviation are presented in Figure \ref{fig:listContexts}.
 
 \begin{figure}[h!]
 \begin{itemize}
-    \item[] ID: accepts all lists
-    \item[] T (tail strict): accepts all finite lists
-    \item[] H (head strict): accepts lists where the head is defined
-    \item[] HT: accepts finite lists where every member is defined
+    \item[] \<ID\>: accepts all lists
+    \item[] \<T\> (tail strict): accepts all finite lists
+    \item[] \<H\> (head strict): accepts lists where the head is defined
+    \item[] \<HT\>: accepts finite lists where every member is defined
 \end{itemize}
 \caption[Projections for the 4-point Domain]{Four contexts on lists as described in \citep{wadler1987projections}.}
-\label{contexts}
+\label{fig:listContexts}
 \end{figure}
 
 We can now say more about the strictness properties of \verb'append'. The
@@ -333,24 +334,66 @@ norm \big( \langle (\alpha_{1} \pmeet \gamma_{1}) \otimes \dots \otimes (\alpha_
 \end{figure}
 
 For conjunction of projections on recursive types we have to perform additional
-analysis to ensure that we maintain uniformity , which is the property that the
+analysis to ensure that we maintain uniformity, which is the property that the
 demand on the `recursive call' of the type is equal to the demand on the type
-itself (as mentioned in Section \ref{sec:projSem}). The simplest way to
+itself (as mentioned in Section \ref{sec:projSem}). The subtlety is due to the
+fact that performing conjunction on two recursive types might result in demands
+that differ on the `head' of the value from the demand on the recursive call
+\citep{kubiak, hinze1995projection}.
+
+A simple example is when we perform conjunction on the \<H\> and \<T\>
+projections on lists (from Figure \ref{fig:listContexts}). If we naively
+perform conjunction as
+\<(\hasmu\hasbeta.\hasalpha) \pmeet (\hasmu\hasbeta.\hasgamma)
+= \hasmu\hasbeta.\hasalpha \pmeet \hasgamma\>, we
+arrive at \<HT\>, while this may seem like the correct result it is actually
+unsafe! This is clear when applying these projections to the list \<xs = 1 :
+\bot : []\>
+
+\begin{haskell*}
+H xs  &\equiv& 1 : \_       &&\hscom{Head strictness forces the first element} \\
+T xs  &\equiv& \_ : \_ : [] &&\hscom{Tail strictness forces the spine} \\
+HT xs &\equiv& \bot         &&\hscom{\<HT\> forces all elements and the spine}
+\end{haskell*}
+
+The reason for the differing results is that \<H\> is not strict in the recursive
+part of the list, but \<T\> is, and being head strict is \emph{not} the same
+as requiring all elements of a structure, as evindenced by the following small
+program
+
+\begin{haskell*}
+f xs = a + b \hswhere{%
+                a &=& head xs \\
+                b &=& length xs
+             }
+\end{haskell*}
+
+The demand on the input list \<xs\> is the conjunction of the demands for
+\<head\> and \<length\> but it is clear to see that \<f\> does not require its
+input list to be fully defined, making it unsafe for \<H \pmeet T\> to result
+in \<HT\>.
+
+\hfill$\Box$
+
+
+The simplest way to
 maintain uniformity is to simply take the least upperbound ($\sqcup$) of the
 two projections.  However, this would be too conservative and we would lose out
 on some strictness information that is present. Luckily, Hinze provides us with
 a method that allows us to use more accurate approximations when it is safe to
 do so, relying on \join only when necessary (the last guard in Figure
-\ref{fig:conjRec}).
+\ref{fig:conjRec}). The idea 
 
-\begin{figure}
-\begin{align*}
-(\mu\beta.\alpha) \sqcup& (\mu\beta.\gamma) &&= \quad \mu\beta.\alpha \sqcup \gamma &&\\
-(\mu\beta.\alpha) \pmeet& (\mu\beta.\gamma) &&| \quad \pi' \sqsubseteq \beta_{1} \& \beta_{2} &&= norm \big(\mu\beta.\alpha \& \gamma \big) \\
-\quad                   &   \               &&| \quad \pi' \sqsubseteq \beta_{1} \sqcup \beta_{1} \pmeet \beta_{2} &&= \mu\beta.\alpha \sqcup \alpha \pmeet \gamma \\
-\quad                   &   \               &&| \quad \pi' \sqsubseteq \beta_{1} \pmeet \beta_{2} \sqcup \beta_{2} &&= \mu\beta.\alpha \pmeet \gamma \sqcup \gamma \\
-\quad                   &   \               &&| \quad \pi' \sqsubseteq \beta_{1} \sqcup \beta_{2} &&= \mu\beta.\alpha \sqcup \gamma
-\end{align*}
-\caption[Conjunction and Disjunction for Projections 3]{Conjunction and Disjuntion for Projections on Recursive Types}
-\label{fig:conjRec}
-\end{figure}
+\begin{haskell*}
+(\hasmu\hasbeta.\hasalpha) \sqcup& (\hasmu\hasbeta.\hasgamma) &&= \quad \hasmu\hasbeta.\hasalpha \sqcup \hasgamma &&\ \\
+(\hasmu\hasbeta.\hasalpha) \pmeet& (\hasmu\hasbeta.\hasgamma) &&| \quad conj \sqsubseteq \hasbeta_{1} \pmeet' \hasbeta_{2} &&= norm \big(\hasmu\hasbeta.\hasalpha \pmeet \hasgamma \big) \\
+\quad                   &   \               &&| \quad conj \sqsubseteq \hasbeta_{1} \sqcup' \hasbeta_{1} \pmeet' \hasbeta_{2} &&= \hasmu\hasbeta.\hasalpha \sqcup \hasalpha \pmeet \hasgamma \\
+\quad                   &   \               &&| \quad conj \sqsubseteq \hasbeta_{1} \pmeet' \hasbeta_{2} \sqcup' \hasbeta_{2} &&= \hasmu\hasbeta.\hasalpha \pmeet \hasgamma \sqcup \hasgamma \\
+\quad                   &   \               &&| \quad conj \sqsubseteq \hasbeta_{1} \sqcup' \hasbeta_{2} &&= \hasmu\hasbeta.\hasalpha \sqcup \hasgamma
+\hswhere{%
+    conj &= (norm(\hasalpha[\hasbeta \mapsto \hasbeta_{1}])) \pmeet' (norm(\hasgamma[\hasbeta \mapsto \hasbeta_{2}])) \\
+    }
+\end{haskell*}
+%\caption[Conjunction and Disjunction for Projections 3]{Conjunction and Disjuntion for Projections on Recursive Types}
+%\label{fig:conjRec}
+%\end{figure}
