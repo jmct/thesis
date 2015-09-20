@@ -313,21 +313,17 @@ direct representation of $BOT$\footnote{$norm$ is defined in
 \noindent
 
 \begin{align*}
-[C_{1} \alpha_{1} | \dots | C_{n} \alpha_{n}] \pmeet&
-[C_{1} \gamma_{1} | \dots | C_{n} \gamma_{n}] &&= \quad
-[C_{1} (\alpha_{1} \pmeet \gamma_{1}) | \dots | C_{n} (\alpha_{n} \pmeet \gamma_{n})] \\
-[C_{1} \alpha_{1} | \dots | C_{n} \alpha_{n}] \sqcup&
-[C_{1} \gamma_{1} | \dots | C_{n} \gamma_{n}] &&= \quad
-[C_{1} (\alpha_{1} \sqcup \gamma_{1}) | \dots | C_{n} (\alpha_{n} \sqcup \gamma_{n})]
+[C_{1} \alpha_{1} | \dots | C_{n} \alpha_{n}] \pmeet& [C_{1} \gamma_{1} | \dots | C_{n} \gamma_{n}] \\
+    & \quad = [C_{1} (\alpha_{1} \pmeet \gamma_{1}) | \dots | C_{n} (\alpha_{n} \pmeet \gamma_{n})] \\
+[C_{1} \alpha_{1} | \dots | C_{n} \alpha_{n}] \sqcup& [C_{1} \gamma_{1} | \dots | C_{n} \gamma_{n}] \\
+    & \quad = [C_{1} (\alpha_{1} \sqcup \gamma_{1}) | \dots | C_{n} (\alpha_{n} \sqcup \gamma_{n})]
 \end{align*}% what
 
 \begin{align*}
-\langle \alpha_{1} \otimes \dots \otimes \alpha_{n} \rangle \pmeet&
-\langle \gamma_{1} \otimes \dots \otimes \gamma_{n} \rangle &&= \quad
-norm \big( \langle (\alpha_{1} \pmeet \gamma_{1}) \otimes \dots \otimes (\alpha_{n} \pmeet \gamma_{n})\rangle \big) \\
-\langle \alpha_{1} \otimes \dots \otimes \alpha_{n} \rangle \sqcup&
-\langle \gamma_{1} \otimes \dots \otimes \gamma_{n} \rangle &&= \quad
-\langle (\alpha_{1} \sqcup \gamma_{1}) \otimes \dots \otimes (\alpha_{n} \sqcup \gamma_{n})\rangle \big)
+\langle \alpha_{1} \otimes \dots \otimes \alpha_{n} \rangle \pmeet& \langle \gamma_{1} \otimes \dots \otimes \gamma_{n} \rangle \\
+    & \quad = norm \big( \langle (\alpha_{1} \pmeet \gamma_{1}) \otimes \dots \otimes (\alpha_{n} \pmeet \gamma_{n})\rangle \big) \\
+\langle \alpha_{1} \otimes \dots \otimes \alpha_{n} \rangle \sqcup& \langle \gamma_{1} \otimes \dots \otimes \gamma_{n} \rangle \\
+    & \quad = \langle (\alpha_{1} \sqcup \gamma_{1}) \otimes \dots \otimes (\alpha_{n} \sqcup \gamma_{n})\rangle
 \end{align*}
 \caption[Conjunction and Disjunction for Projections 2]{Conjunction and Disjunction for Projections on Products and Sums}
 \label{fig:conjDisSum}
@@ -376,14 +372,20 @@ in \<HT\>.
 \hfill$\Box$
 
 
-The simplest way to
-maintain uniformity is to simply take the least upperbound ($\sqcup$) of the
-two projections.  However, this would be too conservative and we would lose out
-on some strictness information that is present. Luckily, Hinze provides us with
-a method that allows us to use more accurate approximations when it is safe to
-do so, relying on \join only when necessary (the last guard in Figure
-\ref{fig:conjRec}). The idea 
+The simplest way to maintain uniformity is to simply take the least upperbound
+($\sqcup$) of the two projections.  However, this would be too conservative and
+we would lose out on some strictness information that is present. Luckily,
+Hinze provides us with a method that allows us to use more accurate
+approximations when it is safe to do so, relying on \join only when necessary
+(the last guard in Figure \ref{fig:conjRec}). The idea is to use versions of
+$\sqcup$ and $\pmeet$ that ignore all demands except those on the recursive
+calls, these are written as $\sqcup'$ and $\pmeet'$. We then see where in the
+lattice the result (\<conj\>) resides, performing the corresponding
+approximation, defaulting to the always safe \<\hasmu\hasbeta.\hasalpha \sqcup
+\hasgamma\>. For details on how this method was derived and a proof of its
+safety, see \cite{hinze1995projection} Section 6.4.
 
+\begin{figure}
 \begin{haskell*}
 (\hasmu\hasbeta.\hasalpha) \sqcup& (\hasmu\hasbeta.\hasgamma) &&= \quad \hasmu\hasbeta.\hasalpha \sqcup \hasgamma &&\ \\
 (\hasmu\hasbeta.\hasalpha) \pmeet& (\hasmu\hasbeta.\hasgamma) &&| \quad conj \sqsubseteq \hasbeta_{1} \pmeet' \hasbeta_{2} &&= norm \big(\hasmu\hasbeta.\hasalpha \pmeet \hasgamma \big) \\
@@ -394,6 +396,71 @@ do so, relying on \join only when necessary (the last guard in Figure
     conj &= (norm(\hasalpha[\hasbeta \mapsto \hasbeta_{1}])) \pmeet' (norm(\hasgamma[\hasbeta \mapsto \hasbeta_{2}])) \\
     }
 \end{haskell*}
-%\caption[Conjunction and Disjunction for Projections 3]{Conjunction and Disjuntion for Projections on Recursive Types}
-%\label{fig:conjRec}
-%\end{figure}
+\caption[Conjunction and Disjunction for Projections 3]{Conjunction and Disjuntion for Projections on Recursive Types}
+\label{fig:conjRec}
+\end{figure}
+
+\subsection{Projection-based Strictness Analysis}
+
+We are now able to present the analysis itself. Being a backward analysis means
+that the \emph{result} of our analysis is an environment that maps variables to
+demand contexts on those variables. Disjunction and conjunction on these
+environments simply performs the operations on the elements in the environment
+with the same key. If a key is not present in an environment it is equivalent
+to having the lazy demand (top of the demand context lattice for its type).
+
+\begin{figure}
+\begin{haskell*}
+\hsnoalign{\mathcal{P} :: Exp \to FunEnv^{\#} \to Context \to Env^{\#}}\\
+%
+\mathcal{P}\Sem{Var v} \hasphi \haspi &=& \left\{v \mapsto \haspi\right\} \\
+%
+\mathcal{P}\Sem{Int i} \hasphi \haspi &=& \emptyset \\
+%
+\mathcal{P}\Sem{Con c} \hasphi \haspi &=& \emptyset \\
+%
+\mathcal{P}\Sem{Freeze e} \hasphi \haspi_{\ell} &=& \ell \rhd \mathcal{P}\Sem{e} \hasphi \haspi\\
+%
+\mathcal{P}\Sem{Unfreeze e} \hasphi \haspi &=& \mathcal{P}\Sem{e} \hasphi \haspi! \\
+% The hsbody below requires manual spacing... TODO check out why
+\mathcal{P}\Sem{App (Con c) as} \hasphi \haspi &\ &
+    \hsbody{%
+    \quad \quad &\mid null\ as   &= \emptyset \\
+    \quad \quad &\mid otherwise  &= overList\ \hasphi\ (unwrap(\haspi) \downarrow c)\ as
+    }\\
+%
+\mathcal{P}\Sem{App (Fun f) as} \hasphi \haspi &\ &
+    \hsbody{%
+    \quad \quad &\mid null\ as   &= \emptyset \\
+    \quad \quad &\mid otherwise  &= overList\ \hasphi\ (\hasphi\ f\ \haspi)\ as
+    }\\
+%
+\mathcal{P}\Sem{Let b = e_{1} in e} \hasphi \haspi &=& env
+    \hswhere{%
+    \ \hasrho  &= \mathcal{P}\Sem{e} \hasphi \haspi \\
+    \ \hasrho' &= \hasrho \setminus \left\{b\right\} \\
+    \ env   &= \hskwd{case} lookup b \hasrho \hskwd{of} \hsbody{%
+                                    \phantom{env = case lo} Nothing &\to \hasrho' \\
+                                    \phantom{env = case lo} Just \hasgamma_{\ell}  &\to \hasrho' \pmeet (\ell \rhd \mathcal{P}\Sem{e_{1}} \hasphi \hasgamma)
+                                    }
+    }
+%
+\hsnoalign{\mathcal{P}\Sem{Case\ e\ [C_{1}\ cs_{1} \to e_{1},\ \dots C_{n}\ cs_{n} \to e_{n}]}\ \hasphi\ \haspi
+    \hsbody{%
+    \phantom{\mathcal{P}\Sem{Let b = e_{1} in e} \hasphi \haspi\ \ \ } &=&\  \hasrho'_{1} \pmeet \mathcal{P}\Sem{e} \hasphi (wrap (C_{1} \uparrow \haspi_{1})) \\
+    \          &\ &\  \sqcup \dots \sqcup \\
+    \          &\ &\  \hasrho'_{n} \pmeet \mathcal{P}\Sem{e} \hasphi (wrap (C_{n} \uparrow \haspi_{n}))
+    \hswhere{%
+    \ \hasrho_{1} &=& \mathcal{P}\Sem{e_{1}}\ \hasphi\ \haspi \\
+    \ &\vdots & \ \\
+    \ \hasrho_{n} &=& \mathcal{P}\Sem{e_{n}}\ \hasphi\ \haspi \\
+    \ \quad &\ & \ \\
+    \ (\hasrho'_{1}, \haspi_{1}) &=&\ (\hasrho_{1} \setminus cs_{1},\ getProd\ cs_{1}\ \hasrho_{1}) \\
+    \ &\vdots & \ \\
+    \ (\hasrho'_{n}, \haspi_{n}) &=&\ (\hasrho_{n} \setminus cs_{n},\ getProd\ cs_{n}\ \hasrho_{n})
+    }
+    }} \\
+\end{haskell*}
+\caption{Projection-based Strictness Analysis}
+\label{fig:projAnal}
+\end{figure}

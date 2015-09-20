@@ -45,6 +45,7 @@
 
 \usepackage{csquotes}
 
+
 %%%% Haskell Style by Prof. Chakravarty %%%%
 \usepackage{haskell}
 
@@ -54,6 +55,7 @@
 \def \hasmu {\(\mu\)}
 \def \hasphi {\(\phi\)}
 \def \haspi {\(\pi\)}
+\def \hasrho {\(\rho\)}
 \def \haslambda {\(\lambda\)}
 
 \def \meet {\<meet\> ($\sqcap$) }
@@ -126,6 +128,15 @@
 %\setcounter{secnumdepth}{2}
 \usepackage{tocloft}
 \setcounter{tocdepth}{1}
+
+% TODO get this to work with haskell style (figure 26 and 27 especially)
+%\usepackage{float} % for box around figures
+%\floatstyle{boxed}
+%\restylefloat{figure}
+
+% Compromise for the lack of above
+\DeclareCaptionFormat{myformat}{#1#2#3\hrulefill}
+\captionsetup[figure]{format=myformat}
 
 \makeatletter
 
