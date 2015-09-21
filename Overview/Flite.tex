@@ -18,18 +18,21 @@ seen as enriched lambda calculi, we can study different evaluation
 orders\footnote{Many texts describe them as \emph{evaluation strategies}.  We
 use the term order to avoid confusion with parallel strategies, which are a
 different concept that play a central role in this thesis.} by demonstrating
-them on a simple lambda calculus. There are four main evaluation orders that
+them on a simple lambda calculus. There are a few evaluation strategies that
 can be used with the lambda calculus:
 
     \begin{enumerate}
         \item Call-by-value
-        \item Call-by-name
-        \item Call-by-need
         \item Normal-order
+        \begin{enumerate}
+            \item Call-by-name
+            \item Call-by-need
+        \end{enumerate}
     \end{enumerate}
 
-The differences between the first 3 can be easily illustrated using the
-following function definitions:
+Call-by-name and call-by-need are both \emph{implementations} of normal-order
+reduction.  The differences between these strategies can be easily illustrated
+using the following function definitions:
 
 \begin{align*}
     sqr \ x \  &= \  x * x \\
@@ -66,8 +69,6 @@ orders.
 
 Note that the argument to \<sqr\> and \<bot\> is evaluated \emph{before}
 we enter the function's body. 
-
-\pagebreak
 
 \begin{figure}[!h]
 \centering

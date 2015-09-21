@@ -280,96 +280,96 @@ that was not present in the original program.
 
 % Below this is the overview from the IIP paper
 % TODO: Merge overviews!
-\todo[inline]{Merge this overview with other overview}
+%\todo[inline]{Merge this overview with other overview}
+%
+%In this section we present the overall picture of our technique. Much of the
+%discussion will center around the code presented in Figure \ref{sumLast}. In
+%order to understand the code, it is useful to understand the architecture of the
+%compiler.
+%
+%\todoinline{Canibalise some of the following for the overview above. Some of
+%the content is good but it needs to be integrated with the above, right now
+%it's just repetition with a few new things (how to read the code, introduce
+%defunctionalisation, etc.)}
 
-In this section we present the overall picture of our technique. Much of the
-discussion will center around the code presented in Figure \ref{sumLast}. In
-order to understand the code, it is useful to understand the architecture of the
-compiler.
-
-\todoinline{Canibalise some of the following for the overview above. Some of
-the content is good but it needs to be integrated with the above, right now
-it's just repetition with a few new things (how to read the code, introduce
-defunctionalisation, etc.)}
-
-\subsection{A Program Before Iteration}
-
-%\begin{figure}[t!]
-%  \input{Informed/SumPhases/SumEulerProcessed.core}
-%\caption{Core representation of \texttt{SumEuler} after defunctionalisation, demand
-%         analysis, and the introduction of initial \texttt{par} sites along
-%         with their associated strategies.(Auto-generated names have been
-%         replaced for better readability)}
-%\label{sumLast}
-%\end{figure}
-
-The code listed in Figure \ref{sumLast} is the resulting core representation
-of the program in Figure \ref{sumOrig} after our analysis and transformations.
-Specifically, the program has passed through compiler stages 1-5.
-
-Before we dive into the program itself, note the following points:
-
-\begin{itemize}
-    \item We only present the functions that have changed as a result of transformation
-    \item We have replaced auto-generated names with easier to read names
-    \item Functions ending in `S$N$' are derived strategies
-    \item Functions with an underscore in the name are the result of defunctionalisation
-\end{itemize}
-
-Taking a look at the program we can see several of the core ideas.
-
-\paragraph{Defunctionalisation}
-The application of \verb-map- to \verb-euler- has been replaced by a call to
-the specialised \verb-map_euler- function.  We no longer have the functions
-\verb-map- or \verb-filter- instead we have specialised versions of these
-functions (e.g. \verb-map_euler-)
-
-\paragraph{Introduction of parallelism}
-Two calls to \verb-par- have been introduced in the \texttt{main} function. Our
-work uses the traditional style for the parallel combinator \citep{strategies}
-
-\begin{verbatim}
-    par :: a -> b -> b
-    par x y = y
-\end{verbatim}
-
-The first argument is \emph{sparked} off to be evaluated in parallel and the
-function returns the second argument. This style is what allows us to easily
-\emph{switch off} a particular \verb-par- which causes that switched off
-\verb-par- to act like \verb-flip const-. This is explored further in
-\S\ref{sec:switchPar}.
-
-Each application of \verb-par- introduced by our compiler takes the following
-form: \verb-par (s x) e- where \verb-(s x)- is the application of derived
-strategy \verb-s- to a variable \verb$x$ and \verb$e$ is an expression containing \verb$x$ as a
-free variable.  In a \emph{top-level definition} like \verb-main-, \verb$x$ will be a
-name introduced by a \verb-let- expression. For \verb-par-s within the
-strategies themselves, \verb$x$ will be a name introduced by case analysis.
-
-\paragraph{Demand Analysis and Strategies}
-
-The compiler has introduced a number of strategies into the program. These
-strategies are derived based on the results of a demand analysis. A simple
-example from the program is the transformed version of \verb-length-. Because
-\verb-+- (for non-lazy integers) requires both arguments to be fully evaluated, it is safe to 
-evaluate the arguments to \verb-+- in parallel to the execution of its body.
-In order to benefit from the parallel evaluation, the structure must be shared.
-The introduction of the name \verb-len- accomplishes this. Because the type
-of \verb-len- is \verb-Int- evaluating the expression to WHNF is sufficient to
-evaluate the value fully. 
-
-Looking at the body of \verb-euler- where \verb-length- is called we see a
-similar pattern. In this case the demand analysis determines that it is
-safe the evaluate the \emph{spine} of the list passed to \verb-length-.
-The expression is given the name \verb-ys- and the strategy \verb-eulerListS1-
-is derived based on this information. Notice that the elements of the list
-passed to \verb-eulerListS1- are ignored in its body. 
-
-There are cases where there is a strict demand on an expression but we
-do not introduce parallel evaluation of the expression. This can be seen
-in the first argument to \verb-+- in the body of \verb-length-. The rules
-for which subexpressions are considered \emph{definitely} not worthwhile
-are discussed in \S\ref{sec:introPar}.
+%\subsection{A Program Before Iteration}
+%
+%%\begin{figure}[t!]
+%%  \input{Informed/SumPhases/SumEulerProcessed.core}
+%%\caption{Core representation of \texttt{SumEuler} after defunctionalisation, demand
+%%         analysis, and the introduction of initial \texttt{par} sites along
+%%         with their associated strategies.(Auto-generated names have been
+%%         replaced for better readability)}
+%%\label{sumLast}
+%%\end{figure}
+%
+%The code listed in Figure \ref{sumLast} is the resulting core representation
+%of the program in Figure \ref{sumOrig} after our analysis and transformations.
+%Specifically, the program has passed through compiler stages 1-5.
+%
+%Before we dive into the program itself, note the following points:
+%
+%\begin{itemize}
+%    \item We only present the functions that have changed as a result of transformation
+%    \item We have replaced auto-generated names with easier to read names
+%    \item Functions ending in `S$N$' are derived strategies
+%    \item Functions with an underscore in the name are the result of defunctionalisation
+%\end{itemize}
+%
+%Taking a look at the program we can see several of the core ideas.
+%
+%\paragraph{Defunctionalisation}
+%The application of \verb-map- to \verb-euler- has been replaced by a call to
+%the specialised \verb-map_euler- function.  We no longer have the functions
+%\verb-map- or \verb-filter- instead we have specialised versions of these
+%functions (e.g. \verb-map_euler-)
+%
+%\paragraph{Introduction of parallelism}
+%Two calls to \verb-par- have been introduced in the \texttt{main} function. Our
+%work uses the traditional style for the parallel combinator \citep{strategies}
+%
+%\begin{verbatim}
+%    par :: a -> b -> b
+%    par x y = y
+%\end{verbatim}
+%
+%The first argument is \emph{sparked} off to be evaluated in parallel and the
+%function returns the second argument. This style is what allows us to easily
+%\emph{switch off} a particular \verb-par- which causes that switched off
+%\verb-par- to act like \verb-flip const-. This is explored further in
+%\S\ref{sec:switchPar}.
+%
+%Each application of \verb-par- introduced by our compiler takes the following
+%form: \verb-par (s x) e- where \verb-(s x)- is the application of derived
+%strategy \verb-s- to a variable \verb$x$ and \verb$e$ is an expression containing \verb$x$ as a
+%free variable.  In a \emph{top-level definition} like \verb-main-, \verb$x$ will be a
+%name introduced by a \verb-let- expression. For \verb-par-s within the
+%strategies themselves, \verb$x$ will be a name introduced by case analysis.
+%
+%\paragraph{Demand Analysis and Strategies}
+%
+%The compiler has introduced a number of strategies into the program. These
+%strategies are derived based on the results of a demand analysis. A simple
+%example from the program is the transformed version of \verb-length-. Because
+%\verb-+- (for non-lazy integers) requires both arguments to be fully evaluated, it is safe to 
+%evaluate the arguments to \verb-+- in parallel to the execution of its body.
+%In order to benefit from the parallel evaluation, the structure must be shared.
+%The introduction of the name \verb-len- accomplishes this. Because the type
+%of \verb-len- is \verb-Int- evaluating the expression to WHNF is sufficient to
+%evaluate the value fully. 
+%
+%Looking at the body of \verb-euler- where \verb-length- is called we see a
+%similar pattern. In this case the demand analysis determines that it is
+%safe the evaluate the \emph{spine} of the list passed to \verb-length-.
+%The expression is given the name \verb-ys- and the strategy \verb-eulerListS1-
+%is derived based on this information. Notice that the elements of the list
+%passed to \verb-eulerListS1- are ignored in its body. 
+%
+%There are cases where there is a strict demand on an expression but we
+%do not introduce parallel evaluation of the expression. This can be seen
+%in the first argument to \verb-+- in the body of \verb-length-. The rules
+%for which subexpressions are considered \emph{definitely} not worthwhile
+%are discussed in \S\ref{sec:introPar}.
 
 \paragraph{Iterative Improvement}
 
@@ -377,31 +377,71 @@ Just because an expression is \emph{able} to be evaluated in parallel does not
 mean that doing so is beneficial! This is one of the critical problems in
 implicit parallelism \citep{hogen1992automatic, hammond2000research,
 Jones2009Tuning}. To combat this we run the program as presented in Figure
-\ref{sumLast} and collect statistics about the amount of productive work
-each \verb-par- is responsible for. The \verb-par-s that do not introduce
-a worthwhile amount of parallelism (see discussion in \S\ref{sec:iterate})
+\ref{fig:takParred} and collect statistics about the amount of productive work
+each \verb-par- is responsible for. The \verb-par-s that do not introduce a
+worthwhile amount of parallelism (see discussion in Section \ref{sec:iterate})
 are disabled, freeing the program from incurring the overhead of managing
-threads for tasks with insufficient granularity\footnote{This can be seen
-as a more extreme variation of Clack and Peyton Jones' ``Evaluate and die!''
-model of parallelism \citep{clack1986four}: Evaluate \emph{a lot} or die!}.
+threads for tasks with insufficient granularity\footnote{This can be seen as a
+more extreme variation of Clack and Peyton Jones' ``Evaluate and die!'' model
+of parallelism \citep{clack1986four}: Evaluate \emph{a lot} or die!}.
 
-Earlier we mentioned the \verb-par-s in the bodies of \verb-length- and
-\verb-euler-. We picked these examples because while they are safe, they are
-not likely to be worthwhile. In the body of \verb-length- the parallel
-evaluation of \verb-len- only evaluates what \verb-+- will immediately evaluate
-anyway. Giving us no benefit from parallelism. The parallel evaluation of
-\verb-ys- in the body of \verb-euler- also suffers from a similar issue.
+Luckily, the \verb-Tak- program has so few \verb-par-s that an exhaustive
+exploration of the possible settings is easy. Table \ref{tab:takSettings}
+shows the resulting speedup (as compared to the program with all parallelism
+turned off) from the different possible \verb-par- settings. The bitstring
+``$10$'' represents the version of \verb-Tak- where the \verb-par- labelled
+$0$ in \ref{fig:takParred} is on and the \verb-par- labelled $1$ is off.
 
-So why introduce this parallelism? Because the granularity and possible
-interference of parallel threads is difficult to know \emph{statically} at
-compile time. If we err on the side of generosity with our \verb-par-
-annotations we can then use \emph{runtime} profiling to gather information
-about the granularity and interference of threads. 
+\begin{table}[h!]
+\centering
+\caption{Performance of \texttt{Tak} with different \texttt{par} settings}
+\vspace{10pt}
+\begin{tabular}{c || c c c c}
+    \       & 00 & 01   & 10   & 11 \\
+    \hline
+    speedup & 1  & 1.56 & 0.43 & 0.97
+\end{tabular}    
+\label{tab:takSettings}
+\end{table}
 
-As we would hope, our runtime system does determine that these two \verb-par-s (and some
-others) are not worthwhile and disables them, improving performance.
+As we can see, more \verb-par-s is not necessarily better! In fact, for our
+interpreter the setting $10$ results in quite a lot of thread collisions,
+meaning that a thread pays the overhead for its paralellism and is almost
+immediately blocked.  Paying the cost of creating and managing the parallelism,
+but not being able to perform an actual work is why the program performs
+\emph{worse} than the version of \verb-Tak- with all the parallelism switched
+off.
+
+So why introduce this parallelism in the first place? Because the granularity
+and possible interference of parallel threads is difficult to know
+\emph{statically} at compile time. Not only is it difficult to know these
+properties statically, but these properties differ from architecture to
+architecture \citep{SteuwerPortable}! If we err on the side of generosity with
+our \verb-par- annotations we can then use \emph{runtime} profiling to gather
+information about the granularity and interference of threads. 
+
+
+\section{Summary}
+
+This chapter provided a high-level overview of our technique for exploiting the
+parallelism that is inherent in functional programs. We motivated our choice of
+a \emph{lazy} language (normal-order reduction using call-by-need) by pointing
+out its emphasis on purity and the fact that the sharing of values is built-in
+to the evaluation model.
+
+We introduced the structure of our compiler and walked through the steps of our
+technique using the \verb-Tak- program as a small example. This allows for a
+clearer notion of where the remaining chapters fit into our technique and
+provides a common vocabulary for the rest of the thesis.
 
 \paragraph{}
 
-Now that we have presented the high-level view of our work we can explore each of
-the stages in depth and discuss our reasons for certain design decisions.
+Now that we have presented the high-level view of our work we will now explore
+each of the stages in depth. Chapter \ref{chap:discovery} introduces strictness
+analysis and discusses the history of its development, and why we have chosen
+\emph{projection-based} strictness analysis for our compiler. Chapter
+\ref{chap:derivation} presents how to use the results from projection-based
+strictness analysis to \emph{automatically} derive parallel strategies that are
+then used to introduce parallelism into the source program. Chapters \ref{chap:blind}
+and \ref{chap:prof-search} represent the iterative phase of our compiler, discussing
+two methods of searching the space of \verb-par- settings.

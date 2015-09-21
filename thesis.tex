@@ -1,5 +1,5 @@
 %\documentclass[justified, twoside, a4paper, symmetric]{tufte-book}
-\documentclass[dottedtoc, headinclude, footinclude=true, a4paper, numbers=noenddot]{scrreprt}
+\documentclass[openright, dottedtoc, headinclude, footinclude=true, a4paper, numbers=noenddot]{scrreprt}
 
 \title{Improving Implicit Parallelism}
 
@@ -17,8 +17,6 @@
 \usepackage{mathtools}
 \usepackage{fancyvrb}
 \usepackage{hyperref}
-\usepackage{microtype}
-\usepackage{breakcites}
 \usepackage{subcaption}
 \usepackage{alltt}
 \usepackage{color}
@@ -27,19 +25,21 @@
 \usepackage[colorinlistoftodos,prependcaption,textsize=small]{todonotes}
 \let\marginpar\oldmarginpar
 
+%\usepackage{breakcites}
+%\usepackage{fancyvrb}
+%\usepackage{cite}
+%\usepackage{etoolbox}
+\usepackage{microtype}
 \usepackage{xargs}
 \usepackage{amsmath}
-\usepackage{bm} %used for the \bm command that bolds math symbols
-\usepackage{fancyvrb}
 \usepackage{latexsym}
 \usepackage{textcomp}
-%\usepackage{cite}
 \usepackage{multicol}
 \usepackage{multirow}
 \usepackage{url}
 \usepackage{siunitx}
-\usepackage{etoolbox}
 \usepackage{appendix}
+\usepackage{nomencl}
 
 \usepackage{tikz}
 
@@ -79,7 +79,7 @@
 % importing the package
 \usepackage[square]{natbib}
 
-\newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
+%\newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
 
 %This is the stuff for semantic equations%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -152,6 +152,8 @@
 
 \makeatother
 
+\makenomenclature
+
 \begin{document}
 
 \frontmatter
@@ -165,6 +167,7 @@
 \input{FrontMatter/Abstract.tex}
 
 \tableofcontents
+\printnomenclature
 \listoffigures
 \listoftables
 
@@ -177,6 +180,9 @@
 %% Now we start the whole thing off!
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \mainmatter
+
+\nomenclature{$\bot$}{Either the bottom element of a lattice or the representation of an erroneous or non-terminating value}
+\nomenclature{$\top$}{The top element of a lattice}
 
     \chapter{Introduction}
     \label{chap:intro}
@@ -191,18 +197,6 @@
 
 \part{The Idea}
 \label{part:idea}
-
-    \chapter{Bird's eye view of our Technique}
-    \label{chap:overview}
-    \input{Overview/Preamble.tex}
-
-        \section{F-lite: a Lazy Purely Functional Core Language}
-        \label{sec:Flite}
-        \input{Overview/Flite.tex}
-        
-        \section{Overview of the Compiler}
-        \label{sec:overview}
-        \input{Overview/Overview.tex}
 
     \chapter{Parallelism in a Functional Language}
     \label{chap:background}
@@ -228,6 +222,18 @@
         %implementation. Will we convert to spineless G-Machine?
         \section{History of Graph Reduction}
         \input{Background/funcProgGraphRedctn.tex}
+
+    \chapter{Bird's eye view of our Technique}
+    \label{chap:overview}
+    \input{Overview/Preamble.tex}
+
+        \section{F-lite: a Lazy Purely Functional Core Language}
+        \label{sec:Flite}
+        \input{Overview/Flite.tex}
+        
+        \section{Overview of the Compiler}
+        \label{sec:overview}
+        \input{Overview/Overview.tex}
 
 \part{The Discovery and Placement of Safe Parallelism}
 \label{part:static}
@@ -274,7 +280,7 @@
         \input{Platform/Oracles.tex}
     
     
-\part{Experimental Setup and Results}
+\part{Experimental Platform, Benchmark Programs, and Results}
 \label{part:implementation}
 
     \chapter{Experimental Platform} 
@@ -308,7 +314,7 @@
         \label{sec:blind-Results}
         \input{Blind/Results.tex}
     
-        \section{Conclusions of Bitstring Searching}
+        \section{Summary of Bitstring Searching}
         \label{sec:blind-Conclusion}
         \input{Blind/Conclusions.tex}
     
@@ -322,6 +328,12 @@
 
 \part{Conclusions and Future Directions}
 \label{part:conclusion}
+
+    \chapter{Conclusions}
+    \label{chap:conclusions}
+    \input{Conclusions/Conclusions.tex}
+    
+        And.... we're done.
 
     \chapter{Future Directions}
     \label{chap:future}
@@ -340,12 +352,6 @@
         \input{Future-Work/Pipeline.tex}
     
     
-    \chapter{Conclusions}
-    \label{chap:conclusions}
-    \input{Conclusions/Conclusions.tex}
-    
-        And.... we're done.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%% APPENDICES %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -353,9 +359,6 @@
 \begin{appendices}
 
 \chapter{Benchmark Programs}
-
-\chapter{Rudimentary Domain Theory}
-\label{chap:domain}
 
 \end{appendices}
 

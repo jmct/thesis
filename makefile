@@ -7,13 +7,16 @@ all: pdf
 
 test: pdf testcount
 
+quick:
+	$(TEX) $(FLAGS) $(THESIS).tex
+
 pdf: *.tex literature.bib Background/*.tex Blind/*.tex Static-Analysis/*.tex Intro/*.tex
 	$(TEX) -draftmode $(FLAGS) $(THESIS).tex
 	bibtex $(THESIS)
 	$(TEX) -draftmode $(FLAGS) $(THESIS).tex
+	makeindex $(THESIS).nlo -s nomencl.ist -o $(THESIS).nls
 	$(TEX) $(FLAGS) $(THESIS).tex
 	detex thesis.tex | wc -w
-    
 
 count: *.tex Background/*.tex Blind/*.tex Static-Analysis/*.tex Intro/*.tex
 	echo "$$(date +"%F %T"),$$(detex thesis.tex | wc -w)" >> wordcount.csv
