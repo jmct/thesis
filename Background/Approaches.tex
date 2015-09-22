@@ -203,13 +203,13 @@ conflicting nature of parallelism and laziness.
 
     In order to help us attain the parallelism we are aiming for, we can
 introduce a function \<force\> that ensures that its parameters are evaluated
-fully. As found in the textbook `Real World Haskell'' \citep{realWorld}
+fully. As found in the textbook ``Real World Haskell'' \citep{realWorld}
 
 \begin{haskell}
 force &:: [\hasalpha] \to ()\\
 force list &= force' list `pseq` ()
-\hswhere{force' (_:xs) &= force' xs \\
-         force' []     &= 1
+\hswhere{force' (\_:xs) &= force' xs \\
+         force' []      &= 1
         }
 \end{haskell}
 

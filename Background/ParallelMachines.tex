@@ -5,7 +5,7 @@ sequential graph reduction has been accounted for there is not much to add in
 order to provide facilities for parallel evaluation. If one were to use a shared
 graph almost all communication could take place via that graph.
 
-\begin{figure}[hb]
+\begin{figure}[h]
   \centering
   \includegraphics[scale=0.7]{Background/figures/simpleParallel.eps}
   \caption[Simple parallel graph reduction model]
@@ -15,8 +15,13 @@ graph almost all communication could take place via that graph.
 
 The spark pool is where idle processors can look for subgraphs that have been
 sparked off for evaluation. This simple-yet-functioning model is actually the
-basis for the implementation described in chapter \ref{sec:implementation}
-\citep{PeytonJones:IFL}.
+basis for the implementation described in chapter \ref{chap:platform}
+\citep{PeytonJones:IFL}. This model is not specific to the $G$-Machine, but can
+be used with any of the graph reduction machines, indeed GHC uses a similar
+model that is extended with thread-local heaps \citep{marlow2009runtime}. A
+worker thread allocates from its local heap, when a thread's heap has
+overflowed the GC stops \emph{all} running threads and moves local-heap data to
+the shared heap.
 
  \subsection{$\langle \nu , G\rangle $-Machine}
     A departure from the stack-based approach of the G-Machine, here we have a

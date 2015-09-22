@@ -1,17 +1,17 @@
 Non-strictness makes it difficult to reason about when expressions are
 evaluated. This is due to the fact that call-by-need languages only evaluate
-expressions when their results are needed. One of the benefits of this
-approach is that it forces the programmer to avoid the use of arbitrary
-side-effects. The resulting purity means that functions in pure functional
-languages are \emph{referentially transparent}, or the result of a function
-depends only on the values of its arguments (i.e.  there is no global state
-that could effect the result of the function or be manipulated by the
-function).
+expressions when their results are needed, and when a value is needed can
+depend on runtime data. One of the benefits of this approach is that it forces
+the programmer to avoid the use of arbitrary side-effects. The resulting purity
+means that functions in pure functional languages are \emph{referentially
+transparent}, or the result of a function depends only on the values of its
+arguments (i.e.  there is no global state that could effect the result of the
+function or be manipulated by the function).
 
-Unfortunately this apparently sensible evaluation model is actually at odds
-with the goals of performance through parallelism: if we have parallel
-processing resources, we wish to use them to do as much work as possible to
-shorten execution time \citep{tremblay1995impact}.
+Unfortunately this elegant evaluation model is actually at odds with the goals
+of performance through parallelism: if we have parallel processing resources,
+we wish to use them to do as much work as possible to shorten execution time
+\citep{tremblay1995impact}.
 
 Call-by-need semantics forces our compiler to take care in deciding which
 sub-expressions can safely be executed in parallel. Having a simple
