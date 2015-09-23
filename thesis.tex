@@ -40,7 +40,6 @@
 \usepackage{siunitx}
 \usepackage{appendix}
 \usepackage{nomencl}
-\usepackage{epigraph}
 
 \usepackage{tikz}
 
@@ -146,7 +145,7 @@
    \def\chapquote@author{#2}%
    \parshape 1 \@tempdima \dimexpr\textwidth-2\@tempdima\relax%
    \itshape}
-  {\par\normalfont\hfill--\ \chapquote@author\hspace*{\@tempdima}\par\bigskip}
+  {\par\normalfont\hfill--\ \chapquote@author\hspace*{\@tempdima}\par\noindent\hrulefill\\[1cm]}
 
 \newcommand\frontmatter{%
     \cleardoublepage
@@ -193,10 +192,10 @@
 \nomenclature{$\top$}{The top element of a lattice}
 
     \chapter{Introduction}
+    \label{chap:intro}
     \begin{chapquote}{\cite{spjQuote1999}}
         The always dubious ``feed in an arbitrary program and watch it run faster'' story is comprehensively dead.
     \end{chapquote}
-    \label{chap:intro}
     \todoinline{Use the following SPJ quote from Hammond's book: ``The always dubious ``feed in an arbitrary and watch it run faster'' story is comprehensively dead.''}
     \input{Intro/Preamble.tex}
     
@@ -211,6 +210,9 @@
 
     \chapter{Parallelism in a Functional Language}
     \label{chap:background}
+    \begin{chapquote}{\cite{marlowBook}}
+        Fully automatic parallelization is still a pipe dream.
+    \end{chapquote}
     \input{Background/Preamble.tex}
     
         %Review of Graph Reduction. Needs to focus more on the G-Machine and our
@@ -252,6 +254,12 @@
 
     \chapter{Finding Safe Parallelism}
     \label{chap:discovery} 
+    \begin{chapquote}{\cite{dutchBook}}
+    When concurrent evalutation is used to gain efficiency one actually would
+    like to have an analyser that \emph{automatically} marks expressions that
+    can safely be executed in parallel. A strictness analyser can be used for
+    this purpose.
+    \end{chapquote}
     \input{Static-Analysis/Preamble.tex}
 
         \section{Original Motivation vs. Our Motivation}
@@ -277,8 +285,8 @@
     \chapter{Derivation and Use of Parallel Strategies}
     \label{chap:derivation}
     \begin{chapquote}{\cite{marlow2011monad}}
-    It would be premature to claim that par and Strategies are redundant;
-    [...]. Still, the difficulties with par indicate that it may be more
+    It would be premature to claim that \verb'par' and Strategies are redundant;
+    [...]. Still, the difficulties with \verb'par' indicate that it may be more
     appropriate as a mechanism for automatic parallelisation, than as a
     programmer-level tool.
     \end{chapquote}
@@ -322,6 +330,11 @@
     
     \chapter{Run-time Directed Search}
     \label{chap:blind}
+    \begin{chapquote}{\cite{peyton1987implementation}}
+    [...] even in a conservative regime, too much parallelism may be generated.
+    This can raise serious resource-management problems, since during
+    evaluation a graph often expands before it shrinks.
+    \end{chapquote}
     \input{Blind/Preamble.tex}
     
         \section{Heuristic Algorithms}
@@ -338,6 +351,13 @@
     
     \chapter{Profile Directed Search}
     \label{chap:prof-search}
+    \begin{chapquote}{\cite{dutchBook}}
+    When concurrent evalutation is used to gain efficiency one actually would
+    like to have an analyser that \emph{automatically} marks expressions that
+    can safely be executed in parallel. A strictness analyser can be used for
+    this purpose. But one often also needs to know whether parallel evaluation
+    is \emph{worthwhile}.
+    \end{chapquote}
     
         New things here.
         \label{sec:informed-search}
@@ -358,6 +378,11 @@
 
     \chapter{Future Directions}
     \label{chap:future}
+    \begin{chapquote}{\cite{trinder1996gum}}
+    Parallelism is initiated by the \verb'par' combinator in the source
+    program. (At present these combinators are added by the programmer, though
+    we would of course like this task to be automated.)
+    \end{chapquote}
     \input{Future-Work/Preamble.tex}
     
         \section{Specialising on \underline{\hspace{2cm}}}
