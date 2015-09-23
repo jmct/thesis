@@ -40,6 +40,7 @@
 \usepackage{siunitx}
 \usepackage{appendix}
 \usepackage{nomencl}
+\usepackage{epigraph}
 
 \usepackage{tikz}
 
@@ -140,6 +141,13 @@
 
 \makeatletter
 
+\newenvironment{chapquote}[2][2em]
+  {\setlength{\@tempdima}{#1}%
+   \def\chapquote@author{#2}%
+   \parshape 1 \@tempdima \dimexpr\textwidth-2\@tempdima\relax%
+   \itshape}
+  {\par\normalfont\hfill--\ \chapquote@author\hspace*{\@tempdima}\par\bigskip}
+
 \newcommand\frontmatter{%
     \cleardoublepage
   %\@mainmatterfalse
@@ -185,6 +193,9 @@
 \nomenclature{$\top$}{The top element of a lattice}
 
     \chapter{Introduction}
+    \begin{chapquote}{\cite{spjQuote1999}}
+        The always dubious ``feed in an arbitrary program and watch it run faster'' story is comprehensively dead.
+    \end{chapquote}
     \label{chap:intro}
     \todoinline{Use the following SPJ quote from Hammond's book: ``The always dubious ``feed in an arbitrary and watch it run faster'' story is comprehensively dead.''}
     \input{Intro/Preamble.tex}
@@ -265,6 +276,12 @@
 
     \chapter{Derivation and Use of Parallel Strategies}
     \label{chap:derivation}
+    \begin{chapquote}{\cite{marlow2011monad}}
+    It would be premature to claim that par and Strategies are redundant;
+    [...]. Still, the difficulties with par indicate that it may be more
+    appropriate as a mechanism for automatic parallelisation, than as a
+    programmer-level tool.
+    \end{chapquote}
     \input{Deriving-Strats/Preamble.tex}
 
         \section{Expressing Need, Strategically}
@@ -332,7 +349,10 @@
 
     \chapter{Conclusions}
     \label{chap:conclusions}
-    \input{Conclusions/Conclusions.tex}
+    \begin{chapquote}{\cite{spjQuote2005}}
+     In short, I think things are changing \emph{[for implicit parallelism]}.
+    \end{chapquote}
+    \input{Conclusions/Preamble.tex}
     
         And.... we're done.
 
