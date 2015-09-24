@@ -5,7 +5,7 @@
 
 \author{Jos\'{e} Manuel Calder\'{o}n Trilla}
 
-\usepackage[pdfspacing]{classicthesis}
+\usepackage[eulermath, pdfspacing]{classicthesis}
 
 %%%%%% set the spacing
 \usepackage{setspace}
@@ -196,7 +196,6 @@
     \begin{chapquote}{\cite{spjQuote1999}}
         The always dubious ``feed in an arbitrary program and watch it run faster'' story is comprehensively dead.
     \end{chapquote}
-    \todoinline{Use the following SPJ quote from Hammond's book: ``The always dubious ``feed in an arbitrary and watch it run faster'' story is comprehensively dead.''}
     \input{Intro/Preamble.tex}
     
         \section{Lazy Languages and Parallelism}
@@ -239,6 +238,10 @@
         
     \chapter{Bird's eye view of our Technique}
     \label{chap:overview}
+    \begin{chapquote}{\cite{benEmail}}
+    I thought the ``lazy functional languages are great for implicit
+    parallelism'' thing died out some time ago
+    \end{chapquote}
     \input{Overview/Preamble.tex}
 
         \section{F-lite: a Lazy Purely Functional Core Language}
@@ -254,11 +257,10 @@
 
     \chapter{Finding Safe Parallelism}
     \label{chap:discovery} 
-    \begin{chapquote}{\cite{dutchBook}}
-    When concurrent evalutation is used to gain efficiency one actually would
-    like to have an analyser that \emph{automatically} marks expressions that
-    can safely be executed in parallel. A strictness analyser can be used for
-    this purpose.
+    \begin{chapquote}{\cite{vGMachine}}
+    Parallelism is introduced in our system by the programmer annotating the
+    programs. We have not yet addressed the problem on how to automatically
+    place such annotations.
     \end{chapquote}
     \input{Static-Analysis/Preamble.tex}
 
@@ -332,8 +334,7 @@
     \label{chap:blind}
     \begin{chapquote}{\cite{peyton1987implementation}}
     [...] even in a conservative regime, too much parallelism may be generated.
-    This can raise serious resource-management problems, since during
-    evaluation a graph often expands before it shrinks.
+    This can raise serious resource-management problems
     \end{chapquote}
     \input{Blind/Preamble.tex}
     
@@ -354,8 +355,7 @@
     \begin{chapquote}{\cite{dutchBook}}
     When concurrent evalutation is used to gain efficiency one actually would
     like to have an analyser that \emph{automatically} marks expressions that
-    can safely be executed in parallel. A strictness analyser can be used for
-    this purpose. But one often also needs to know whether parallel evaluation
+    can safely be executed in parallel. [\dots] But one often also needs to know whether parallel evaluation
     is \emph{worthwhile}.
     \end{chapquote}
     
@@ -373,9 +373,9 @@
      In short, I think things are changing \emph{[for implicit parallelism]}.
     \end{chapquote}
     \input{Conclusions/Preamble.tex}
+    \\[1cm]
+    \input{Conclusions/Conclusions.tex}
     
-        And.... we're done.
-
     \chapter{Future Directions}
     \label{chap:future}
     \begin{chapquote}{\cite{trinder1996gum}}

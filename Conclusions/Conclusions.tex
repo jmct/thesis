@@ -1,5 +1,77 @@
+In Chapter \ref{chap:prof-search} we showed that it is possible to use
+profiling data from the execution of functional programs to \emph{refine} the
+parallelism that is introduced by a static analysis. Importantly, despite being
+a bitstring search, we were able to ensure that on average the search time is
+sub-linear to the amount of parallelism (in the form of \verb|par| annotations)
+that is introduced.
+
+However, not all programs perform well and for this technique to work more
+generally it is clear that some form of \emph{speculative} parallelism is
+needed. This is made clear by the disappointing performance of the
+\verb-MatMul- program.
+
+Additionally, when all things are considered our method restricts the use of
+the profiling information passed back to the compiler after an iteration. The
+compiler can use profiling data to make decision about \emph{already existing}
+\verb|par| sites, but can not decide to \emph{create} new \verb|par| sites or
+transform the program further. There is no fundamental reason this can not be
+done, but it would require a re-working of the static analysis and
+transformation phases of the compiler (Chapter \ref{chap:discovery} and
+\ref{chap:derivation}) to somehow incorporate that information. Doing so, while
+being more flexible, is quite more complex than our approach of simply
+modifying the bytecode produced by the compiler.
+\\[0.35cm]
+Chapter \ref{chap:blind} searched over bitstrings using only the total running
+time of the program's execution. We experimented with two heuristic search
+algorithms, a greedy search that only considered each bit in the bitstring once
+and a traditional hill-climbing algorithm. This technique showed that even
+without the ability to measure detailed profiling information, iterative
+compilation can be beneficial. The downside of this simplicity is the
+additional number of iterations that must be performed. Using the simpler
+greedy algorithm allows us to cap the number of iterations to the number of
+\verb|par| sites introduced, but as we saw with the \verb|SodaCount| program,
+this can result in finding non-optimal (but pretty good) solutions.
+\\[0.35cm]
+Our experimental platform, as described in Chapter \ref{chap:platform}, is a
+fairly standard implementation of a lazy functional language. The limiting
+aspect of this implementation seems to be our need to defunctionalise. Our
+higher-order specialisation is suitable for exploratory purposes but is not
+appropriate for wide use. The Ur/Web compiler also requires a similar form of
+defunctionalisation (i.e. not Reynold's style defunctionalisation)
+\citep{ur-web} and has found success in using a modified version of a
+call-pattern specialisation \citep{call-pattern-spec} to produce first-order
+programs from higher-order programs. While admittedly not total, the author of
+Ur/Web has stated that they are not aware of a single `real' program that this
+technique is unable to accommodate \citep{chlipala}.
+\\[0.35cm]
+Chapter \ref{chap:derivation} introduces a method of automatically deriving
+parallel strategies from arbitrary demands. A proof that our technique is total
+and sound (all valid projections result in valid strategies) is desirable.
+Before the ability to derive strategies parallelising programs automatically
+was limited by the evaluation methods that were hard-coded into the compiler, often
+based on Wadler's four-point domain \citep{hogen1992automatic, burn1987evaluation}.
+This limited the applicability of these techniques to list-based programs, which
+is an unnecessary limitation given the additional information that demand contexts
+provide.
+
+Despite the lack of a formal proof, we feel that this is a useful contribution
+even outside the scope of implicit parallelism, we will discuss other
+applications in Chapter \ref{chap:future}.
+
+If we desire the ability to introduce new \verb|par|s (or other similar
+extensions) during the iterative step (as mentioned above), this part of the
+compiler would need to be adapted. One idea would be to change the order of the
+\verb|par|s in a strategy to reduce thread collisions. Mostly, however, the
+principal of translating a projection into a strategy would remain the same.
+\\[0.35cm]
 Implicit parallelism is often cited as a pipe-dream that is unlikely to provide
-any real benefit to programmers. While we do not claim to have solved the
-problem completely, we feel that we have demonstrated that the topic is worth
-pursuing, and that in some cases a combination of static analysis and
-feedback-directed compilation can achieve speedups `for free'.
+any real benefit to programmers \citep{spjQuote1999, marlowBook, benEmail,
+hammond2000research}.  While we do not claim to have solved the problem
+completely, we feel that we have demonstrated that the topic is worth pursuing,
+and that in some cases a combination of static analysis and feedback-directed
+compilation can achieve speedups `for free'. More importantly, we feel that
+this thesis demonstrates that the topic is worth pursuing with fresh eyes.
+Processor utilisation is much less important than it was when multi-processor
+hardward was niche and expensive, pragmatic approaches that provide useful
+speedups, even if not all for all programs, can be worthwhile in the multicore
+era.
