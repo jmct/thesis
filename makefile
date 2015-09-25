@@ -1,6 +1,6 @@
 THESIS=thesis
 TEX=pdflatex
-FLAGS=-halt-on-error
+FLAGS=-halt-on-error -shell-escape
 TARGET=1000
 
 all: pdf

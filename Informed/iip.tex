@@ -113,7 +113,7 @@ of work undertaken by each thread might be a good metric.
 
 Because we record how productive each thread in a program is and we keep track
 of which \verb-par- site created each thread, we can easily visualise how useful
-each \verb-par- site is. Figure \ref{sumHist} gives an overview of the health
+each \verb-par- site is. Figure \ref{fig:sumHist} gives an overview of the health
 of each \verb-par--site. For each site we record the total number of reductions
 carried out. The plot shows us the statistics for this data with the median
 (line), inter-quartile range (IQR, box), and $\pm1.5 * $IQR (whiskers).
@@ -126,12 +126,12 @@ counts.
   \includegraphics[width=\linewidth]{Informed/Figures/threadhealth.pdf}
 \caption{Statistics on the number of reductions carried out by the threads a
 \texttt{par} site sparks off}
-\label{sumHist}
+\label{fig:sumHist}
 \end{figure}
 
 After every execution of the program, turn off the \verb'par' site whose threads
 have the lowest average reduction count. In the case of the execution statistics
-displayed in Figure \ref{sumHist} we would disable \verb-par- site 2, allowing
+displayed in Figure \ref{fig:sumHist} we would disable \verb-par- site 2, allowing
 us to avoid the overhead of all the unproductive threads it sparked off.  Then
 repeat this process until switching a \verb'par' site off increases the overall
 runtime of the program.

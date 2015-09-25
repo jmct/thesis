@@ -1,2 +1,139 @@
-In our implementation we specialised functions in two ways: higher-order to first-order
-and \verb|par| placement based on varied demands.
+In our implementation we specialised functions in two ways: higher-order to
+first-order and \verb|par| placement based on varied demands. There are of
+course, many forms of specialisation that could be added, monomorphisation,
+call-pattern specialisation, and even specialisation to some depth of a
+recursive function. 
+
+%When dealing with parallel programs, it is easy to think of
+%examples where a polymorphic function may be suitable for parallelism when
+%instantiated on one type, but not another. This is particularly true of bounded
+%polymorphism in the form of typeclasses as found in Haskell
+%\citep{haskellReport}. An overloaded \<size\> function may benefit from having
+%its argument evaluated in parallel for one type (binary trees for example) and
+%not for another
+%
+% I don't think the above idea holds water... If we have an overloaded function
+% than it's individual instances are the things that will have the parallelism
+% and even if not. The calls to `size` will _each_ have their own par sites,
+% which can be turned off individually.
+
+When writing parallel programs we often write recursive functions, particularly
+`divide-and-conquer' algorithms, to take into account how deep into a
+computation a call is. This allows the program to avoid the creating of
+parallel threads when the computation is obviously (to the programmer) not
+worthwhile. An example of this was shown in Section \ref{sec:parAndSeq} with
+our definition of \<quicksort\>. This pattern is not only limited to
+parallelising the `shallower' levels of the computation and then switching to a
+sequential version. It is possible that the leaves of a computation are the
+expensive part of the computation, and to limit the number of generated
+threads, you begin with a sequential version and switch to a parallelised
+version below some depth. The general shape of the technique is drawn in Figure
+\ref{fig:compDepth}.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+    level 1/.style={sibling distance=6cm},
+    level 2/.style={sibling distance=3cm},
+    level 3/.style={sibling distance=1.5cm},
+    level 4/.style={sibling distance=0.75cm}]
+  \node [hassef] {}
+    child{ node [hassef] {} 
+            child{ node [hassef] {} 
+                            child{ node [hasse] {}
+                                            child{ node [hasse] {}}
+                                            child{ node [hasse] {}}
+                                 }
+                            child{ node [hasse] {}
+                                            child{ node [hasse] {}}
+                                            child{ node [hasse] {}}
+                                 }
+            }
+            child{ node [hassef] {}
+                            child{ node [hasse] {}
+                                            child{ node [hasse] {}}
+                                            child{ node [hasse] {}}
+                                 }
+                            child{ node [hasse] {}
+                                            child{ node [hasse] {}}
+                                            child{ node [hasse] {}}
+                                 }
+            }               
+    }
+    child{ node [hassef] {}
+            child{ node [hassef] {} 
+                            child{ node [hasse] {}
+                                            child{ node [hasse] {}}
+                                            child{ node [hasse] {}}
+                                 }
+                            child{ node [hasse] {}
+                                            child{ node [hasse] {}}
+                                            child{ node [hasse] {}}
+                                 }
+            }
+            child{ node [hassef] {}
+                            child{ node [hasse] {}
+                                            child{ node [hasse] {}}
+                                            child{ node [hasse] {}}
+                                 }
+                            child{ node [hasse] {}
+                                            child{ node [hasse] {}}
+                                            child{ node [hasse] {}}
+                                 }
+            }
+    }
+  ;
+  \draw [cyan, dashed, ultra thick] (-5.2,-3.6) -- (5.2,-3.6);
+  \node [above, cyan] at (0,-3.6) {$d$};
+\end{tikzpicture}
+\caption{A tree representation of a recursive computation}
+\label{fig:compDepth}
+\end{figure}
+
+Given some depth of the computation $d$ (usually measured in the number of
+recursive calls) for the function \<f\>, the shaded nodes represent calls to one
+specialised form of \<f\> and the unshaded nodes represent another specialisation
+of \<f\>. We can attain these two version simply with the following transformation
+
+\begin{haskell}
+f x = \hsinf{\<e\>} \(\phantom{space}\) \Longrightarrow
+\(\phantom{space}\) &f_{1} d x &= \hsif{d > depth}{%
+                                                     f x}{%
+                                                     \ \hsinf{\<e_{[f \(\mapsto\) f1 (d + 1)]}\>}} \\
+\end{haskell}
+
+All original calls to \<f\> in the source program become \<f_{1} 0\> and only
+below a certain depth do we begin to call the original function. What benefit does
+this give us? Now any \verb|par| sites in \<f\> are duplicated in \<f_{2}\>
+and can be switched independently based on the depth. This gives the iterative
+step the flexibility to switch off the \verb|par|s for the levels of the call
+tree that are not worthwhile to perform in parallel.
+
+In order to choose an appropriate value for \<depth\> in \<f_{1}\> the runtime
+system must be equipped with some proxy for call-depth. This could be in a form
+similar to what is used to get stack traces for lazy functional languages
+\citep{AllwoodStack}.
+
+We hypothesise that the value of \<depth\> in \<f_{1}\> does not have to be
+perfect on the first attempt. By ensuring that a \emph{reasonable} \<depth\> is
+chosen the compiler can then determine which \verb|par|s, the ones in \<f_{1}\>
+or the ones lower in the call-depth in \<f\>. Once the on/off decisions have
+been made the compiler could attempt to \emph{tune} the value of \<depth\>.
+
+\subsection{Knowing When to Specialise on Depth}
+
+A subtle point is knowing \emph{when} this form of specialisation is useful.
+As with the main argument of this thesis, we would use both static and dynamic
+information about the program.  We believe that candidate functions for
+specialisation on depth must exhibit \emph{at least} the following properties:
+
+\begin{enumerate}
+    \item The function must be recursive
+    \item The function must parallelise a recursive call to itself
+    \item The \verb|par| site accomplishing the above has a wide distribution
+            of \verb|par| health (as exemplified by \verb|par| site \#8 in
+            \ref{fig:sumHist})
+\end{enumerate}
+
+We believe that for large scale programs, specialising on depth will be
+necessary as divide-and-conquer algorithms are quite common.

@@ -2,3 +2,35 @@ We have presented our work as being fully automated and requiring no
 intervention by the programmer but if we loosen that requirement on
 our technique we may be able to find a fruitful `middle-ground' between
 fully automated parallelism and programmer effort.
+
+\subsubsection{Super Strategies}
+
+One technique that we find promising is the idea of an automatic strategy.
+
+It is common for a programmer to know that an algorithm should be
+parallelisable but does not want to invest the effort to parallelise the code
+by hand. A `super-strategy' would allow the programmer to annotate the program,
+telling the compiler `this expression should be parallelisable', but without
+specifying how. This saves the compiler from searching for parallelism
+throughout the whole program and iterating over the large resulting search
+space and instead focus its static analysis and iteration to the annotated
+expression.
+
+This could be exposed to the programmer with an interface similar to parallel
+strategies \citep{strategies}.
+
+Something along the lines of:
+
+\begin{haskell}
+\hsinf{expression Alice would like to parallelise} `using` autoStrat
+\end{haskell}
+
+Or more conventionally:
+
+\begin{haskell}
+autoPar \hsinf{expression Alice would like to parallelise}
+\end{haskell}
+
+The auto-strategy would still use the demand information available at compile
+time, and proceed in the manner outlined in this thesis, but the compiler would
+benefit from a much reduced search space.
