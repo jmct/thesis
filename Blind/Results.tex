@@ -20,17 +20,6 @@ Since some \verb-par-s can only have an effect when one or more other \verb-par-
 
 \noindent\textbf{RQ4} Which form of initialisation enables the algorithm to find the best speed-ups: all \verb-par-s enabled (we refer to this as \emph{`all-on'} initialisation), or a random subset enabled (\emph{`random'} initialisation)?
 
-\subsection{Algorithms}
-
-\paragraph{Representation} We represent the choice of enabled \verb-par-s as a bit string where a 1 indicates that the \verb-par- is applied at a site, and 0 that it is not.  The length of the bit string is the number of potential \verb-par-s annotations found by the static analysis.
-
-\paragraph{Fitness} To facilitate experimentation, the SUTs are executed using a simulator which records the number of reductions made by each thread.  A parameter to the simulator controls the number of cores available to the SUT, and thus the maximum number of threads that may be run in parallel.  We choose the number of reductions made by the main thread as the fitness metric. The main thread cannot complete until all the other threads it has started have completed, and so this number of reductions is an indication of the SUT's runtime.  The simulator includes a realistic overhead of 250 reductions for handling each additional thread.
-% The number of reductions made by the main thread is not the total number of reductions made by the SUT unless the SUT is sequential: if it has been parallelised, many of the reductions will be performed on other threads.
-
-\paragraph{Hill-Climbing Algorithm} We utilise a simple hill-climbing algorithm in which the neighbours of the current bitstring are those formed by flipping a single bit.  At each iteration, these neighbours of the current bitstring are considered in a random order, and the fitness evaluated for each in turn. The first neighbour that has a better fitness, i.e.~fewer reductions are made by the main thread, than the current bitstring becomes the current bitstring in the next iteration.  The algorithm terminates when no neighbour of the current bitstring has a better fitness.
-
-\paragraph{Greedy Algorithm} The greedy algorithm considers the bits in representation in a random order.  As each bit is considered, the bit is flipped from its current setting and the resulting bit string evaluated; the setting of the bit---current or flipped---with the better fitness is retained.  The algorithm terminates once all the bits have been evaluated.
-
 \subsection{Software-Under-Test}
 
 \paragraph{SumEuler}

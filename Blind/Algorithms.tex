@@ -1,0 +1,195 @@
+Because we have chosen to perform the iterative step of compilation after
+bytecode generation, we can know \emph{statically} how many \verb|par|s are in
+a program. This allows us to represent a specific \emph{setting} of a program's
+parallelism by a bitstring of static length, allowing us to perform standard
+search techniques. The motivation for doing so is simple, while our platform
+can record runtime statistics and profiling data, the overall goal is to
+produce a program that performs better than the input program. The collection
+of profiling data is simply one means of accomplishing this (which we will
+investigate in Chapter \ref{chap:prof-search}). Using the target goal, the
+improved performance of our program, as a fitness function allows this method
+to be used even when a runtime system is not able to record such profiling
+data.
+
+There are a number of heuristic search techniques that perform search space
+exploration using the evaluation of a fitness function
+\citep{russell1995artificial}. For this thesis we have chosen to explore two
+algorithms: A greedy algorithm, guaranteed to take linear time in the number of
+bits, and a hill-climbing algorithm that explores more of the search space but
+at the cost of being \emph{potentially} exponential in the number of bits.
+
+\paragraph{Representation} 
+
+We represent the choice of enabled \verb-par-s as a bit string where a 1
+indicates that the \verb-par- is applied at a site, and 0 that it is not. The
+length of the bit string is the number of \verb-par-s annotations introduced by
+the static analysis and transformation stage of the compiler.
+
+Each index points to a unique address in the bytecode of the program, and the
+order of bits does not have any semantic meaning, i.e. the bit at index $1$
+does does not necessarily have any relationship to the bit at index $2$.
+
+\paragraph{Fitness}
+
+For both algorithms we use the same fitness function: the overall runtime of
+the program (measured in bytecode reductions). Therefore we aim to
+\emph{minimize} the result of a fitness evaluation.
+
+\subsection{Greedy Algorithm}
+
+The greedy algorithm is designed to be simple but effective. The intuition is
+that each bit is either beneficial to the program's performance, or
+detrimental. Therefore the greedy algorithm visits each bit \emph{exactly
+once}, by never revisiting a bit after a decision has been made about it we can
+guarantee a linear time complexity.
+
+The greedy algorithm considers the bits in our representation in a random
+order.  This avoids any potential bias towards the early bits in a bitstring.
+As each bit is considered, the bit is flipped from its current setting and the
+program is evaluated using the settings of the resulting bitstring; the setting
+of the bit---current or flipped---with the better fitness is retained.  The
+algorithm terminates once all the bits have been evaluated.
+
+
+\begin{algorithm}
+\DontPrintSemicolon
+\TitleOfAlgo{Greedy bitstring search}
+\SetKwData{Setting}{setting}
+\SetKwData{Fitness}{fitness}
+\SetKwData{Best}{best}
+\SetKwArray{Set}{setting}
+\SetKwFunction{uniqueRand}{uniqueRand}
+\SetKwFunction{evaluateProg}{evaluateProg}
+\SetKwFunction{flipSwitch}{flipSwitch}
+
+\KwData{An initial \texttt{par} setting as a bitstring of size $N$}
+\KwResult{The best performing bitstring}
+\BlankLine
+
+\Best.\Fitness $\leftarrow \infty$
+\BlankLine
+
+\For{$i \leftarrow 0$ \KwTo $N$}{
+    $j \leftarrow$ \uniqueRand{$N$}\;
+    \flipSwitch{\Set{$j$}}\;
+    \BlankLine
+    \Fitness $\leftarrow$ \evaluateProg{}\;
+    \BlankLine
+    \eIf{\Fitness $<$ \Best.\Fitness}{
+        \Best.\Fitness $\leftarrow$ \Fitness\;
+        \Best.\Setting $\leftarrow$ \Setting\;
+    }{
+        \flipSwitch{\Set{$j$}}\;
+    }
+}
+\BlankLine
+\Return \Best.\Setting\;
+\caption{Greedy \texttt{par}-Setting Search}
+\label{list:greedy}
+\end{algorithm}
+
+The listing in Algorithm \ref{list:greedy} provides the actual algorithm used
+in performing our greedy search. There are a few points to be aware of:
+
+\begin{itemize}
+  \item The function \FuncSty{uniqueRand} provides random numbers but ensures
+        that the same index will not be visited twice.
+  \item The function \FuncSty{evaluateProg} runs the loaded bytecode file,
+        returning the global reduction count
+  \item \FuncSty{flipSwitch} modifies the bytecode pointed at by an index so that
+        the function calls switches from \verb|par| to \verb|parOff| or vice versa
+  \item \DataSty{best} is a structure containing a fitness value and a \verb|par|
+        setting
+\end{itemize}
+
+\subsection{Hill-Climbing Algorithm}
+
+We utilise a simple hill-climbing algorithm in which the neighbours of the
+current bitstring are those formed by flipping a single bit.  At each
+iteration, these neighbours of the current bitstring are considered in a random
+order, and the fitness evaluated for each in turn. The first neighbour that has
+a better fitness, i.e.~fewer reductions are made by the main thread, than the
+current bitstring becomes the current bitstring in the next iteration.  The
+algorithm terminates when no neighbour of the current bitstring has a better
+fitness.
+
+\begin{algorithm}
+\DontPrintSemicolon
+\TitleOfAlgo{Hill-Climbing bitstring search}
+\SetKwData{Setting}{setting}
+\SetKwData{Fitness}{fitness}
+\SetKwData{Best}{best}
+\SetKwData{True}{True}
+\SetKwData{False}{False}
+\SetKwData{Searching}{searching}
+\SetKwArray{Set}{setting}
+\SetKwFunction{uniqueRand}{uniqueRand}
+\SetKwFunction{evaluateProg}{evaluateProg}
+\SetKwFunction{Refresh}{refreshUniques}
+\SetKwFunction{flipSwitch}{flipSwitch}
+
+\KwData{An initial \texttt{par} setting as a bitstring of size $N$}
+\KwResult{The best performing bitstring}
+\BlankLine
+
+\Best.\Fitness $\leftarrow \infty$
+\BlankLine
+
+\While{searching}{
+    \Searching $\leftarrow$ \False\;
+    \BlankLine
+    \BlankLine
+
+    \For{$i \leftarrow 0$ \KwTo $N$}{
+        $j \leftarrow$ \uniqueRand{$N$}\;
+        \flipSwitch{\Set{$j$}}\;
+        \BlankLine
+        \Fitness $\leftarrow$ \evaluateProg{}\;
+        \BlankLine
+        \eIf{\Fitness $<$ \Best.\Fitness}{
+            \Best.\Fitness $\leftarrow$ \Fitness\;
+            \Best.\Setting $\leftarrow$ \Setting\;
+            \BlankLine
+            \Searching $\leftarrow$ \True\;
+            \BlankLine
+            break\;
+        }{
+            \flipSwitch{\Set{$j$}}\;
+        }
+    }
+    \Refresh{}\;
+}
+\BlankLine
+\Return \Best.\Setting\;
+\caption{Hill-Climbing \texttt{par}-Setting Search}
+\label{list:hill-climb}
+\end{algorithm}
+
+Our hill-climbing algorithm (shown in Algorithm \ref{list:hill-climb}) is only
+slightly more complex than our greedy algorithm, but much more powerful. Its
+power comes from its ability to revisit indices in the bitstring. The function
+\FuncSty{refreshUniques} the state within \FuncSty{uniqueRand} to allow for
+already visited indices to be generated again. However it does \emph{not} reset
+the key in the psuedorandom number generator.
+
+\subsection{Initial \texttt{par} Setting}
+
+While we now have both algorithms in hand, there is still an important decision
+to be made. As shown in the algorithm listings, neither algorithm initialises
+the bitstring representing our \verb|par| setting. There are three obvious
+choices available to us:
+
+\begin{enumerate}
+    \item All bits on
+    \item All bits off
+    \item A random bitstring
+\end{enumerate}
+
+Based on our problem domain, option $1$ seems the most intuitive. We would like
+to begin with as much parallelism as possible, and prune out detrimental
+\verb|par|s. For this reason, we will not consider option $2$. However, it is
+possible that by starting in a random location in the search space, we may
+avoid a local optimum that our search techniques may encounter. So we
+experiment with both an initial setting with all \verb|par|s on, and with
+random initial settings\footnote{We realise that by being random we actually
+include option $2$ as well, but it becomes a rare edge-case}.
