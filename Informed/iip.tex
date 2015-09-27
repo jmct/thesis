@@ -1,115 +1,10 @@
-%
-% Based on the work done for our Iterative Compiler at York
-%
-%
-%I don't think we need this.
+\subsection{Iteration}
 
-%\begin{abstract}
-%
-%Using static analysis techniques compilers for lazy functional languages can be
-%used to identify parts of a program that can be legitimately evaluated in
-%parallel and ensure that those expressions are executed concurrently with the
-%main thread of execution. These techniques can produce improvements in the
-%runtime performance of a program, but are limited by the static analyses' poor
-%prediction of runtime performance.  This paper outlines the development of a
-%system that uses iterative profile-directed improvement \emph{in addition to}
-%well-studied static analysis techniques. This allows us to achieve higher
-%performance gains than through static analysis alone.
-%
-%\end{abstract}
-%
-%\keywords
-%Implicit Parallelism, Lazy Functional Languages, Automatic Parallelism,
-%Strictness Analysis, Projections, Iterative Compilation, Feedback Directed Compilation
-
-\section{Introduction}
-\label{section:Introduction}
-
-%\epigraph{I thought the ``lazy functional languages are great for implicit 
-%parallelism'' thing died out some time ago \citep{benEmail}}{Ben Lippmeier}
-
-
-\begin{figure}
-  \input{Informed/SumPhases/SumEuler.hs}
-\caption{Source listing for \texttt{SumEuler}}
-\label{sumOrig}
-\end{figure}
-
-Imagine that we have written the program in Figure \ref{sumOrig}. We might
-study its structure and decide to introduce some \verb-par- annotations.  When
-the program is compiled and executed, if we find that performance is still not
-satisfactory, we might study a profile (e.g. as provided by threadscope
-\citep{Jones2009Tuning}), return to the source for the program and adjust the
-placement of parallel annotations. This is the approach advocated by
-\citep{Jones2009Tuning} and \citep{runciman1994profiling}.  In contrast, many of
-the previous attempts at automating parallelism only analyse the program
-statically and do not adjust any parallel annotations after runtime data is
-gathered. This would be equivalent to a programmer never adjusting annotations
-after profiling the program.
-
-By using runtime feedback, we can have the compiler \emph{be generous} when
-introducing parallelism into the program. The profiling data will then point to
-the places where parallel evaluation under-performs and the compiler will
-\emph{disable} the parallelism in these places. 
-
-
-We have designed and implemented an experimental compiler for implicit
-parallelism with profile-driven improvement. The source language of the
-compiler is FLite \citep{naylor2010reduceron}, a non-strict functional core
-language including ADTs, in addition to integer primitives, type checking,
-parametric polymorphism, pattern-matching, and higher-order functions. 
-
-\subsection{Contributions}
-
-The contributions of our work are as follows:
-
-\begin{itemize}
-    \item A fresh implementation of Hinze's projection-based strictness analysis \citep{hinze1995projection}
-        used to derive evaluation strategies
-    \item A scheme for introducing parallelism into a program in conjunction with these
-        strategies
-    \item Simple rules for evaluating the effectiveness of parallelism
-    \item A technique to disable \verb-par- annotations
-    \item Search strategies to improve initial \verb-par- placements
-\end{itemize}
-
-
-This paper presents an overview of the design of our compiler and some of the
-design decisions that were made.  It also presents the results of experiments
-using a range of small benchmark programs.
-
-\subsection{Roadmap}
-
-\S\ref{sec:overview} presents a high-level overview of our approach to implicit
-parallelism.  \S\ref{sec:defunct} explains the advantages of performing
-defunctionalisation on the source program. \S\ref{sec:strictness} motivates our
-use of a projection-based strictness analysis.  \S\ref{sec:proAndStrat}
-describes the correspondence between projections and strategies which allows us
-to generate parallel strategies based on the projections provided by the
-strictness analysis. \S\ref{sec:introPar} describes the initial placement of
-\verb-par- annotations in the source program. \S\ref{sec:iterate} introduces
-the technique used for utilising the runtime profiling to disable some of the
-introduced parallelism along with possible additional search techniques.
-\S\ref{sec:results} presents some experimental results and discussion of those
-results. Lastly, \S\ref{sec:conclusion} contains our conclusions and thoughts
-on possible future work.
-
-
-%
-%
-\section{Iterative Compilation}
-\label{sec:iterate}
-
-
-\subsection*{Transformation}
-
-\subsection*{Iteration}
-
-While we do record a variety of statistics, our current approach focuses on reduction
-count as a guide to determine which \verb-par--sites are beneficial to the program.
-The reasoning is simple\footnote{As we will see in \S \ref{sec:conclusion}, too simple.},
-our motivation for parallelism is to do more work at once, so measuring the amount
-of work undertaken by each thread might be a good metric.
+While we do record a variety of statistics, our current approach focuses on
+reduction count as a guide to determine which \verb-par- sites are beneficial
+to the program.  The reasoning is simple, our motivation for parallelism is to
+do more work at once, so measuring the amount of work undertaken by each thread
+is likely to be a good metric.
 
 Because we record how productive each thread in a program is and we keep track
 of which \verb-par- site created each thread, we can easily visualise how useful
@@ -145,34 +40,6 @@ that appear in our data.
 First we introduce our benchmark programs and state the number of \verb-par-
 sites that were introduced statically:
 
-\paragraph{SumEuler}
-\texttt{SumEuler} is a common parallel functional programming benchmark first introduced
-with the work on the $\langle\nu, G\rangle$-Machine in 1989 \citep{vGMachine}.
-The program computes the sum of mapping the euler-totient function of a list. As
-this functional idiom is known to be highly parallelisable; this benchmark can
-be seen as a `sanity-check' on our technique (9 \verb-par- sites).
-
-\paragraph{Queens $+$ Queens2}
-We benchmark two versions of the nQueens program. Both versions use a backtracking
-algorithm to search for possible solutions. \texttt{Queens2} is a purely symbolic version
-that represents the board as a list of lists (10 \verb-par- sites for \texttt{Queens} and
-24 for \texttt{Queens2}).
-
-\paragraph{SodaCount}
-Solves a word search problem for a given grid of letters and a list of keywords
-(15 \verb-par- sites).
-
-\paragraph{Tak}
-Small recursive numeric computation that calculates a Takeuchi number (2 \verb-par- sites).
-
-\paragraph{Taut}
-Determines whether a given predicate expression is a tautology. Attempts all assignments
-of Boolean values to the variables in the given expression (15 \verb-par- sites).
-
-\paragraph{MatMul}
-List of list matrix multiplication (7 \verb-par- sites). 
-
-
 \subsection*{Overheads} Whether an expression is worthwhile to evaluate in
 parallel is directly tied to \emph{cost} of creating a parallel task. In order
 to account for this we ran all of our experiments with the simulated overhead
@@ -183,17 +50,6 @@ functions using the Criterion library \citep{criterion}.
 For each program we set our runtime system to simulate 4, 8, and 16 cores.
 First, let us examine Figure \ref{table10} which displays the results of setting
 the cost of task creation to 10 reductions.
-
-% non-normalised
-%    SumEuler  & 6    & 117995    & 6    & 64903      & 6    & 43279     \\
-%    Queens    & 5    & 18393517  & 5    & 17427940   & 5    & 16949174  \\
-%    Queens2   & 22   & 2068082   & 22   & 1045458    & 22   & 536579    \\
-%    SodaCount & 3    & 808156    & 3    & 414510     & 3    & 218639    \\
-%    Tak       & 1    & 11522690  & 1    & 5763328    & 1    & 2884142   \\
-%    Taut      & 4    & 32790837  & 0    & 32786617   & 9    & 32785937  \\
-%    MatMul    & 2    & 9377962   & 2    & 8925278    & 2    & 8699032   \\
-%                       8526965
-%    Clausify  & 15   & 3163940   & 15   & 1596090    & 20   & 808068    \\
 
 \begin{figure}[ht]
 \centering
@@ -460,80 +316,18 @@ Hinze's work on projection-based strictness analysis came after work on implicit
 parallelism fell out of favour \citep{hinze1995projection, hammond2000research}. To
 our knowledge we are the first to apply this work to the implicit parallelism.
 
-\subsection*{Blind Search}
+\subsection{Comparison to Heuristic Search}
 
-By representing a program's \verb-par- settings as a bit string we can
-experiment with standard search techniques. Many algorithms can optimise a
-function using only a fitness function that takes a bitstring as an input. In
-our case, the compiler would set the \verb-par- switches according to the
-bitstring and use the wall-clock time as a fitness function.  We explored two
-such algorithms in an earlier paper showing that even simple search algorithms,
-such as hill-climbing, can achieve promising results \citep{ssbse}. The downside
-to these techniques is that they require a large number of iterations to
-converge. The technique presented here allows us to get similar results in
-linear (in the length of the bitstring) time.
+In the previous chapter we explored using two heuristic search algorithms to
+accomplish our iterative step. While the results were promising, the ability to
+examine profile data should not be underestimated. The first benefit is that
+our search is guaranteed to be linear \emph{in the worst case} and usually
+sub-linear, whereas even the greedy algorithm required exactly linear time.
 
-As we attempt to scale our technique to larger programs it is likely that blind
-search technique will run into the combinatorial explosion inherent in
-bitstring-based search techniques.
-
-
-\subsection*{Implicit Parallelism}
-
-As the quote from the start of the paper alludes to, there are few modern
-attempts at implicit parallelism for lazy functional languages.
-One significant exception to this is the work undertaken in 2007 by Harris and
-Singh \citep{feedbackImplicit}. The results were mostly positive
-(in that most benchmarks saw an improvement in performance) but were not to the degree
-desired. Since this research was published we have seen no other attempt in
-this line of research within the lazy functional programming community.
-
-The approach presented here can be seen as the inverse
-of the approach by Harris et al. \citep{feedbackImplicit} where the compiler
-starts with \emph{no} parallelism and the iterative feedback seeks to add
-parallel evaluation.
-
-The work in \citep{feedbackImplicit} attempted to use runtime profile data to introduce
-parallel annotations into the program based on heap allocations. In short, when viewing
-the parallel execution of a program as a tree, their method seeks to expand the tree
-based on previous executions of the program. Our goal is to develop a system
-that begins with a program that perhaps has \emph{too much} parallelism and
-uses runtime data to prune the execution tree. We have implemented a few mechanisms
-to make this possible.
-
-\subsection*{Semi-implicit Parallelism}
-Research into semi-implicit parallelism for lazy functional languages is still
-an active research area. The work on Repa frees the programmer from worrying
-about parallelism in array computations by hiding the parallel details behind an
-API \citep{repa}. GPGPU parallelism is also well studied and has resulted in the
-popular high-performance Haskell library Accelerate \citep{accelerate}.
-
-\subsection{Future Work}
-
-\paragraph{\texttt{par} Health} Other forms of penalties need to be introduced.
-Blocking other threads, being blocked for extended periods of time, creating
-too many parallel threads (or not enough) could all be measures that incur a
-penalty. One simple but effective metric would be to penalise \verb-par- sites
-that spark strategies that are not the first to evaluate their arguments. When
-another thread forces the evaluation of a structure before the strategy that
-was meant to, we lose the benefit of parallel strategies. These penalties would
-factor in to the \verb-par- site's `health' and determine which site should be
-disabled before the next iteration.
-
-\paragraph{Specialisation}
-
-One area that we expect to explore is the use of other forms of specialisation.
-Defunctionalisation specialises higher-order functions to first-order ones.
-Other possibilities include specialising polymorphic functions into their
-monomorphic versions and specialising functions based on their call-depth.
-Specialising based on call-depth is a common technique in hand written programs.
-Automating the process could lead to significant improvements in recursive
-numeric programs (such as \texttt{Tak}).
-
-\paragraph{Path Analysis} One goal of our work is to determine when it is
-appropriate to use parallelism in a strategy.  Currently, we spark constructor
-fields in a left-to-right order but we believe that performing a path analysis
-would aid in this task \citep{bloss1994path}. Path analysis can also help reduce
-the chances of thread collisions statically. By determining which expression
-will force a value first we can avoid one of the central shortcomings of the
-approach outlined in this paper.
+As the programs grow larger the combinatorial explosion for the hill-climbing
+will become more and more detrimental. For the hill-climbing algorithm to
+terminate all neighbors to the current candidate must be explored. This means
+that when a program has twenty \verb|par| sites, the \emph{last} iteration of
+the hill-climbing algorithm will require twenty evaluations of the program! The
+profile based technique's ability to guarantee that this program will require
+\emph{at most} twenty iterations is a huge advantage.

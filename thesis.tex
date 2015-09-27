@@ -338,6 +338,10 @@
         \section{Trying for \texttt{par}: Switching off Parallelism}
         \label{sec:parSwitching}
         \input{Platform/Switching.tex}
+
+        \section{Benchmark Programs}
+        \label{sec:benchmarks}
+        \input{benchmarks/Preamble.tex}
     
     \chapter{Run-time Directed Search}
     \label{chap:blind}
@@ -350,6 +354,10 @@
         \section{Heuristic Algorithms}
         \label{sec:blind-ParFunc}
         \input{Blind/Algorithms.tex}
+
+        \section{Research Questions}
+        \label{sec:hypotheses}
+        \input{Blind/Hypotheses.tex}
     
         \section{Experimental Setup and Results}
         \label{sec:blind-Results}
@@ -367,8 +375,8 @@
     can safely be executed in parallel. [\dots] But one often also needs to know whether parallel evaluation
     is \emph{worthwhile}.
     \end{chapquote}
+    \input{Informed/Preamble.tex}
     
-        New things here.
         \label{sec:informed-search}
         \input{Informed/iip.tex}
 
@@ -414,6 +422,7 @@
 \begin{appendices}
 
 \chapter{Benchmark Programs}
+\label{append:bench}
 
     \section{SumEuler}
     \inputminted{haskell}{benchmarks/SumEuler.hs}

@@ -187,9 +187,12 @@ choices available to us:
 
 Based on our problem domain, option $1$ seems the most intuitive. We would like
 to begin with as much parallelism as possible, and prune out detrimental
-\verb|par|s. For this reason, we will not consider option $2$. However, it is
-possible that by starting in a random location in the search space, we may
-avoid a local optimum that our search techniques may encounter. So we
-experiment with both an initial setting with all \verb|par|s on, and with
-random initial settings\footnote{We realise that by being random we actually
-include option $2$ as well, but it becomes a rare edge-case}.
+\verb|par|s. For this reason, we will not consider option $2$. Additionally,
+many \verb|par| sites are only meaningful when other \verb|par|s are turned
+on\footnote{The \texttt{par}s that we \emph{within} strategies are only meaning
+when the strategy itself is sparked off in parallel.} However, it is possible
+that by starting in a random location in the search space, we may avoid a local
+optimum that our search techniques may encounter. So we experiment with both an
+initial setting with all \verb|par|s on, and with random initial
+settings\footnote{We realise that by being random we actually include option
+$2$ as well, but it becomes a rare edge-case}.

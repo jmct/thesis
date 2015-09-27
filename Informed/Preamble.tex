@@ -1,0 +1,24 @@
+The results from the previous chapter, while promising, assume that the runtime
+system is a `black box'. In some cases it may be necessary or desirable to make
+this assumption but we feel that with access to information from the runtime
+system our technique can produce meaningful results with fewer iterations.
+
+The work in this chapter uses profile information and other statistics from
+each iteration of the program before determining where to proceed in the search
+space.
+
+\subsection{Plan of the Chapter}
+
+\S\ref{sec:overview} presents a high-level overview of our approach to implicit
+parallelism.  \S\ref{sec:defunct} explains the advantages of performing
+defunctionalisation on the source program. \S\ref{sec:strictness} motivates our
+use of a projection-based strictness analysis.  \S\ref{sec:proAndStrat}
+describes the correspondence between projections and strategies which allows us
+to generate parallel strategies based on the projections provided by the
+strictness analysis. \S\ref{sec:introPar} describes the initial placement of
+\verb-par- annotations in the source program. \S\ref{sec:iterate} introduces
+the technique used for utilising the runtime profiling to disable some of the
+introduced parallelism along with possible additional search techniques.
+\S\ref{sec:results} presents some experimental results and discussion of those
+results. Lastly, \S\ref{sec:conclusion} contains our conclusions and thoughts
+on possible future work.

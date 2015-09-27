@@ -1,7 +1,13 @@
-We have shown in this paper that the combination of static analysis and search can
-parallelise programs. For some programs we are able to achieve close to linear
-speed-ups which is as performant as can expected. As future work we will investigate
-more sophisticated algorithms, including genetic algorithms and estimation of distribution
-algorithms; and confirm the scalability of our approach.
+We feel that this chapter has provided evidence that the combination of static
+analysis and search can parallelise programs more effectively than through
+static analysis alone. For some programs we are able to achieve close to linear
+speed-ups which is as performant as can expected. These results are promising
+for those looking to add iterative capabilities to their compiler but without
+the ability to adapt the runtime system. By choosing an appropriate
+representation of the available parallelism in a program we are able to use
+standard search techniques to search the possible parallel configurations.
 
-
+The success of the greedy algorithm was somewhat surprising. It further
+supports the idea that the vast majority of potential parallelism in any given
+program does not make up for the overhead costs associated with creating and
+managing that parallelism.

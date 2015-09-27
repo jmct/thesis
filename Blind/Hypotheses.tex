@@ -1,0 +1,43 @@
+Because the two algorithms we are exploring have stochastic aspects it is
+important that we are careful in measuring the results and ensuring that we
+proper statistical methods when deciding whether our technique `works'.
+
+Part of this process is deciding on what we are testing \emph{before} we run
+the experiments and perform any statistical analysis. This ensures that we
+compare the appropriate statistics.
+
+\paragraph{}
+
+The main thesis of our work is that by adding an iterative step to the
+automatic parallelisation we get better performance than through static
+analysis alone. Therefore the most important question to test is the following:
+
+\paragraph{RQ1} What speed-up is achieved by using search to enable a
+subset of \verb-par-s compared to the enabling all the \verb-par-s found by
+static analysis?\\
+
+
+\noindent
+While the previous question is important, it is also important that we gain
+speedups \emph{as compared to the sequential version}. For that reason it is
+important to ask the following question:
+
+\paragraph{RQ2} What speed-up is achieved by parallelisation using search
+compared to the sequential version of the software-under-test (SUT)?\\
+
+
+\noindent
+As discussed in the last section, we consider two algorithms: a simple
+hill-climbing algorithm and a greedy algorithm:
+
+\paragraph{RQ3} Which search algorithm achieves the larger speed-ups, and
+how quickly do these algorithms achieve these speed-ups?\\
+
+\noindent
+Because we have decided to use two methods for the initial \verb|par| settings
+we have one final research question:
+
+\paragraph{RQ4} Which form of initialisation enables the algorithm to
+find the best speed-ups: all \verb-par-s enabled (we refer to this as
+\emph{`all-on'} initialisation), or a random subset enabled (\emph{`random'}
+initialisation)?
