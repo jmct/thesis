@@ -54,6 +54,7 @@ algorithm terminates once all the bits have been evaluated.
 \begin{algorithm}
 \DontPrintSemicolon
 \TitleOfAlgo{Greedy bitstring search}
+\SetKw{Break}{break}
 \SetKwData{Setting}{setting}
 \SetKwData{Fitness}{fitness}
 \SetKwData{Best}{best}
@@ -66,7 +67,7 @@ algorithm terminates once all the bits have been evaluated.
 \KwResult{The best performing bitstring}
 \BlankLine
 
-\Best.\Fitness $\leftarrow \infty$
+\Best.\Fitness $\leftarrow$ \evaluateProg{}\;
 \BlankLine
 
 \For{$i \leftarrow 0$ \KwTo $N$}{
@@ -116,6 +117,7 @@ fitness.
 \begin{algorithm}
 \DontPrintSemicolon
 \TitleOfAlgo{Hill-Climbing bitstring search}
+\SetKw{Break}{break}
 \SetKwData{Setting}{setting}
 \SetKwData{Fitness}{fitness}
 \SetKwData{Best}{best}

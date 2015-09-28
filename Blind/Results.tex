@@ -37,6 +37,14 @@ without optimisation using search.  This evaluation was made for each
 combination of core count and benchmark.  Finally, the fitness was evaluated for the
 sequential version of each benchmark.
 
+\paragraph{Overheads} Our runtime system allows us to set the cost of creating
+a parallel task, this models the overhead present in real systems. Using the
+Criterion \citep{criterion} benchmarking library we found an approximate cost
+for the creation of a \verb|par| in GHC's runtime\footnote{The code for
+benchmarking the cost of a \texttt{par} is available at
+\url{https://github.com/jmct/par-experiments}}. For the experiments we have
+chosen an overhead of $300$ reductions for each call to \verb|par|.
+
 \subsection{Results}
 
 The results are summarised in Table \ref{tab:speedups}.  This table compares

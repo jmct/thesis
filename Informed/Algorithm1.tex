@@ -1,0 +1,68 @@
+The iterative step of our compiler must make a decision about which \verb|par|
+setting to provide the runtime with for the next execution of the program. In
+the previous chapter we used heuristic techniques to provide this decision
+making, now we will use the notion of \verb|par| site health described in the
+previous section.
+
+After every execution of the program, turn off the \verb'par' site with the
+lowest health (the lowest average reduction count). In the case of the
+execution statistics displayed in Figure \ref{fig:sumHist} we would disable
+\verb-par- site \#8\footnote{Notice that \texttt{par} site \#8 also has some
+very productive threads, but even so, its mean is the lowest in that run of the
+program.}, allowing us to avoid the overhead of all the unproductive threads it
+sparked off.  Then repeat this process until switching a \verb'par' site off
+increases the overall runtime of the program.
+
+
+\begin{algorithm}
+\DontPrintSemicolon
+\TitleOfAlgo{Profile-Driven Search}
+\SetKw{Break}{break}
+\SetKwData{Setting}{setting}
+\SetKwData{Stats}{stats}
+\SetKwData{Run}{runtime}
+\SetKwData{Pars}{parStats}
+\SetKwData{Health}{health}
+\SetKwData{Last}{last}
+\SetKwData{Cur}{current}
+\SetKwArray{Set}{setting}
+\SetKwData{Weakest}{weakest}
+\SetKwFunction{evaluateProg}{evaluateProg}
+\SetKwFunction{CalcH}{calculateHealth}
+\SetKwFunction{flipSwitch}{flipSwitch}
+\SetKwFunction{Done}{allOff?}
+
+\KwData{An initial \texttt{par} setting as a bitstring of size $N$ (all bits on)}
+\KwResult{The best performing bitstring}
+\BlankLine
+
+\Last.\Run $\leftarrow \infty$\;
+\BlankLine
+
+\For{$i \leftarrow 0$ \KwTo $N$}{
+    \Cur $\leftarrow$ \evaluateProg{}\;
+    \BlankLine
+    \uIf{\Cur.\Run $>$ \Last.\Run}{
+        \Break\;
+    }
+    \ElseIf{\Done{\Cur.\Setting}}{
+        \Return \Cur.\Setting\;
+    }
+    \BlankLine
+    \Last $\leftarrow$ \Cur\;
+    \BlankLine
+    \Weakest $\leftarrow$ \CalcH{}\;
+    \BlankLine
+    \flipSwitch{\Cur.\Set{\Weakest}}\;
+}
+\BlankLine
+\Return \Last.\Setting\;
+\caption{Greedy \texttt{par}-Setting Search}
+\label{list:greedy}
+\end{algorithm}
+
+It is worth noting that our algorithm is really a hill-climbing algorith with
+an oracle. Instead of randomly evaluating neighbors, the search moves to the
+neighbor where the weakest \verb|par| site is switched off. The success of this
+search algorithm will depend on how well this corresponds to an increase in
+overall performance.

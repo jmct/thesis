@@ -1,0 +1,112 @@
+Our approach falls short on many programs that should be easily parallelisable.
+In this section we will explore the main limits of our technique by examining
+what causes the \verb|MatMul| benchmark to perform so poorly. \verb|MatMul| was
+expected to be a success story of this approach and understanding why the
+technique does not properly parallelise the program is important in improving
+this work in the future. The exercise of hand parallelising the programs in
+Section \ref{sec:ghcComp} illuminated two main issues: The transfer of parallelism
+from the callee to the caller and lack of speculation. These two issues are interrelated
+but we will present them separately for clarity.
+
+\subsection{Caller and Callee Parallelism}
+
+Strategies offer an elegant method of separating the logic of an algorithm from
+how it should be parallelised. The way it accomplishes this is by removing the
+burden of the \emph{callee} to parallelise the structure and instead ensures
+that the \emph{caller} parallelises its result. This distinction is easy to see
+with the classic \<parMap\> function (remember that in our work we must
+defunctionalise):
+
+\begin{haskell}
+parMap_{f} &:: [\hasalpha] \to [\hasbeta] \\
+parMap_{f} []     &= [] \\
+parMap_{f} (x:xs) &= fx `par` (fx : parMap f xs) \hswhere{%
+    fx = f x
+    }
+\end{haskell}
+
+The above version of \<parMap\> is \emph{callee} parallel. And The function itself is
+responsible for the parallelisation of the structure. Compare the above to the
+version using the parallelisation technique using basic strategies:
+
+\begin{haskell}
+parList &:: [\hasalpha] \to () \\
+parList []     &= () \\
+parList (x:xs) &= x `par` (parList f xs)\\
+\quad & \quad \\
+\hsnoalign{map_{f}\ xs\ `using`\ parList}
+\end{haskell}
+
+Now our parallel \<map_{f}\> is \emph{caller} parallel, the responsibility to
+parallelise lies with the function that \emph{uses} the result of \<map_{f}\>.
+
+\subsubsection*{Why is it an Issue?}
+
+As detailed in Chapter \ref{chap:derivation}, the decision about whether to parallelise
+an expression is made based on the strictness properties of a function; additionally
+all parallelisation must be \emph{known to be safe}. Using \emph{caller} parallelism
+forces us to be \emph{too safe}. For example, imagine that we are parallelising
+the function \<f\> which takes two list arguments and returns a list, importantly
+\<f\> only uses its first argument when the second argument is a \<cons\>:
+
+\begin{haskell}
+f xs [] &= [] \\
+f xs ys &= \hsinf{some expression using \<xs\>}
+\end{haskell}
+
+Using \emph{callee} parallelism we could spark the evaluation of \<xs\> within
+\<f\>'s body. But with \emph{caller} parallelism we are stuck \emph{even if the
+demand on the result of} \<f\> \emph{requires the full list!} This is because
+the second argument to \<f\> could be the empty list, making it unsafe for the
+\emph{caller} to spark the evaluation of the first argument. This is quite a
+loss! And exactly what is happening in \verb|MatMul|. To be more concrete, in
+\verb|MatMul| we have \emph{two} functions of the following form\footnote{The
+functions are both defunctionalised \<map\>s: \<map_{mulRow}\> and
+\<map_{dotProduct}\>.}:
+
+\begin{haskell}
+map_{f} xs ys \hscom{\<xs\> is only used if \<ys\> is a \<cons\>}
+\end{haskell}
+
+In both cases we are not able to spark a strategy to evaluate \<xs\> because doing
+so would be unsafe if \<ys\> is \<nil\>.
+
+As an aside, converting the calls to these \<map\>s to \emph{callee}
+parallelism (manually) is only useful for one of the functions
+(\<map_{dotProduct}\>). However, we would expect our iterative step to manage
+that aspect for us, by turning off the parallelism that is not useful. The
+result of converting \<map_{dotProduct}\> to \emph{callee} parallelism was the
+only change needed in achieving the better speedup in Table \ref{tableGHC} for
+\verb|MatMul|.
+
+
+\subsection{Lack of Speculation}
+
+The other limitation in our technique is the lack of speculation. For example,
+take the following common idiom (present in our \verb|Taut| benchmark):
+
+\begin{haskell}
+\hscase{and longlist}{%
+    True &\to e_{1} \\
+    False &\to e_{2}
+    }\hswhere{%
+    longlist &= map f xs
+    }
+\end{haskell}
+
+Because we are in a non-strict language it is not safe to evaluate the
+\<longlist\> eagerly. This is because the very first element may be \<False\>,
+allowing us to ignore the rest of the list. However, when \<f\> is very
+expensive, it can be useful to `look ahead' in the list and compute some
+elements of \<longlist\> \emph{speculatively}. This is because if \<f x\> is
+expensive enough we would like save time when elements of the list are
+\<True\>, necessitating us to continue evaluating the list.
+
+Unlike the \emph{caller/callee} distinction above, there is no way of making
+this idiom safe.  Instead the compiler must annotate certain expressions as
+speculative, and allow the runtime system to ensure that the evaluation of
+these expressions does not introduce non-termination
+\citep{checkland1994speculative, mattson1993effective}. One possible hint to
+the compiler is when an expression is not strictly needed, but \emph{if} it is
+needed, it is needed to its full degree (such as in the \<longlist\> example
+above.

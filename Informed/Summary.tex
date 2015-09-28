@@ -1,0 +1,49 @@
+
+We hope we have motivated the key design choices and ideas behind our compiler:
+utilising defunctionalisation in \S\ref{sec:defunct}, and the use of
+projections over other strictness analysis methods in \S\ref{sec:strictness}.
+Moreover, that we have shown that there is a natural correspondence between
+projections and strategies \S\ref{sec:proAndStrat} that allows us to generate
+parallel strategies from the results of our strictness analysis.
+
+While projection-based strictness analysis does provide a useful foundation for
+the introduction of parallelism, the results in \S\ref{sec:results} show that
+static analysis alone does not provide the desired speedups. Additionally,
+Table \ref{tableGHC} shows that determining \verb-par--site health by reduction
+count alone is too naive. Thread collisions that may not happen on a simulated
+system are able to significantly hamper parallel performance and should be
+taken into account.
+
+\subsection{Related Work}
+
+\subsection*{Hinze's Work on Projections} 
+
+Much of the early work on strictness
+analysis as a means to achieve implicit parallelism focused on the abstract
+interpretation approach because the work on projections had not been fully
+developed when implicit parallelism was a more active research area. In
+particular, the work on the ``Automatic Parallelization of Lazy Functional
+Programs'' \citep{hogen1992automatic} only used two and four-point domains (as
+described in \citep{wadler1987strictness}) in their strictness analysis. This
+limits the ability of the compiler to determine the neededness of more complex
+structures.
+
+Hinze's work on projection-based strictness analysis came after work on implicit
+parallelism fell out of favour \citep{hinze1995projection, hammond2000research}. To
+our knowledge we are the first to apply this work to the implicit parallelism.
+
+\subsection{Comparison to Heuristic Search}
+
+In the previous chapter we explored using two heuristic search algorithms to
+accomplish our iterative step. While the results were promising, the ability to
+examine profile data should not be underestimated. The first benefit is that
+our search is guaranteed to be linear \emph{in the worst case} and usually
+sub-linear, whereas even the greedy algorithm required exactly linear time.
+
+As the programs grow larger the combinatorial explosion for the hill-climbing
+will become more and more detrimental. For the hill-climbing algorithm to
+terminate all neighbors to the current candidate must be explored. This means
+that when a program has twenty \verb|par| sites, the \emph{last} iteration of
+the hill-climbing algorithm will require twenty evaluations of the program! The
+profile based technique's ability to guarantee that this program will require
+\emph{at most} twenty iterations is a huge advantage.

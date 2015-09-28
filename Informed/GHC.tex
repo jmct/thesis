@@ -1,0 +1,51 @@
+While the results above are encouraging we would like to see how the resulting
+programs perform when compiled by a modern high-performance Haskell compiler.
+To do this we extract the final \verb-par- settings from each program and
+translate that to Haskell suitable for compilation by GHC.
+
+For the versions parallelised by hand we use the \verb-par- placements found
+in the literature \citep{vGMachine, runciman1994profiling}.
+
+\begin{table}[ht]
+\caption[Naive transfer to GHC]{Speedups compared to the sequential program as compiled by GHC for
+         manually and automatically parallelised versions}
+\centering
+\smallskip
+  \begin{tabular}{ l||c c }
+    Program & \multicolumn{2}{c}{4-core} \\
+            & Hand   & Auto         \\
+    \hline
+    SumEuler  & 3.32    & 3.31      \\
+    Queens    & 1.76    & 0.97      \\
+    Queens2   & 2.29    & 0.61     \\
+    SodaCount & 1.25    & 0.64      \\
+    Tak       & 1.77    & 1.64      \\
+    MatMul    & 1.75    & 0.80      \\
+  \end{tabular}
+\label{tableGHC}
+\end{table}
+
+As Table \ref{tableGHC} makes clear, the results are not impressive. In fact,
+except for \verb-SumEuler- and \verb-Tak-, all of the parallel benchmarks
+performed \emph{worse} than their sequential counterparts.
+
+However, we feel that not all hope is lost. There are a few recurring issues in
+the generated program. A common issue is that the generated strategies will not
+be what forces the evaluation of a value. Take the following example as an
+illustration
+
+\begin{verbatim}
+foo n = let ys = gen n n
+        in par (tailStrict1 ys) (bar ys)
+
+tailStrict1 xs = case xs of
+    y:ys -> tailStrict1 ys
+    []   -> ()
+\end{verbatim}
+
+In the function \verb-foo- we spark off a strategy that is meant to force the
+spine of the list \verb-ys-, the catch is that GHC's \verb-par- is fast enough
+for \verb-bar ys- to be what forces the evaluation of \verb-ys-. So we're
+paying the overhead and reaping none of the benefits. In some programs changing
+a \verb-par- like the one found in \verb-foo- to a \verb-seq- is enough to solve the
+issue and make the parallel version competitive with the manually parallelised version.

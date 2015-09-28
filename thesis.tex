@@ -268,7 +268,7 @@
     \label{chap:discovery} 
     \begin{chapquote}{\cite{vGMachine}}
     Parallelism is introduced in our system by the programmer annotating the
-    programs. We have not yet addressed the problem on how to automatically
+    programs. We have not yet addressed the problem of how to automatically
     place such annotations.
     \end{chapquote}
     \input{Static-Analysis/Preamble.tex}
@@ -376,10 +376,30 @@
     is \emph{worthwhile}.
     \end{chapquote}
     \input{Informed/Preamble.tex}
-    
-        \label{sec:informed-search}
-        \input{Informed/iip.tex}
 
+        \section{\texttt{par} Site Health}
+        \label{sec:parHealth}
+        \input{Informed/Health.tex}
+
+        \section{Search Algorithm}
+        \label{sec:search1}
+        \input{Informed/Algorithm1.tex}
+    
+        \section{Experimental Results and Discussion}
+        \label{sec:infResults}
+        \input{Informed/Results1.tex}
+
+        \section{Transfer to GHC}
+        \label{sec:ghcComp}
+        \input{Informed/GHC.tex}
+
+        \section{Limitations}
+        \label{sec:limits}
+        \input{Informed/Limits.tex}
+
+        \section{Summary of Profile-Directed Search}
+        \label{sec:informedConclusion}
+        \input{Informed/Summary.tex}
 
 \part{Conclusions and Future Directions}
 \label{part:conclusion}
