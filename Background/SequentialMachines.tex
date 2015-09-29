@@ -15,9 +15,11 @@ accomplish this for the $G$-Machine, Augustsson and
 Johnsson expanded on the lambda-lifting technique first outlined by Hughes
 \citep{Augustsson:LazyMLCompiler, hughes:thesis}.
 
-    Each supercombinator is compiled in compiled to what is essentially a
-reverse postfix notation for the right-hand side of the function definition.
-The resulting code constructs and
+Each supercombinator is compiled to what is essentially a reverse postfix
+notation for the right-hand side of the function definition.  The resulting
+code constructs the graph representation of the function body and then
+reduces that graph to weak head normal form (WHNF).
+
 \begin{figure}[h!]
   \centering
   \includegraphics[scale=0.55]{Background/figures/AddExample.eps}
@@ -101,42 +103,41 @@ as few re-writes as possible make the overhead cost of dashing worthwhile
 
 
  \subsection{STG-Machine}
-    A few years after the design of the Spineless $G$-Machine, another
-enhancement was introduced, the Spineless Tagless $G$-Machine. This descendant of
-the $G$-Machine is a fully realised Spineless $G$-Machine that eliminates the
-need for tagged nodes by using packets\footnote{The original terminology used
-for this concept was either a closure, or a thunk; a thunk being a closure that
-is fully saturated. However, to differentiate between the \emph{concept} of a
-closure and its representation, a packet will refer to the STG-Machine's
-representation of a closure.} for its graph representation.
 
-    Each packet consists of a code pointer and zero or more pointer fields used
-to point to the values of free variables. The code the packet points to is what
-determines the behavior of the node. There is a global \emph{environment
-pointer} which addresses a packet, and then the packets code is executed. If
-there are any free variables associated with the packet the are accessed via an
-offset from the environment pointer \citep{jones1992implementing}. This process
-was called `entering' the packet. Because there is no tag on a node, the only
-way of determining the purpose of the node is to enter the packet. As said by
-Peyton Jones ``each closure (including data values) is represented uniformly,
-and scrutinized only by entering it.'' \citep{jones1992implementing}.
+A few years after the design of the Spineless $G$-Machine, another enhancement
+was introduced, the Spineless Tagless $G$-Machine. This descendant of the
+$G$-Machine is a fully realised Spineless $G$-Machine that eliminates the need
+for tagged nodes by using a uniform representation for all value in its graph
+representation. All values are represented on the heap as \emph{closures}.
 
-    The STG-Machine uses the self-updating model when having to update a
-subgraph. Instead of updating after every reduction, like the $G$-Machine, each
-packet is responsible for updating itself when an update is necessary. In the
-case of a thunk, entering the packet will result in the thunk being overwritten
-and the resulting packet's code will simply return the value stored in the
-packet.
+Each closure consists of a code pointer and zero or more pointer fields used to
+point to the values of free variables. The code the closure points to is what
+determines the behavior of that node in the graph. When the code for a closure
+is entered, the free variables can be access via an environment pointer that
+points to the original node in the graph (which has the pointer fields
+mentioned above) \citep{jones1992implementing}. Because there is no tag on a
+node, the only way of determining the purpose of the node is to enter the
+closure. As expressed by Peyton Jones ``each closure (including data values) is
+represented uniformly, and scrutinized only by entering it.''
+\citep{jones1992implementing}.
 
-    The STG-Machine became the basis for GHC and has had many improvements over
-the years \citep{HistoryOfHaskell}. Interestingly, one of the improvements to the
+The STG-Machine uses the self-updating model when having to update a subgraph.
+Instead of updating after every reduction, like the $G$-Machine, each closure
+is responsible for updating itself when an update is necessary. In the case of
+a thunk, entering the closure will result in the thunk being overwritten and
+the resulting closure's code will simply return the value that has already been
+evaluated.
+
+The STG-Machine became the basis for GHC and has had many improvements over the
+years \citep{HistoryOfHaskell}. Interestingly, one of the improvements to the
 STG-Machine was the introduction of tags! The elegance of being able to treat
 every node the same has a cost on the performance on modern architectures
-\citep{marlow2007faster}.
-Because so much of the performance in modern CPUs comes from the speed of its
-cache (and therefore avoiding the memory bottleneck) the indirections that arise
-from the code pointers in each packet have a significant cost on performance. As
-stated in the introduction to their 2007 paper \citep{marlow2007faster}:
+\citep{marlow2007faster}.  Because so much of the performance in modern CPUs
+comes from the speed of its cache (and therefore avoiding the memory
+bottleneck) the indirections that arise from the code pointers in each closure
+have a significant cost on performance. As stated in the introduction to their
+2007 paper \citep{marlow2007faster}:
+
 \begin{quote}
 The tagless scheme is attractive because the code to evaluate a closure is
 simple and uniform: any closure can be evaluated simply by
@@ -149,6 +150,6 @@ pipeline.
 \end{quote}
 
 As much as we would like to focus on elegant abstractions and distance
-ourselves from the low level concerns, there will always be \emph{some} focus on
-performance, and that will sometimes require compromises to accommodate hardware
-realities.
+ourselves from any low level concerns, there will always be \emph{some} focus
+on performance, and that will sometimes require compromises to accommodate
+hardware realities.

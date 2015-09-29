@@ -167,9 +167,6 @@ makes it easy to spark an arbitrary number of expressions easily,
 \<a `par` b `par` c\>, and the use-case for applicative \<par\> can be easily
 expressed using Haskell \<par\>, as shown above.
 
-\todoinline{It may be nice to instrument and profile the quicksort example that comes
-    next. Since we have the space to do it, showing how we get a better performing
-    algorithm and actually showing the speedups would be insightful.}
 \paragraph{Writing a program with \texttt{par} and \texttt{seq}}
 
 Now that we have our essential combinators we are able to define a parallel
@@ -186,8 +183,8 @@ quicksort \_ &= []
 
 The obvious way to parallelise this algorithm is to ensure that each of the two
 recursive calls can be executed in parallel, this is a common form of
-paralellism known as `divide and conquer' \tocite{Either Hammond or something
-earlier}. This can be done by changing the second line to
+parallelism known as `divide and conquer' \citep{skeletons}.  This can be done
+by changing the second line to
 
 \begin{haskell}
 quicksort (x:xs) = greater `par` (less \hsapp x:greater)
@@ -210,7 +207,7 @@ fully. As found in the textbook ``Real World Haskell'' \citep{realWorld}
 force &:: [\hasalpha] \to ()\\
 force list &= force' list `pseq` ()
 \hswhere{force' (\_:xs) &= force' xs \\
-         force' []      &= 1
+         force' []      &= ()
         }
 \end{haskell}
 
@@ -291,22 +288,17 @@ the programmer (with annotations) or by the compiler implicitly, the question
 of ``is this task worth it?'' will always come up when deciding what tasks
 should be sparked.
 
-\todoinline{To get a really fast quicksort, we'd need to actually implement
-    a `real' in place quicksort using something like the ST monad. This would
-    be a good spot to discuss the fast that sometimes it's the algorithm that
-    is the bottleneck, and not the lack of implicit parallelism.}
-
 \subsection{Explicit Parallelism with the \texttt{Par} Monad}
 
-One of the main benefits of using \<par\> and \<seq\> is that they
-provide a simple interface for expressing parallel computation without
-the need to worry about concurrency issues such as task/thread creation
-and synchronisation. The communication is via the same mechanism that
-allows for lazy evaluation \citep{SPJ:PIFPL}. However, laziness can
-be difficult to reason about and gaining the maximum benefit from parallelism
-can often require the \emph{forcing} of values beyond WHNF. \todo{Reference the forcing in quicksort}
-This motivated another approach to deterministic parallelism, the \<Par\>
-Monad \citep{marlow2011monad}.
+One of the main benefits of using \<par\> and \<seq\> is that they provide a
+simple interface for expressing parallel computation without the need to worry
+about concurrency issues such as task/thread creation and synchronisation. The
+communication is via the same mechanism that allows for lazy evaluation
+\citep{SPJ:PIFPL}. However, laziness can be difficult to reason about and
+gaining the maximum benefit from parallelism can often require the
+\emph{forcing} of values beyond WHNF, much like what was done with the
+\<force\> function in the previous section.  This motivated another approach to
+deterministic parallelism, the \<Par\> Monad \citep{marlow2011monad}.
 
 The \<Par\> Monad makes the following trade-off: For the cost of making the
 dependencies between computations explicit and prohibiting the use of shared
@@ -315,61 +307,51 @@ about when evaluation takes place. The library provides an API for dataflow
 parallelism in Haskell.
 
 Internally the \<Par\> Monad is implemented using I-Structures
-\citep{Arvind:IStructures}, which provide the mechanism for communication
-between tasks. I-Structures are mutable cells with write-once semantics.
-The disciplined use of I-Structures in the \<Par\> Monad are what ensure
-deterministic parallelism.
+\citep{Arvind:IStructures} in the form of \<IVar\>s, which provide the
+mechanism for communication between tasks. \<IVar\> are mutable cells with
+write-once semantics.  The disciplined use of I-Structures in the \<Par\> Monad
+are what ensure deterministic parallelism.
 
+To illustrate the data-flow nature of the \<Par\> monad we can use its API to
+write a function that computes two calls to \<fib\> in parallel (this code is
+adapted from \citet[pg. 59]{marlowBook}).
+
+\begin{haskell}
+twoFib m n &= runPar \$ \hsdo{%
+    i \hsfrom new \\
+    j \hsfrom new \\
+    fork (put i (fib m))\\
+    fork (put j (fib n))\\
+    a \hsfrom get i\\
+    b \hsfrom get j\\
+    return (a, b)
+    }
+\end{haskell}
+
+The \<Par\> monad provides us with an API that is quite explicit about the
+data-flow of the program. This allows the library to schedule the threads
+as appropriate. The function \<put\> takes an \<IVar\> and a value that
+can be \emph{forced} and write the value to the \<IVar\>. By being
+so explicit about the structure of the program the library allows for
+intuitive reasoning about the parallel performance.
 
 %\footnote{We found that running a similar experiment on a 4-core machine
 %did not improve the results by much.}
 
- \subsection{Implicit Parallelism}
-   While explicit parallelism has many advantages and can show great performance
-increases, many desire the ability to express a functional program
-\emph{without} having to specify where parallelism can take place. This idea,
-that parallelism can be achieved without programmer intervention, is known as
-implicit parallelism.
-
-  \paragraph{Strictness Analysis}
-    Laziness can work against our desire to exploit possible parallelism in
-functional programs. Because of this, researchers have discovered that using
-static analysis at compile time in order to discover strict portions of a
-program can yield promising results. This analysis has been named
-\emph{strictness analysis} \citep{ritabook, SPJ:PIFPL}. A trivial example is that
-of the addition of two expressions, such as the fibonacci sequence.
-
-\begin{haskell}
-nfib n \hsbody{%
-            &\mid n \leq 0   &= 0 \\
-            &\mid n \equiv 1    &= 1 \\
-            &\mid otherwise  &= nfib (n-1) + nfib (n-2)
-            }
-\end{haskell}
-
-Because the \<(+)\> function is strict in both its arguments we know that
-both recursive calls to \<nfib\> will be required. This fact, that we
-\emph{know} that the arguments to a function will be required by the function,
-is what enables us to exploit the parallelism that is inherent in the program.
-
-    Strictness analysis has
-been deemed \emph{conservative} parallelism \citep{SPJ:PIFPL}. This is due to
-the idea that sparking an expression that will definitely be required by the
-program is not seen as risky. While for the most part this is true, in reality
-it depends on how the sparking is handled by the runtime.
-
-    There are also techniques that involve using a program's statistics
-    gathered at runtime to better predict where parallelism can be exploited
-    \citep{feedbackImplicit}.
-
 \subsection{Semi-Implicit Parallelism with Strategies}
-    This section will look at things like `Strategies' to illustrate how a
-programmer can write the code they want to write (for the most part) and then
-use meta-techniques to make that code parallel.
 
-Strategies came in two waves; the first wave was introduced by Trinder et al. in
-"Algorithm \(+\) Strategy \(=\) Parallelism". This incarnation of strategies is
-simple to understand and easy to use effectively.
+This section will look at Parallel Strategies to illustrate how a programmer
+can write the algorithm they want (for the most part) and then use Strategies
+to specify how that algorithm should be parallelised. Strategies become central
+to our technique and are mentioned throughout this thesis, as they are used as
+the method of introducing parallelism into a program.
+
+Strategies came in two waves; the first wave was introduced by
+\citet{strategies} in "Algorithm \(+\) Strategy \(=\) Parallelism". This
+incarnation of strategies is simple to understand and easy to use effectively.
+The second wave was an adaptation of the idea that addressed an issue caused by
+the garbage collector, but the main \emph{idea} remains the same
+\citep{marlow2010seq}.
 
 The type declaration for a Strategy is
 
@@ -378,11 +360,11 @@ The type declaration for a Strategy is
 \end{haskell}
 
 The key point to take away from this is that Strategies do not, and can not,
-contribute to the end result of the computation.
+affect the \emph{value} of the computation.
 
-It is possible, and useful, to define strategies that do not introduce
-parallelism, but instead ensure that evaluation is carried out to some degree.
-For example, the strategy for doing nothing
+It is possible to define strategies that do not introduce parallelism, but
+instead ensure that evaluation is carried out to some degree.  For example, the
+strategy for doing nothing
 
 \begin{haskell}
 r0 :: Strategy a\\
@@ -399,8 +381,6 @@ rwhnf x &= x `seq` ()
 These strategies are not often used on their own, but are used in conjunction
 with other strategies to achieve a goal. For example, applying a strategy to
 each element of a list can be expressed as
-
-\todoinline{fix pagebreak}
 
 \begin{haskell}
 seqList &:: Strategy \hasalpha \to Strategy [\hasalpha]\\
@@ -442,31 +422,123 @@ first argument specifies.
 There are many cases where the \emph{structure} of two programs in the same
 even though they are computing different results. As mentioned above,
 \<quicksort\> shares a structure with many algorithms known as `divide and
-conquer'. Algorithmic skeletons allow for reuse of \emph{structural} parallelism
-between programs \tocite{Algorithmic Skeletons}.
+conquer'. Algorithmic skeletons allow for the reuse of \emph{structural}
+parallelism between programs \citep{skeletons}.
 
-Skeletons are higher-order functions that are passed the computation specific actions
-of a program and ensure that the actions are parallelised according to the pre-defined
-structural parallelism.
+To a functional programmer, Skeletons are higher-order functions that are
+passed the computation specific actions of a program and ensure that the
+actions are parallelised according to the pre-defined structural parallelism.
+\citet{skeletons} introduce skeletons for the \emph{divide and conquer},
+\emph{farm} (like a generic \<parMap\>), \emph{pipe}, and \emph{reduce} (like a generic
+parallel \<fold\>) patterns. The \emph{divide and conquer} skeleton is defined as follows:
 
-\todoinline{Give an example of a divide and conquer Skeleton}.
+\begin{haskell}
+dc triv solve divide conq x \hsbody{%
+    &\mid triv x       &=\ solve x \\
+    &\mid otherwise    &=\ conq (solveAll triv solve divide conq (divide x))
+    }\hswhere{%
+    solveAll xs &= \hsbody{Collection.map (dc triv solve divide conq) xs `using` parColl all}
+    }
+\end{haskell}
+
+The process is rather simple, \<dc\> takes a predicate \<triv\> that determines
+whether the input value, \<x\>, is trivial. If so, we use the function
+\<solve\> for the trivial case. When \<x\> is not trivial we must split the
+problem into smaller chunks using \<divide\>. With the problem divided, we use
+\<solveAll\> which recursively calls \<dc\> in parallel over all of the divided
+parts of the problem. The parallelism is introduced using a Strategy in
+\<solveAll\>. Lastly, \<conq\> is used to combine the results of the
+sub-problems.
+
+The only restrictions on the use of \<dc\> is that the result be a member of
+the class \<Evaluable\> which has three member functions, \<none\>, \<outer\>,
+and \<all\>. These functions correspond to Strategies with various degrees of
+evaluation: \<none\> performs no evaluation of the value, \<outer\> evaluates
+to WHNF, and \<all\> evaluates to normal form. Additionally the container type
+must be a member of \<Coll\> which provides a uniform interface for \<map\>ing
+over its elements.
+
+Skeletons provide a powerful tool when working with problems that are known to
+be parallelisable. If a programmer can recognise which skeleton is appropriate
+for their problem domain they can focus on the aspects that are specific to
+their problem and let the skeleton manage the parallelism \citep{skeletons}.
+
 
 \subsection{Semi-Implicit Parallelism via Rewriting}
 
 
 Some recent work has shown promising results with the use of rewriting. The
-programmer uses pre-selected idioms (which is what makes these techniques
+programmer uses pre-selected functions (which is what makes these techniques
 semi-implicit) and the compiler uses pre-defined rewrite rules to convert the
-high-level idiom to low level parallel code \tocite{The ICFP 2015 paper
-``Generating Performance Portable Code using Rewrite Rules: From High-level
-Functional Expressions to High-Performance OpenCL Code''}. This technique frees
-the programmer from concerning themselves with the low-level optimisation
-techniques, which in the case of GPU programming are often vendor specific. The
-compiler writers provide different sets of reqrite rules for each target
-platform, providing portable parallelism for specific functional idioms.
+high-level function to low level parallel code \citep{SteuwerPortable}. This
+technique frees the programmer from concerning themselves with the low-level
+optimisation techniques, which in the case of GPU programming are often vendor
+specific. The compiler writers provide different sets of rewrite rules for each
+of the provided high-level functions. The compiler then searches the space of
+rewrite rules, allowing it to tune the performance of each function to a
+specific GPU. Because this search is done offline, the programmer can freely
+use any of the provided parallel functions knowing that whatever GPU the
+program runs on, an efficient sequence of rewrite rules is known to go from the
+high-level source to the target GPU.
 
-Another rewriting approach uses a \emph{proof} of the program in seperation
-logic \citep{hurlinProof}, to automatically parallelise the program where
-it is safe, having the safety guaranteed by the provided proof. The proof can
-be transformed as teh program is transformed providing assurance that the
-resulting program has the same semantic behavior.
+This technique, like ours, can be seen as applying search-based techniques to
+the problem of knowing when parallelism can be accomplished. The benefit of
+their method is that it is restricted to a finite set of pre-determined
+parallel functions.
+
+Another rewriting approach uses a \emph{proof} of the program in separation
+logic, to automatically parallelise the program where it is safe, having the
+safety guaranteed by the provided proof \citep{hurlinProof}. The proof can be
+transformed as the program is transformed providing assurance that the
+resulting program has the same semantic behavior. This technique does save the
+programmer from having to manually parallelise the code, at the cost of
+requiring that the algorithm has a separation proof. In any instance where such
+a proof is required for any other reason, this technique can be seen as `free'.
+Otherwise the cost of proving separation could be limit the viability of this
+method.
+
+
+\subsection{Implicit Parallelism}
+
+While explicit parallelism has many advantages and can show great performance
+increases, many desire the ability to express a functional program
+\emph{without} having to specify where parallelism can take place. This idea,
+that parallelism can be achieved without programmer intervention, is known as
+implicit parallelism. For non-strict languages it is not possible to
+parallelise all possible expressions because doing so may introduce
+non-termination that would not have occurred otherwise. \emph{Strictness
+Analysis} is usually used to determine which expressions are \emph{needed} and
+therefore safe to parallelise.
+
+  \paragraph{Strictness Analysis}
+    Laziness can work against our desire to exploit possible parallelism in
+functional programs. Because of this, researchers have discovered that using
+static analysis at compile time in order to discover strict portions of a
+program can yield promising results. This analysis has been named
+\emph{strictness analysis} \citep{ritabook, SPJ:PIFPL}. A trivial example is that
+of the addition of two expressions, such as the fibonacci sequence.
+
+\begin{haskell}
+nfib n \hsbody{%
+            &\mid n \leq 0   &= 0 \\
+            &\mid n \equiv 1    &= 1 \\
+            &\mid otherwise  &= nfib (n-1) + nfib (n-2)
+            }
+\end{haskell}
+
+Because the \<(+)\> function is strict in both its arguments we know that
+both recursive calls to \<nfib\> will be required. This fact, that we
+\emph{know} that the arguments to a function will be required by the function,
+is what enables us to exploit the parallelism that is inherent in the program.
+
+    Strictness analysis has
+been deemed \emph{conservative} parallelism \citep{SPJ:PIFPL}. This is due to
+the idea that sparking an expression that will definitely be required by the
+program is not seen as risky. While for the most part this is true, in reality
+it depends on how the sparking is handled by the runtime.
+
+    There are also techniques that involve using a program's statistics
+    gathered at runtime to better predict where parallelism can be exploited
+    \citep{feedbackImplicit}.
+
+

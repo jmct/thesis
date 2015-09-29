@@ -27,13 +27,13 @@ the shared heap.
     A departure from the stack-based approach of the G-Machine, here we have a
 packet-based abstract machine \citep{vGMachine, Alice}.
     The packets (or frame as they are called in the
-original paper) are similar to the packets we have seen for the STG-Machine
+original paper) are similar to the closures we have seen for the STG-Machine
 (although the $\langle \nu , G\rangle $-Machine was described and implemented
 first \citep{vGMachine}). One difference is that on top of the code pointer and
 pointer to its arguments, there is a dynamic pointer that points to the caller of
 the expression the packet represents, and there is a block of free `working
 space' on each packet (we will see why in a moment).
-The key difference, however, is the way that the
+The key difference is the way that the
 $\langle \nu , G\rangle $-Machine deals with its stack.
 As opposed to having a central stack, each packet has its own, using the free
 space allocated with the creation of the packet as its local stack.
@@ -46,6 +46,3 @@ transferred to the heap until the task is awoken.
 with the stack by distributing the stack amongst the graph. The stack frame at
 any point in the graph is a accessed through the linked list of packets pointing
 to their caller.
-    One possible way of thinking about this: The traditional stack-based approach has a
-stack on each \emph{processor}, whereas the this approach has a stack on
-each \emph{process}.

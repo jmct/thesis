@@ -40,10 +40,12 @@ surpass stock hardware in their performance. This line of research continued
 through the 80's and into the early 90's \citep{Alice, GRIP, clackbook,
 PFPAnIntro}.
 
-    The G-Machine in '84 showed that lazy functional languages (which had always
-been considered inefficient) could be implemented in an efficient manner on
-stock hardware. However, the abstract machine could also be used in the
-implementations of novel architectures \citep{Augustsson:LazyMLCompiler}.
+The G-Machine in '84 showed that lazy functional languages (which had always
+been considered inefficient and bound to being interpreted) could be
+implemented in an efficient manner on stock hardware via the compilation of
+supercombinators to machine code. However, the abstract machine could also be
+used in the implementation of a novel architecture itself
+\citep{Augustsson:LazyMLCompiler}.
 
     The 1990's saw a decline in the amount of research aimed at parallel
 functional programming. This was mainly due to the results from earlier research
@@ -51,14 +53,17 @@ being less successful than had been hoped (some novel architectures did see good
 results, but they could not keep up with the improvements seen in the sequential
 hardware sphere) \citep{PFPAnIntro, clackbook}.
 
-    The late 90's and the 2000's saw a resurgence in the interest in parallel
+The late 90's and the 2000's saw a resurgence in the interest in parallel
 functional programming. While still constrained by the von Neumann bottleneck,
-interest in this architecture is high because of the ubiquity of multi-core in
-computers today. Generally, many of the techniques discussed earlier are used, but as virtual
-machines abstracting away from the hardware architecture (Like GpH using GUM, or
-GHC using STG-Machine) \citep{buckwheat, haskellSharedMem}.
+interest in this architecture is high because of the ubiquity of multi-core
+computers today. Generally, many of the techniques discussed earlier are used,
+(GHC using the STG-Machine, for example) \citep{buckwheat, haskellSharedMem}.
 
 
-While still suffering from the von Neumann bottleneck, the
-utilisation of multiple cores has been of increasing interest. This brings us to
-today.
+While still suffering from the von Neumann bottleneck, the utilisation of
+multiple cores in a lazy functional languages is widely considered to be a
+success. Many high-level abstractions have been introduced that provide the
+programmer with powerful tools to exploit their multi-core systems. Strategies
+\citep{strategies}, parallel skeletons \citep{skeletons}, the Par-Monad
+\citep{marlow2011monad}, and Repa \citep{repa} are among the most prominent
+successes. We will explore these in more depth in Section \ref{sec:Approaches}.

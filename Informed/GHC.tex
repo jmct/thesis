@@ -47,5 +47,8 @@ In the function \verb-foo- we spark off a strategy that is meant to force the
 spine of the list \verb-ys-, the catch is that GHC's \verb-par- is fast enough
 for \verb-bar ys- to be what forces the evaluation of \verb-ys-. So we're
 paying the overhead and reaping none of the benefits. In some programs changing
-a \verb-par- like the one found in \verb-foo- to a \verb-seq- is enough to solve the
-issue and make the parallel version competitive with the manually parallelised version.
+a \verb-par- like the one found in \verb-foo- to a \verb-seq- is enough to
+solve the issue and make the parallel version competitive with the manually
+parallelised version.  \verb|Queens|, \verb|Queens2|, and \verb|SodaCount| all
+benefit from this adaptation. The issues with \verb|MatMul| are more subtle and
+will be discussed in the next section.
