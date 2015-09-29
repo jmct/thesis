@@ -34,3 +34,8 @@ semantics of the program.  The method has two basic steps:
                 \verb=par= is `off' the thread will ignore the $G$-Code instruction \verb=Par=.
     \end{itemize}
 
+There is one exception to the above rules. If a \verb|par| is \emph{within} a
+derived strategy switching it `off' turns it into a \verb|seq|. This is because
+the demand for that part of the structure has not gone away. If the overall
+strategy is not worthwhile than its top-level \verb|par| will be switched off
+completely.

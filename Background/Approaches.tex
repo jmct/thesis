@@ -508,15 +508,18 @@ implicit parallelism. For non-strict languages it is not possible to
 parallelise all possible expressions because doing so may introduce
 non-termination that would not have occurred otherwise. \emph{Strictness
 Analysis} is usually used to determine which expressions are \emph{needed} and
-therefore safe to parallelise.
+therefore safe to parallelise.  Strictness analysis will be covered in far more
+detail in Chapter \ref{chap:discovery}, but we will provide a high-level
+overview here to provide some context.  
 
-  \paragraph{Strictness Analysis}
-    Laziness can work against our desire to exploit possible parallelism in
+\subsection*{Strictness Analysis for Implicit Parallelism}
+
+Laziness can work against our desire to exploit possible parallelism in
 functional programs. Because of this, researchers have discovered that using
 static analysis at compile time in order to discover strict portions of a
 program can yield promising results. This analysis has been named
-\emph{strictness analysis} \citep{ritabook, SPJ:PIFPL}. A trivial example is that
-of the addition of two expressions, such as the fibonacci sequence.
+\emph{strictness analysis} \citep{ritabook, SPJ:PIFPL}. A trivial example is
+that of the addition of two expressions, such as the fibonacci sequence.
 
 \begin{haskell}
 nfib n \hsbody{%
@@ -531,14 +534,65 @@ both recursive calls to \<nfib\> will be required. This fact, that we
 \emph{know} that the arguments to a function will be required by the function,
 is what enables us to exploit the parallelism that is inherent in the program.
 
-    Strictness analysis has
-been deemed \emph{conservative} parallelism \citep{SPJ:PIFPL}. This is due to
-the idea that sparking an expression that will definitely be required by the
-program is not seen as risky. While for the most part this is true, in reality
-it depends on how the sparking is handled by the runtime.
+Strictness analysis has been deemed \emph{conservative} parallelism
+\citep{SPJ:PIFPL}. This is due to the idea that sparking an expression that
+will definitely be required by the program is not seen as risky. However, keep
+in mind that while it is known as \emph{conservative} parallelism it does not
+mean that there is any shortage of parallel tasks, it only refers to the fact
+that no \emph{speculative} parallelism will be undertaken.
 
-    There are also techniques that involve using a program's statistics
-    gathered at runtime to better predict where parallelism can be exploited
-    \citep{feedbackImplicit}.
+One of the issues with standard strictness analysis when used for implicit
+parallelism is that it does not take into account the \emph{context} in which
+an expression takes place. Take the standard recursive definition of
+\<append\>:
+
+\begin{haskell}
+append [] ys &= ys \\
+append (x:xs) ys &= x : append xs ys
+\end{haskell}
+
+In general the first argument is needed, but only to the outermost constructor.
+However, when \<append\> is used in certain contexts, like returning its result
+to a function that requires a finite list:
+
+\begin{haskell}
+length (append xs ys)
+\end{haskell}
+
+Then \<append\> actually requires both of its arguments to be finite. This
+notion of context has been dealt with in two main ways in the literature:
+\emph{Evaluation Transformers} and \emph{Projection-Based Strictness Analysis}.
+We will examine Evaluation Transformers in Chapter \ref{chap:derivation}, and
+Projection-Based Strictness Analysis in Chapter \ref{chap:discovery}. In short
+both of these techniques allow the compiler or runtime system to take advantage
+of the information that an expression's context provides regarding how defined
+a value must be.
+
+Many of the attempts at automatic parallelisation used the technique pioneered
+by \citet{hogen1992automatic}, which uses strictness analysis to identify safe
+parallelism and \emph{evaluation transformers} \citep{burn1987evaluation} to
+good effect. The main setback of this popular approach is that there is no
+method for \emph{refining} the initial placement of parallelism. Strictness
+analysis is not equipped to determine the \emph{benefit} of evaluating an
+expression in parallel, only the \emph{safety}. We refer to this problem as the
+\emph{granularity problem} throughout the thesis.
 
 
+\subsection*{Feedback-Directed Implicit Parallelism}
+
+\citet{feedbackImplicit} proposed using \emph{iterative feedback} in order to
+assist the compiler in determining which expressions are expensive enough to
+warrant evaluation in parallel. Their approach forgoes the use of strictness
+analysis to place parallelism into a program. Instead they utilise runtime
+profiling to measure the lifetime of thunks in the heap and the relationship
+between the thunks. They can then study dependency graph between thunks
+and determine which thunks are worthwhile for parallelism.
+
+Because each thunk has a unique allocation site, they are able to provide an
+estimate for the `total work' performed by an allocation site. They define this
+measure as $t/a$ where $t$ is the amount of time that \emph{at least} one thunk
+from that allocation site is being evaluated, and $a$ is the number of thunks
+allocated during that time.  This prevents an allocation site from being deemed
+worthwhile because of a long lifetime but in reality it creates numerous thunks
+each requiring a small amount of work, flooding the runtime system with
+small-grained tasks \citep[Section 3]{feedbackImplicit}.

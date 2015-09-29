@@ -1,0 +1,36 @@
+Because our projection-based strictness analysis requires that our programs
+have the suspension and forcing of thunks \emph{explicitly} annotated in the
+AST we require a method to convert the standard F-lite AST from Section
+\ref{sec:Flite}.  The functions in Figure \ref{fig:lazify} accomplish this
+task. The rules are adapted from a function performing the same task in
+\citet[Section 2.3]{hinze1995projection}.
+
+\begin{figure}[H]
+\begin{haskell*}
+\mathcal{L} &::& Exp \to Exp \\
+%
+\mathcal{L}\Sem{Var v}  &=&  Unfreeze (Var v) \\
+%
+\mathcal{L}\Sem{Int i}  &=& Int i \\
+%
+\mathcal{L}\Sem{Con c}  &=& Con c \\
+%
+\mathcal{L}\Sem{App (Fun f) args}  &=& App f \$ map (Freeze . \mathcal{L}) args \\
+%
+\mathcal{L}\Sem{Let bs in e}  &=& Let (\mathcal{L'}\Sem{bs}) (\mathcal{L}\Sem{e}) \\
+%
+\mathcal{L}\Sem{Case e alts}     &=& Case (\mathcal{A}\Sem{e}) (\mathcal{L'}\Sem{alts}) \\
+%
+\quad&\quad&\quad \\
+%
+\hsnoalign{\mathcal{L'} &:: [(\hasalpha, Exp)] \to [(\hasalpha, Exp)] \\
+           \mathcal{L'}\Sem{ts} &= [(x, \mathcal{L}\Sem{e}) \mid (x, e) \hsfrom ts]
+        }
+\end{haskell*}
+\caption[Lazify an F-lite Expression]{Convert an expression to one with explicit suspension and forcing of thunks}
+\label{fig:lazify}
+\end{figure}
+
+Sometimes performing this AST pass results in redundant sequences of \<Freeze
+(Unfreeze e)\>. These can be safely converted to \<e\> \citep[pg.
+36]{hinze1995projection}.

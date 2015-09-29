@@ -409,6 +409,50 @@ environments simply performs the operations on the elements in the environment
 with the same key. If a key is not present in an environment it is equivalent
 to having the lazy demand (top of the demand context lattice for its type).
 
+In order to better understand the rules in Figure \ref{fig:projAnal} we must
+introduce a few small operators. The $\downarrow$ operator takes a projection on sum types
+and a constructor tag and returns the projection corresponding to that constructor:
+
+\begin{haskell*}
+[C_{1} \hasalpha_{1} | \dots | C_{i} \hasalpha_{i} | \dots | C_{n} \hasalpha_{n}] \downarrow C_{i} = \hasalpha_{i}
+\end{haskell*}
+
+The $\uparrow$ operator performs the dual operation, injecting a projection on
+one constructor into a projection on the corresponding sum type. In the
+equation below $BOT?$ (also known as the \emph{absent} demand) represents the
+lazy lift of the bottom projection for the corresponding sum type:
+
+\begin{haskell*}
+C_{i} \uparrow \haspi = [C_{1} BOT? | \dots | C_{i} \haspi | \dots | C_{n} BOT?]
+\end{haskell*}
+
+When analysing expressions wrapped in \<Freeze\> we have to be careful because
+any demands that originate from suspended values are not \emph{strict} demands.
+The \emph{guard} (\<\rhd\>) operator accomplishes this:
+
+\begin{haskell*}
+! &\rhd \haspi &= \haspi \\
+? &\rhd \haspi &= \haspi \sqcup abs(typeOf(\haspi))
+\end{haskell*}
+
+The \<abs(typeOf(\haspi))\> above gets the absent demand for the corresponding
+type of the projection \<\haspi\>.
+
+The \<wrap\> and \<unwrap\> functions ensure that we handle recursive types
+appropriately. \<unwrap\> is used to `unwrap' the recursive knot one level,
+so that
+
+\begin{haskell*}
+unwrap \hasalpha@(\hasmu\hasbeta.[Nil \haspi_{1} | Cons \langle \haspi_{2} \otimes \hasbeta_{\ell} \rangle]) =\hsbody{%
+    [Nil \haspi_{1} | Cons \langle \haspi_{2} \otimes \hasalpha_{\ell} \rangle]
+    }
+\end{haskell*}
+
+\<wrap\> is the inverse operation, retying the recursive knot \citep[pg. 117]{hinze1995projection}.
+
+Lastly, \<getProd\> takes a list of identifiers and a projection environment and returns the
+projection on the product made up by those identifiers.
+
 \begin{figure}
 \begin{haskell*}
 \hsnoalign{\mathcal{P} :: Exp \to FunEnv^{\#} \to Context \to Env^{\#}}\\

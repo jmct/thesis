@@ -1,0 +1,38 @@
+In this chapter we have provided an broad introduction to the field
+of parallel functional programming. The literature includes work
+on runtime systems, static analyses, and library design. Over time
+programming with \verb|par| and \verb|seq| directly has proven to be
+difficult, the level of abstraction is too high for reasoning about
+performance but too low to be able to generalise one program's parallel
+implementation to another.
+
+Parallel Strategies solve this problem to some degree, allowing the algorithm
+to be separated from the parallelism permits programmers to reuse their
+intuitions about which Strategies may be worthwhile for different problem
+domains. Strategies still suffer from the fact that lazy programs can be
+difficult to reason about however, and often do not provide the speedups a
+programmer might expect.
+
+The \<Par\> monad attacks the problem from the other direction. By giving
+programmers a clearer view of when evaluation is occurring, performance can be
+more easily predicted. This comes at the slight cost of requiring the program
+to be more explicit in some cases\footnote{The library does provide some
+high-level functions that allow the programmer to use the \emph{Par} monad
+without needing to be write their code in the monad itself, but on complex
+problems it is often necessary to write the \emph{Par} monad code directly.}
+and that all structures be evaluated to normal form. 
+
+While much of the recent work in parallel functional programming has been in
+explicit of semi-implicit techniques there has been a recent resurgence in
+interest for fully implicit parallelism. The technique in
+\citet{feedbackImplicit} produced promising results but suffered from
+difficulties scaling to larger programs. Our work seeks to benefit from the
+insight presented in loc. cit. that using runtime profiles can help solve the
+granularity problem, but instead of using iterative feedback to \emph{find}
+parallelism, we use the feedback to \emph{prune} the parallelism that has been
+introduced by strictness analysis.
+
+Our work can be seen as a combination of the most successful methods to date.
+The use of static analysis for the placement of parallelism
+\citep{hogen1992automatic} and feedback iteration to improve the static
+placement \citep{feedbackImplicit}.\nopagebreak

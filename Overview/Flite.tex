@@ -45,7 +45,7 @@ orders.
 
 \paragraph{Call-by-value}
 
-\begin{figure}[!h]
+\begin{figure}[H]
 \centering
 \begin{multicols}{2}
 \noindent
@@ -68,9 +68,9 @@ orders.
 \end{figure}
 
 Note that the argument to \<sqr\> and \<bot\> is evaluated \emph{before}
-we enter the function's body. 
+we enter the function's body.\\[1.5cm]
 
-\begin{figure}[!h]
+\begin{figure}[H]
 \centering
 \begin{multicols}{2}
 \noindent
@@ -98,7 +98,7 @@ argument until its use.  However, the result of evaluating a value is not
 shared with other references to that value. This results in computing \<5*5\>
 twice.
 
-\begin{figure}[!h]
+\begin{figure}[H]
 \centering
 \begin{multicols}{2}
 \noindent
@@ -126,11 +126,11 @@ is often a result of call-by-name evaluation. Notice that in this evaluation
 often referred to as call-by-name \emph{with sharing}, or \emph{lazy}.
 
 An important point is that for languages without arbitrary side-effects call-by-name
-and call-by-need are semantically equivalent. Call-by-need is an optimisation in the
-\emph{implementation} of reduction.
+and call-by-need are semantically equivalent. Call-by-need is an optimisation for the
+\emph{implementation} of reduction.\\[1.5cm]
 
 
-\begin{figure}[!h]
+\begin{figure}[H]
 \centering
 \begin{multicols}{2}
 \noindent
@@ -153,7 +153,8 @@ and call-by-need are semantically equivalent. Call-by-need is an optimisation in
 \paragraph{Normal order} This method of evaluation is the only method that
 obeys the semantic property that \<\(\lambda\) \_ \to \(\bot\) \(\equiv \
 \bot\)\>.  This is because normal order reduction will evaluate under a lambda
-\tocite{Abramsky's lazy lambda calculus paper}.
+\citep{abramsky1990lazy}.
+\pagebreak
 
 Of the four, only the first three are commonly used as the basis for
 programming languages. Most languages are call-by-value, this includes
@@ -163,15 +164,13 @@ call-by-value by default, does allow programmers to specify that some
 functions use call-by-name. Lastly, call-by-need is used by Haskell, Clean,
 Miranda, and our own F-lite.
 
-\todoinline{Explain Church-Rosser, at least a little bit}
-
 The reader may have noticed that in our examples above the result of evaluation
 was always the same \emph{when they terminated}, regardless of evaluation
 order.  This is an observation of a more general property about rewrite systems
 known as \emph{confluence}. The lambda calculus was proven to be a confluent
-system by Church and Rosser in 1936 \tocite{The original Church-Rosser paper}.
-When discussing the lambda calculus specifically, it is referred to as the
-Church-Rosser property.
+system by Church and Rosser in 1936 \citep{church1936some}.  When discussing
+the lambda calculus specifically, it is referred to as the Church-Rosser
+property.
 
 \defineword{Church-Rosser Property}{The fact that the pure lambda calculus is
 \emph{confluent} means that if there is more than one possible reduction step,
@@ -251,10 +250,9 @@ parallelisation because the \emph{sequence} of side-effects can alter the
 semantics of the program. While programmers \emph{could} write pure programs
 that do not rely on shared state, it is not enforced by the compiler as it is
 for languages like Haskell. That being said there are techniques that can be
-used to find safe parallelism in strict languages. \tocite{Matt Might's paper
-at least}
+used to find safe parallelism in strict languages \citep{might2009interprocedural}.
 
-\subsection{The Syntax and Semantics of F-lite}
+\subsection{The Abstract Syntax of F-lite}
 
 Having motivated our choice of a lazy language we can now present F-lite
 completely. We start with Figure \ref{fig:flite} where the abstract syntax
@@ -298,6 +296,7 @@ e\>.  These expression are not found in the concrete syntax but are instead
 added by the compiler to make the suspension and forcing of lazy values
 explicit. This is a common technique when analysing non-strict programs with
 projections \citep{patersonCompProj, hinze1995projection}. We will see the
-utility of these expressions in Chapter \ref{chap:discovery}.
+utility of these expressions in Chapter \ref{chap:discovery}. We provide a
+function to translate expressions into this form in Appendix \ref{chap:lazify}.
 
-\todoinline{Semantics!}
+%\todoinline{Semantics!}

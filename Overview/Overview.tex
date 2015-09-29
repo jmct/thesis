@@ -379,11 +379,11 @@ implicit parallelism \citep{hogen1992automatic, hammond2000research,
 Jones2009Tuning}. To combat this we run the program as presented in Figure
 \ref{fig:takParred} and collect statistics about the amount of productive work
 each \verb-par- is responsible for. The \verb-par-s that do not introduce a
-worthwhile amount of parallelism (see discussion in Section \ref{sec:iterate})
-are disabled, freeing the program from incurring the overhead of managing
-threads for tasks with insufficient granularity\footnote{This can be seen as a
-more extreme variation of Clack and Peyton Jones' ``Evaluate and die!'' model
-of parallelism \citep{clack1986four}: Evaluate \emph{a lot} or die!}.
+worthwhile amount of parallelism are disabled, freeing the program from
+incurring the overhead of managing threads for tasks with insufficient
+granularity\footnote{This can be seen as a more extreme variation of Clack and
+Peyton Jones' ``Evaluate and die!'' model of parallelism \citep{clack1986four}:
+Evaluate \emph{a lot} or die!}.
 
 Luckily, the \verb-Tak- program has so few \verb-par-s that an exhaustive
 exploration of the possible settings is easy. Table \ref{tab:takSettings}

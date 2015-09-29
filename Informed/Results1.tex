@@ -189,3 +189,12 @@ improvement. Many of the \verb-par-s introduced by the static analysis
 do not contribute significantly to the computation even though it is
 semantically safe to introduce them. The iterative loop converges on the few
 \verb-par- sites that make a significant difference.
+
+You may have noticed that the iterative steps sometimes plateau for a few
+iterations, this is particularly evident in Figures \ref{fig:iterSum} and
+\ref{fig:iterQueens2}. The reason for this is that a top-level strategy has
+been switched off, making all of the \verb|par|s that make up that strategy
+dead code. Luckily we can determine which \verb|par|s are descended for other
+\verb|par|s statically and skip these plateaus when they occur. This reduces
+the number of iterative steps even further for some programs; \verb|Queens2|
+then takes only $14$ iterative steps instead of $22$, for example.

@@ -145,6 +145,7 @@
 
 % Compromise for the lack of above
 \DeclareCaptionFormat{myformat}{#1#2#3\hrulefill}
+\DeclareCaptionFormat{fnoline}{#1#2#3}
 \captionsetup[figure]{format=myformat}
 
 \makeatletter
@@ -193,12 +194,10 @@
 \chapter*{Declaration}
 \input{FrontMatter/Declaration.tex}
 
+\null\cleardoublepage
 %% Now we start the whole thing off!
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \mainmatter
-
-\nomenclature{$\bot$}{Either the bottom element of a lattice or the representation of an erroneous or non-terminating value}
-\nomenclature{$\top$}{The top element of a lattice}
 
     \chapter{Introduction}
     \label{chap:intro}
@@ -213,9 +212,15 @@
         \section{Thesis Roadmap}
         \input{Intro/Roadmap.tex}
 
+\nomenclature{$\bot$}{Either the bottom element of a lattice or the representation of an erroneous or non-terminating value}
+\nomenclature{$\top$}{The top element of a lattice}
+\nomenclature{$f^{\#}$}{The abstract version of $f$}
+\nomenclature{$\sqcup$}{The \emph{join} or \emph{least upper bound} (lub) of two points in a lattice}
+\nomenclature{$\sqcap$}{The \emph{meet} or \emph{greatest lower bound} (glb) of two points in a lattice}
+\nomenclature{$\sqsubseteq$}{The ordering relation on a domain. $x \sqsubseteq y$ can be read as ``$x$ approximates $y$''}
+
 \part{The Idea}
 \label{part:idea}
-
     \chapter{Parallelism in a Functional Language}
     \label{chap:background}
     \begin{chapquote}{\cite{marlowBook}}
@@ -244,6 +249,10 @@
         \section{Approaches to Parallelism}
         \label{sec:Approaches}
         \input{Background/Approaches.tex}
+
+        \section{Summary of the Chapter}
+        \label{sec:sumBack}
+        \input{Background/Summary.tex}
         
     \chapter{Bird's eye view of our Technique}
     \label{chap:overview}
@@ -292,6 +301,9 @@
         \label{sec:projections}
         \input{Static-Analysis/Projections.tex}
 
+        \section{Summary}
+        \label{sec:summ2}
+        \input{Static-Analysis/Summary.tex}
 
     \chapter{Derivation and Use of Parallel Strategies}
     \label{chap:derivation}
@@ -328,9 +340,6 @@
         \label{sec:defunctionalisation}
         \input{Platform/Defunctionalisation.tex}
     
-        \section{An Implementation of Hinze's Projection-Based Analysis}
-        \label{sec:hinzeImplementation}
-        
         \section{Keeping Track of all the Threads}
         \label{sec:logging}
         \input{Platform/Logging.tex}
@@ -471,6 +480,10 @@
     \section{Taut}
     \inputminted{haskell}{benchmarks/Taut.hs}
     \clearpage
+
+\chapter{Lazify Expressions}
+\label{chap:lazify}
+\input{Lazify.tex}
 
 \end{appendices}
 

@@ -31,6 +31,7 @@ syntactic sugar for pairs (and other $N$-tuples): \<(\hasalpha,\hasbeta)\>.
 A first try at representing pairs of values from the two-point domain could
 give us the lattice in Figure \ref{fig:unboxedPairs}.
 
+\captionsetup[figure]{format=fnoline}
 \begin{figure}
 \centering
 \begin{subfigure}{0.4\textwidth}
@@ -69,7 +70,9 @@ give us the lattice in Figure \ref{fig:unboxedPairs}.
 \label{fig:boxedPairs}
 \end{subfigure}
 \caption{Domain for pairs of flat-domain values}
+\hrulefill
 \end{figure}
+\captionsetup[figure]{format=myformat}
 
 The meaning of this lattice is fairly intuitive. When we posses a pair of
 flat-domain values there are four possibilities, we can have
@@ -117,19 +120,7 @@ domain for lists \citep{wadler1987strictness}. Instead of representing the
 recursive structure of lists directly, which creates an infinite domain, Wadler
 chose a domain that represents four degrees of definedness for lists.
 
-The result, as shown in Figure \ref{fig:listDomain}, can be described, from least
-to most defined as follows:
-
-\begin{enumerate}
-    \item $\bot$ represents all undefined lists
-    \item $\infty$ represents all undefined lists, lists  with undefined tails
-        and all infinite lists
-    \item $\bot_{\in}$ represents all of the above in addition to all finite
-        lists with at least one undefined element
-    \item $\top_{\in}$ represents fully defined lists along with all of the above
-\end{enumerate}
-
-\begin{figure}
+\begin{figure}[t]
 \centering
 \begin{tikzpicture}
     \node [hasse, label=above:{\large$\top_{\in}$}]                   (full)   {};
@@ -144,6 +135,19 @@ to most defined as follows:
 \caption{Wadler's Four-point Domain}
 \label{fig:listDomain}
 \end{figure}
+
+The result, as shown in Figure \ref{fig:listDomain}, can be described, from least
+to most defined as follows:
+
+\begin{enumerate}
+    \item $\bot$ represents all undefined lists
+    \item $\infty$ represents all undefined lists, lists  with undefined tails
+        and all infinite lists
+    \item $\bot_{\in}$ represents all of the above in addition to all finite
+        lists with at least one undefined element
+    \item $\top_{\in}$ represents fully defined lists along with all of the above
+\end{enumerate}
+
 
 Because we are now concerning ourselves with values from different domains in
 our analysis we must now know the types of expressions in our program. This
@@ -407,9 +411,9 @@ realistic. We can now tell the machine to evaluate lists in parallel up to the
 degree that it is safe to do so. Some of the more successful attempts at
 implicit parallelism were based on using this strictness information, most
 notably Burn's work on parallelisation of functional programs for a Spineless
-$G$-Machine \tocite{Burn's thesis} and Hogen, et. al.'s work on automatically
-parallelising programs for a distributed reduction machine
-\citep{hogen1992automatic}.
+$G$-Machine \citep{burn1987evaluation} and the work of
+\citet{hogen1992automatic} on automatically parallelising programs for a
+distributed reduction machine.
 
 While this four-point domain made strictness analysis much more flexible it
 suffers from a few considerable shortcomings:
@@ -456,7 +460,7 @@ to express that form of strictness is a major weakness.
 
 The limitations due to this first point were well known at the time of Wadler's
 paper on the four-point domain. However, the solutions seemed ad-hoc and were
-on shaky theoretical grounds \tocite{Hughe's first paper on contexts}. The
+on shaky theoretical grounds \citep{hughes1986strictness, hughes1987analysing}. The
 introduction of the four-point domain was successful in part to it fitting
 naturally in the strictness analysis techniques that were already understood.
 Luckily we have the benefit of time and work on the analysis of strictness that
