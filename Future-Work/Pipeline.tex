@@ -1,14 +1,14 @@
 Using the projection-based strictness analysis to discover producer-consumer
 pairs we may be able to automatically utilise pipeline parallelism. Because of
-lazy evaluation we already benefit form a form of pipeline parallelism
+lazy evaluation we already benefit from a form of pipeline parallelism
 \citep{whyFPmatters}. However, because parallel expressions are not tied to
 specific execution contexts \todo{we're gong to have to define this in the
 background chapters} the producer and consumer threads can easily interrupt
 each other due to the runtime system scheduler. To prevent this we can use
-ideas from Hudak's \emph{para-functional programming} that allows for
-expressions to be tagged with operational information, such as where in memory
-the expression should allocate data or which processors an expression should be
-tied to \citep{hudak1986functional}. If the functions are strict enough we could
-employ the techniques introduced by Marlow et al. in the Par monad, which
-automatically schedules pipeline parallelism for values that can be fully
-evaluated \citep{marlow2011monad}.
+ideas from Hudak's \emph{para-functional programming} that allow for
+expressions to be tagged with operational information. This could take the form
+of where in memory the expression should allocate data or which processors an
+expression should be tied to \citep{hudak1986functional}. If the functions are
+strict enough we could employ the techniques introduced by Marlow et al. in the
+Par monad, which automatically schedules pipeline parallelism for values that
+can be fully evaluated \citep{marlow2011monad}.

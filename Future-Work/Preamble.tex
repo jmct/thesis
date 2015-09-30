@@ -1,16 +1,15 @@
 One of the main motivators of this work was the lack of attention implicit
-parallelism has been receiving in the functional programming community.
-Historically functional programmers were optimistic about the feasibility and
-benefit of systems designed to exploit the inherent parallelism in our
-programs.  Additionally, the software and hardware ecosystem has changed
-beneath our feet since the 80's and 90's. Software companies and developers
-often prioritise developer productivity over software performance
-\citep{codingHorror}, the exploitation of implicit parallelism will allow
-developers to regain \emph{some} of the performance without the cost of
-developer time.
+parallelism has been receiving in the functional programming community.  Early
+on, functional programmers were optimistic about the feasibility and benefits
+of systems designed to exploit the inherent parallelism in our programs.  The
+software and hardware ecosystem has changed beneath our feet since the 80's and
+90's. Increasingly, software companies and developers often prioritise
+developer productivity over software performance \citep{codingHorror}. The
+exploitation of implicit parallelism will allow developers to regain
+\emph{some} of the performance without the cost of developer time.
 
-One of our aims with this work was to show that despite difficulties in the
-past there are still areas, techniques, and analyses worth exploring in this
+One of our aims with this work was to show that despite setbacks in the
+past, there are still techniques and analyses worth exploring in this
 research area.  We therefore turn our attention to the future and discuss some
 of the possible avenues of exploration.
 
@@ -19,14 +18,14 @@ of the possible avenues of exploration.
 There are many possible extensions and improvements that can be made to our
 general technique. The most direct would be to use the runtime information for
 function specialisation, similar to what we already do for the different
-demands on a function in Section \ref{sec:specialiseDemand}, we discuss this
+demands on a function in Section \ref{sec:specialiseDemand}. We discuss this
 idea in Section \ref{sec:specialiseDepth}.
 
-This thesis is predicated on the idea that implicit parallelism is our goal, and
-we still believe that this is a worthy goal. But it does not have to be \emph{only}
-implicit parallelism. There may be situations where the programmer would like to
-specify that certain expressions are evaluated in parallel. We explore what such
-hybrid systems might look like in Section \ref{sec:hybrid}.
+This thesis is predicated on the idea that implicit parallelism is our goal,
+and we still believe that this is a worthy pursuit. But it does not have to be
+\emph{limited to} implicit parallelism. There may be situations where the programmer
+would like to specify that certain expressions are evaluated in parallel. We
+explore what such hybrid systems might look like in Section \ref{sec:hybrid}.
 
 It is also possible that the demand properties of a program would be useful in
 identifying pipeline-parallelism automatically. Section \ref{sec:autoPipe}

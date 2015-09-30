@@ -1,6 +1,6 @@
 In our implementation we specialised functions in two ways: higher-order to
-first-order and \verb|par| placement based on varied demands. There are of
-course, many forms of specialisation that could be added, monomorphisation,
+first-order and \verb|par| placement based on varied demands. There are, of
+course, many forms of specialisation that could be added: monomorphisation,
 call-pattern specialisation, and even specialisation to some depth of a
 recursive function. 
 
@@ -18,15 +18,15 @@ recursive function.
 % which can be turned off individually.
 
 When writing parallel programs we often write recursive functions, particularly
-`divide-and-conquer' algorithms, to take into account how deep into a
-computation a call is. This allows the program to avoid the creating of
+divide-and-conquer algorithms, to take into account how deep into a
+computation a call is. This allows the program to avoid the creation of
 parallel threads when the computation is obviously (to the programmer) not
 worthwhile. An example of this was shown in Section \ref{sec:parAndSeq} with
 our definition of \<quicksort\>. This pattern is not only limited to
-parallelising the `shallower' levels of the computation and then switching to a
+parallelising the more `shallow' levels of the computation and then switching to a
 sequential version. It is possible that the leaves of a computation are the
-expensive part of the computation, and to limit the number of generated
-threads, you begin with a sequential version and switch to a parallelised
+expensive part, and to limit the number of generated
+threads, one should begin with a sequential version and switch to a parallelised
 version below some depth. The general shape of the technique is drawn in Figure
 \ref{fig:compDepth}.
 
@@ -93,7 +93,7 @@ version below some depth. The general shape of the technique is drawn in Figure
 Given some depth of the computation $d$ (usually measured in the number of
 recursive calls) for the function \<f\>, the shaded nodes represent calls to one
 specialised form of \<f\> and the unshaded nodes represent another specialisation
-of \<f\>. We can attain these two version simply with the following transformation
+of \<f\>. We can attain these two versions simply with the following transformation
 
 \begin{haskell}
 f x = \hsinf{\<e\>} \(\phantom{space}\) \Longrightarrow
@@ -110,15 +110,16 @@ step the flexibility to switch off the \verb|par|s for the levels of the call
 tree that are not worthwhile to perform in parallel.
 
 In order to choose an appropriate value for \<depth\> in \<f_{1}\> the runtime
-system must be equipped with some proxy for call-depth. This could be in a form
-similar to what is used to get stack traces for lazy functional languages
+system must be equipped with some proxy for call-depth. This could take the form
+of something similar to what is used to get stack traces for lazy functional languages
 \citep{AllwoodStack}.
 
 We hypothesise that the value of \<depth\> in \<f_{1}\> does not have to be
 perfect on the first attempt. By ensuring that a \emph{reasonable} \<depth\> is
 chosen the compiler can then determine which \verb|par|s, the ones in \<f_{1}\>
-or the ones lower in the call-depth in \<f\>. Once the on/off decisions have
-been made the compiler could attempt to \emph{tune} the value of \<depth\>.
+or the ones lower in the call-depth in \<f\>, should remain on. Once the on/off
+decisions have been made the compiler could attempt to \emph{tune} the value of
+\<depth\>.
 
 \subsection{Knowing When to Specialise on Depth}
 
