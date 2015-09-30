@@ -6,11 +6,11 @@ in a functional program. Additionally, when research into implicit parallelism
 was more common, the work was often based on novel architectures or distributed
 systems, not commodity hardware \citep{GRIP, hammond2000research}. 
 
-Despite this research effort the ultimate goal of writing a program in a
-functional style, and having the compiler find the implicit parallelism, still
+Despite this research effort, the ultimate goal of writing a program in a
+functional style and having the compiler find the implicit parallelism still
 requires work.  We believe there are several reasons why previous work into
 implicit parallelism has not achieved the results that researchers hoped for.
-Chief amongst those reasons is that the static placement of parallel
+Chief amongst these is that the static placement of parallel
 annotations is not sufficient for creating well-performing parallel programs
 \citep{hammond2000research, hogen1992automatic, tremblay1995impact,
 feedbackImplicit}. This work explores one route to improvement: the compiler
@@ -52,11 +52,11 @@ With the choice of a lazy functional language we introduce tension, the
 evaluation order for lazy languages can be seen to be at odds with the goal of
 only evaluating expressions when they are needed (which is an inherently
 sequential evaluation order). For this reason we must utilise \emph{strictness
-analysis} in order to statically determine what expression in a program are
+analysis} in order to statically determine what expressions in a program are
 definitely needed, allowing us to evaluate them in parallel. We note that even
 eager languages would require some form of analysis because eager languages
 tend to allow arbitrary side-effects, necessitating the careful introduction of
-parallelism so as to avoid altering the order-dependent semantics of eager
+parallelism in order to avoid altering the order-dependent semantics of eager
 programs.
 
 In short, this work argues that static analysis is necessary but not sufficient
@@ -66,7 +66,7 @@ parallelism that is discovered via static analysis.
 
 \section{Goals and Contributions of this Thesis}
 
-The primary contribution of this thesis is to demonstrate that using search
+The primary contribution of this thesis is to demonstrate that using search techniques
 based on dynamic execution of an automatically parallelised program is a robust
 way to help diminish the \emph{granularity} problem that is difficult for
 static analysis to overcome.

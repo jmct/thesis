@@ -4,7 +4,7 @@ worthwhile. We do this by measuring the \emph{health} of each \verb|par| site.
 The runtime system provides us with a variety of statistics about threads and
 the \verb|par|s that sparked them. However, our current approach focuses on
 reduction count as a guide to determine which \verb-par- sites are beneficial
-to the program.  The reasoning is simple, our motivation for parallelism is to
+to the program.  The reasoning is simple; our motivation for parallelism is to
 do more work at once while ensuring that each bit of work done by a thread
 makes up for the cost of creating and managing that thread, so measuring the
 amount of work undertaken by each thread is the most direct measure of this
@@ -27,7 +27,7 @@ shown as independent points. The \verb-par-sites that only show a line as their
 plot either have only one child thread (the case for \verb-par--site 1) or have
 little variance in the distribution of reduction counts.
 
-Even by just plotting this information we have a much better understanding of
+Even by just plotting this information we gain a much better understanding of
 \verb|SumEuler|'s parallel behaviour. Much like using Threadscope
 \citep{Jones2009Tuning}, having this information helps the programmer (and the
 compiler in our case) make better decisions about where to look for performance
@@ -45,7 +45,7 @@ question. This simple view provides a rough estimate of how worthwhile a
 \verb|par| site is overall while requiring very little computation on its own.
 Another important aspect of this measure is that \verb|par| site health is more
 of a \emph{relative} measure than an absolute measure. Trying to define what is
-healthy or not healthy for all programs is difficult, instead we aim to rank a
+healthy or not healthy for all programs is difficult. Instead we aim to rank a
 \verb|par|'s health as compared to the other \verb|par|'s in a program.
 
 For the \verb|SumEuler| program's \verb|par| sites as shown in Figure

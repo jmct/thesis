@@ -4,33 +4,33 @@ to see with a simple example; appending two lists\footnote{Here we have used
 the na\"{i}ve recursive version, but any correct version of append will
 have the same strictness properties.}:
 
-\begin{verbatim}
-    append :: [a] -> [a] -> [a]
-    append []     ys = ys
-    append (x:xs) ys = x : append xs ys
-\end{verbatim}
+\begin{haskell*}
+append  &::& [\hasalpha] \to [\hasalpha] \to [\hasalpha] \\
+append [] ys &=& ys \\
+append (x:xs) ys &=& x : append xs ys
+\end{haskell*}
 
-\verb|append| takes two list arguments, a central question that strictness
-analysis asks is: How \emph{defined} must the arguments be to \verb|append|
-in order for \verb|append| to terminate?
+\<append\> takes two list arguments. A central question that strictness
+analysis asks is: How \emph{defined} must the arguments be to \<append\>
+in order for \<append\> to terminate?
 
-The first hint is that \verb|append| pattern matches on its first argument.
-Because the function must be able to distinguish between a \verb|(:)| and a
-\verb|[]| we know that the first argument must be defined \emph{at least} to
-the outermost constructor. Therefore a use of \verb|append| that is passed
+The first hint is that \<append\> pattern matches on its first argument.
+Because the function must be able to distinguish between a \<(:)\> and a
+\<[]\> we know that the first argument must be defined \emph{at least} to
+the outermost constructor. Therefore, a use of \<append\> that is passed
 $\bot$ as its first argument will result in non-termination. What about the
-second argument, \verb|ys|? Determining how defined \verb|ys| must be turns
+second argument, \<ys\>. Determining how defined \<ys\> must be turns
 out to be impossible without taking into account the \emph{context} that
-a call to \verb|append| occurs in. If the first argument is \verb|[]|
-then \verb|ys| must be defined to WHNF. However the \verb|(:)| case
-guards the recursive call to \verb|append| and, by extension, the use
-of \verb|ys|.
+a call to \<append\> occurs in. If the first argument is \<[]\>
+then \<ys\> must be defined to WHNF. However, the \<(:)\> case
+guards the recursive call to \<append\> and, by extension, the use
+of \<ys\>
 
 The literature on Strictness Analysis is the story of determining these
-properties in the general case. We start in \S \ref{sec:idealAnalysis} with
-exploring the simplest Strictness Analysis, \emph{Ideal Analysis} on \emph{flat
+properties in the general case. We start in Section \ref{sec:idealAnalysis} with
+exploring the simplest strictness analysis, \emph{Ideal Analysis} on \emph{flat
 domains}. We then show how the work was extended to \emph{non-flat domains} in
-\S \ref{sec:4pointDomains}. Lastly, we show how the notion of \emph{contexts}
+Section \ref{sec:fourPoint}. Lastly, we show how the notion of \emph{contexts}
 mentioned above are formalised by the use of \emph{projections} from Domain
 Theory in section \ref{sec:projections}.
 
@@ -38,7 +38,7 @@ Theory in section \ref{sec:projections}.
 \subsection{Ideal Strictness Analysis}
 \label{sec:idealAnalysis}
 
-However, if a function uses the value of an argument within its body it is safe
+If a function uses the value of an argument within its body it is safe
 to evaluate that argument before, or in parallel to, the execution of the body
 of the function. In order to determine which arguments can be evaluated in this
 way modern compilers use \emph{strictness analysis} \citep{mycroft1980theory}.
@@ -78,10 +78,10 @@ and $seq$.
 \end{figure}
 
 Both functions return the value of their second argument. The difference is in
-their \emph{side-effects}. $seq$ returns its second argument only \emph{after}
+their side-effects. $seq$ returns its second argument only \emph{after}
 the evaluation of its first argument. $par$ forks the evaluation of its first
 argument in a new parallel thread and then returns its second argument; this is
-known as \emph{sparking} a parallel task \citep{clack1986four}.
+known as sparking a parallel task \citep{clack1986four}.
 
 Strictness analysis was a very active research area in the 1980's and the
 development of analyses that provide the type of strictness information
@@ -169,7 +169,7 @@ learning the theory of projection-based strictness analysis.
 
 With the more sophisticated information provided by projection-based analysis,
 we require more than simply $par$ and $seq$ to force the evaluation of
-strategies. To this end we use the popular technique of \emph{strategies} for
+values. To this end we use the popular technique of \emph{strategies} for
 parallel evaluation \citep{strategies, marlow2010seq}. Strategies are designed
 to evaluate structures up to a certain depth in parallel to the use of those
 structures. Normally, strategies are written by the programmer for use in

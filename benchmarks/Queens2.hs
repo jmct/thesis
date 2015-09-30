@@ -1,13 +1,8 @@
 import Prelude hiding ( foldr, foldl, map, concatMap, sum, tail
                       , null, length, transpose, reverse, zipWith
-                      , const, replicate, flip, and
-                      )
-
-data Shrub   = Root Node
-data Node    = Void | Fork Shrub Int Shrub
+                      , const, replicate, flip, and)
 
 data Test a  = A a | B a a | C
-
 
 tail (x : xs) = xs
 

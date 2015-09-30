@@ -1,13 +1,7 @@
-import Prelude hiding ( foldr, foldl, map, concatMap, sum, tail
-                      , null, length, transpose, reverse, zipWith
-                      , flip, and
-                      )
+import Prelude hiding ( concatMap, length, and)
 
 and False a = False
 and True  a = a
-
-map f []     = []
-map f (x:xs) = f x : map f xs
 
 append []     ys = ys
 append (x:xs) ys = x : (append xs ys)
@@ -41,6 +35,5 @@ toOne n = case (==) n 1 of
             False -> n : toOne ((-) n 1)
 
 nsoln nq = length (gen nq nq)
-
 
 main = print $ nsoln 10

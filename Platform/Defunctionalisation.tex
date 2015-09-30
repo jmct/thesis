@@ -1,4 +1,4 @@
-After parsing the next stage of the compiler applies a
+After parsing, the next stage of the compiler applies a
 defunctionalising\footnote{Some have taken issue with our use of the term
 `defunctionalisation'. Many see defunctionalisation as the \emph{specific}
 transformation introduced by Reynolds \citep{reynoldsDefun} to remove
@@ -11,7 +11,7 @@ functions defining separate instances for different functional arguments. We
 are careful to preserve sharing during this transformation. Here we give our
 motivation for introducing this transformation.
 
-A significant motivator is that our chosen strictness analysis can not cope
+A significant motivator is that our chosen strictness analysis cannot cope
 with higher-order programs. However, it would certainly be possible to extend
 such an analysis to higher-order function if required, but our use-case
 provides other incentives to remove higher-order functions. When taken together
@@ -35,7 +35,7 @@ Our goal is to parallelise the evaluation of \<e_{1}\> and \<e_{2}\> when it is
 safe to do so, but because we lack concrete information about the strictness of
 \<g\> it is not possible to know when it is.
 
-By defunctionalising we gain an new instance of \<foo\> for every unique
+By defunctionalising we gain a new instance of \<foo\> for every unique
 functional argument. If \<foo\> was passed the functions \<bar\> and \<qux\>
 in our program that would leave us with the following function defintions.
 
@@ -45,7 +45,7 @@ foo_qux &=& \dots qux e_{1} e_{2} \dots
 \end{haskell*}
 
 Now we are able to analyse the instantiations of \<foo\> independently. If
-\<bar\> is strict in both its arguments but \<qux\> is not we face no dilema.
+\<bar\> is strict in both its arguments but \<qux\> is not, we face no dilemma.
 
 \begin{haskell*}
 foo_bar &=& \dots \hslet{e^{'}_{1} &= e_{1}\\
@@ -56,11 +56,11 @@ foo_bar &=& \dots \hslet{e^{'}_{1} &= e_{1}\\
 foo_qux &=& \dots qux e_{1} e_{2} \dots
 \end{haskell*}
 
-We can have out cake and eat it too! We retain our safety but are able to
+We can have our cake and eat it too! We retain our safety but are able to
 maximise the parallelism that our compiler introduces.
 
 In addition to allowing the compiler to introduce more parallelism,
-defunctionalisation aides in the iterative portion of our work.  For example,
+defunctionalisation aids in the iterative portion of our work.  For example,
 a common pattern in parallel programs is to introduce a parallel version of the
 \verb-map- function
 

@@ -1,5 +1,5 @@
 Burns introduced the idea of \emph{evaluation transformers} as a way to specify
-the how much of a value can be reduced safely before it is needed
+how much of a value can be reduced safely before it is needed
 \citep{burn1987evaluation}. By using the results of a four-point strictness
 analysis Burns was able to annotate expressions based on how much of the
 structure could be safely evaluated. The main insight was that each annotation
@@ -27,9 +27,9 @@ ETs}.Additionally, the runtime system can keep track of which evaluation
 transformer is used on each expression. This allows the runtime system to
 propogate the evaluation where possible.
 
-There are two downsides with this approach: The level of evaluation is limited
+There are two downsides with this approach: the level of evaluation is limited
 to pre-determined types (in this case lists and basic values) and it is the
 \emph{runtime system} that determines how the evaluation transformers are
 propogated. Ideally the propagation of demand would be static so that the
-runtime system does not have the additional bookeeping and management involved
+runtime system would not have the additional bookeeping and management involved
 in the method introduced by Burns.

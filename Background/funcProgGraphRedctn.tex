@@ -15,7 +15,7 @@ bookkeeping, such as saving registers for function calls and saving the
 intermediate computations in an expression, but do not conceal all aspects of
 the underlying machine. Most crucially, they allow arbitrary mutation and
 side-effects. This limits the amount of parallelism possible because the result
-of a function call can depend on more than values of the passed arguments.
+of a function call can depend on more than the values of the passed arguments.
 
     Work had already been carried out on non-von Neumann architectures
 before that time, however, much of it was in the form of abstract machines
@@ -24,7 +24,7 @@ that functioned `on top' of the von Neumann architecture \citep{turnerHistory}.
 In the early 70's the idea of graph reduction is introduced \citep{wadsworth}
 and with it, the concept of lazy evaluation was ready to be formalised.
 %\citep{lazyCons, HistoryOfHaskell}
-Lazy evaluations has its roots in papers by Henderson and Morris, and Friedman
+Lazy evaluation has its roots in papers by Henderson and Morris, and Friedman
 and Wise \citep{turnerHistory}.  People began to think of ways to better
 implement graph reduction machines.  A big breakthrough for software reduction
 was Turner's SKI-Combinator reduction scheme in 1979 \citep{turnerHistory,
@@ -61,7 +61,7 @@ computers today. Generally, many of the techniques discussed earlier are used,
 
 
 While still suffering from the von Neumann bottleneck, the utilisation of
-multiple cores in a lazy functional languages is widely considered to be a
+multiple cores in lazy functional languages is widely considered to be a
 success. Many high-level abstractions have been introduced that provide the
 programmer with powerful tools to exploit their multi-core systems. Strategies
 \citep{strategies}, parallel skeletons \citep{skeletons}, the Par-Monad

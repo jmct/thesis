@@ -1,11 +1,11 @@
-As mentioned in the Introduction \todo{Check where that was} the majority of
+As mentioned in the Introduction, the majority of
 functional languages use either call-by-need or call-by-value semantics.  While
 call-by-need has many attractive properties the delaying of computation incurs
-an overhead cost on all computations. Call-by-value, in contrast, has an
+an overhead cost on all computations. Call-by-value, by contrast, has an
 execution model that is more easily mapped to conventional hardware, allowing
-for simpler implementations that achieved good performance \tocite{SPJ or
+for simpler implementations that achieve good performance \tocite{SPJ or
 someone}. Mycroft used this tension to motivate his development of strictness
-analysis \tocite{mycroft thesis}:
+analysis \citep{mycroft1980theory}:
 
 \begin{displayquote}
 
@@ -25,10 +25,10 @@ semantics are maintained.
 While this was the original motivation for strictness analysis it also serves
 in identifying potential parallelism in a program. When an argument is suitable
 to be passed as call-by-value it is also suitable to be evaluated in parallel.
-For this use the suspension becomes a future \tocite{futures}, the value is
-evaluated in parallel to the original thread, synchronisation is then
-accomplished via the same mechanism as laziness except a thread can be blocked
-while waiting for another thread to complete its evaluation.
+In this case the value is evaluated in parallel to the original thread.
+Synchronisation is accomplished via the same mechanism as laziness, with the
+exception that a thread can be blocked while waiting for another thread to
+complete its evaluation.
 
 \subsection{Safety First}
 
@@ -50,20 +50,19 @@ f \ x_{1} \ \dots \bot_{i} \ \dots \ x_{n} \ =  \bot
 \end{equation}
 \label{eq:idealSafety}
 
-For any possible values of $x_{1}-x_{i-1},x_{i+1}-x_{n}$\footnote{Throughout this
-dissertation $\bot$ is used to represent all forms of non-termination.}.
+For any possible values of $x_{1}-x_{i-1},x_{i+1}-x_{n}$.
 
 Equation \ref{eq:idealSafety} can be read as ``$f$ is strict in $x_{i}$ when $f$
 fails to terminate if $x_{i}$ fails to terminate''. The reason this allows us
-to evaluate the $i$th argument before its needed is because doing so would only result
+to evaluate the $i$th argument before it is needed is because doing so would only result
 in introducing non-termination if the program would have resulted in non-termination
 otherwise.
 
 \subsection{Abstract Domains}
 
 Now that we have established what it means to be strict we can expand on how we
-analyse programs for this property. As with any abstract interpretation
-\todo{ensure this term is defined} this involves the choice of an abstract domain.
+analyse programs for this property. As with any abstract interpretation,
+this involves the choice of an abstract domain.
 
 %% Hasse diagram for the flat domain of integers.
 %%
@@ -98,28 +97,28 @@ analyse programs for this property. As with any abstract interpretation
 \label{fig:flatInts}
 \end{figure}
 
-In non-strict languages types like integers and Booleans form a flat domain;
+In non-strict languages types like Integers and Booleans form a flat domain;
 either we have a value of that type, or we have $\bot$. This is depicted in
 Figure \ref{fig:flatInts}. We can form an intuition of these orderings by
 thinking about how much we \emph{know} about a certain value. While the
 interger value $5$ maybe greater than the integer value $4$, we know the
 same amount about each of them: their values. However, if we have a procedure
 that is meant to compute an integer, and therefore has the type \<Int\>, and it
-loops forever, we cannot know know that integer's value. Therefore we know less
+loops forever, we cannot know that Integer's value. Therefore we know less
 about a non-terminating value.
 
 
 This fits nicely with call-by-need semantics: an argument to a function of
 type \<Int\> is really a computation that can either result in a value, or
 result in non-termination. In terms of strictness analysis, this allows us to
-abstract our real domain of integers to the simple two-point domain shown in
+abstract our real domain of Integers to the simple two-point domain shown in
 figure \ref{fig:twoPointNice}.
 
 This is the domain we use for basic strictness analysis. The bottom of the
 lattice, $\bot$, as implied above, represents \emph{definitely non-terminating}
 expressions. The top of the lattice, $\top$, is used to represent
 \emph{potentially terminating}\footnote{Remember that program analysis must
-approximate in the general case.} expressions. This approximation is can seem
+approximate in the general case.} expressions. This approximation can seem
 counterintuitive; why are we allowing the analysis to say some results are
 potentially terminating when they could be non-terminating? The reasoning is
 that non-termination is okay under non-strict semantics! If we approximated in
@@ -175,7 +174,7 @@ following for each of \<(+), (-), (*), (/)\>:
 \(\bot\) \(\odot\) \(\bot\) &=& \(\bot\)
 \end{haskell*}
 
-We must also be able combine results from different paths in a program. This
+We must also be able to combine results from different paths in a program. This
 requires both conjunction and disjunction. We can use the \<meet\> ($\sqcap$)
 and \<join\> ($\sqcup$) from our lattice which are fully described in Figure
 \ref{fig:twopointMeet}.
@@ -317,10 +316,10 @@ Analysing \<if\> should determine that is strict in \<p\>
 This shows how the use of \<meet\> and \<join\> are used to combine the
 results from the different branches of the function. Because the discriminant
 of a \<Case\> expression is always evaluated to WHNF, a non-terminating
-discriminate results in a non-terminating function.
+discriminant results in a non-terminating function.
 
 Notice that if we analysed the second two arguments to \<if\> then we would
-have seen that there are not strict for \<if\> because only one would be $\bot$
+have seen that they are not strict for \<if\> because only one would be $\bot$
 at a given time and \<meet\> ($\sqcup$) only results in bottom if both arguments
 are bottom.
 
@@ -346,6 +345,8 @@ addOrConst b x y = \hscase{b}{\\
 
 The analysis for the second argument proceeds as follows
 
+\pagebreak
+
 \begin{haskell*}
 \mathcal{A}\Sem{Case\ b\  [True \to x + y, False \to x]} \hasphi
 \hsbody{%
@@ -370,10 +371,10 @@ The analysis for the second argument proceeds as follows
 \end{haskell*}
 
 The other language constructs are interpreted similarly. Do note that we do not
-attempt to analyse functions with free variables, instead we take advantage of
+attempt to analyse functions with free variables. Instead we take advantage of
 lambda-lifting in order to remove nested functions to the top level. We are not
 the first to use lambda lifting in order to avoid this problem
-\citep{clack1985strictness}. Luckily lambda lifting is done regardless for
+\citep{clack1985strictness}. Luckily, lambda lifting is done regardless for
 compilation to the $G$-Machine.
 
 \hfill$\Box$
@@ -382,7 +383,7 @@ compilation to the $G$-Machine.
 \subsubsection{Recursive Functions}
 
 Our last concern is with recursive functions. We use the fact that recursive
-abstract functions are just recursive functions one a different domain. This
+abstract functions are just recursive functions on a different domain. This
 allows us to define a recursive function as the least upper bound of successive
 approximations of the function, i.e. an \emph{ascending Kleene chain} (AKC).
 
@@ -409,10 +410,10 @@ f^{\#n} x_{1} \dots x_{m} &=& \hsinf{body of \<f\> with call to \<f^{\#(n - 1)}\
 \end{haskell*}
 
 We can stop the calculation of this AKC when $f^{\#n} \equiv f^{\#(n - 1)}$ for
-\emph{all combinations} of $x_{1}$ to $x_{m}$. This means the for each iteration
-of the AKC we must interpreter $f$ $2^m$ times!
+\emph{all combinations} of $x_{1}$ to $x_{m}$. This means that for each iteration
+of the AKC we must interpret $f$ $2^m$ times!
 
-Luckily there are clever ways of avoiding much of this expense for the average
+Fortunately, there are clever ways of avoiding much of this expense for the average
 cases. Clack and Peyton Jones developed an algorithm for the efficient
 calculation of an AKC \citep{clack1985strictness}.
 
@@ -424,7 +425,7 @@ We have now seen how to use rule $\mathcal{A}$ from Figure \ref{fig:twoPointAI}
 to analyse functions in our programs. Now we can see how the results help us in
 our ultimate aim of implicit parallelism. For this discussion we will forget
 that parallelism is not always beneficial and focus on how we would utilise
-all the possible parallelism.
+all possible parallelism.
 
 Imagine we have a function $f$ with a call to $g$ in its body.
 
@@ -432,7 +433,7 @@ Imagine we have a function $f$ with a call to $g$ in its body.
 f \dots = \dots g e_{1} e_{2} e_{3} \dots
 \end{haskell*}
 
-Out analysis may determine that $g$ is strict in its first two arguments,
+Our analysis may determine that $g$ is strict in its first two arguments,
 providing us with an opportunity for parallelism. This would allow us
 to safely rewrite $f$ as the following
 
@@ -449,13 +450,13 @@ in a \<let\> expression so that the results of parallel evaluation are
 shared with the body of $g$.
 
 As mentioned above, the two-point domain informs us about strictness up to
-WHNF.  sSo if $e_{1}$ or $e_{2}$ are values from a flat domain, this
-transformation will provide all the benefit possible to $g$\footnote{Again,
+WHNF. So if $e_{1}$ or $e_{2}$ are values from a flat domain, this
+transformation will provide all the benefits possible to $g$\footnote{Again,
 ignoring the fact that it may not actually be a positive benefit.}. But what if
 these arguments are of a non-flat type, like pairs or lists?
 
 Because we aim for safe parallelism, we cannot evaluate $e_{1}$ or $e_{2}$ any
-further than WHNF, already eliminating a vast quantity of potential parallelism!
+further than WHNF, already eliminating a vast quantity of potential parallelism.
 Take the function \<sum\> for example:
 
 \begin{haskell*}

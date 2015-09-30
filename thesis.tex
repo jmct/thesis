@@ -22,7 +22,7 @@
 \usepackage{color}
 
 %%%% TODO Package %%%% 
-\usepackage[colorinlistoftodos,prependcaption,textsize=small]{todonotes}
+\usepackage[disable, colorinlistoftodos,prependcaption,textsize=small]{todonotes}
 \let\marginpar\oldmarginpar
 
 %\usepackage{breakcites}
@@ -169,7 +169,7 @@
 
 \makeatother
 
-\makenomenclature
+%\makenomenclature
 
 \begin{document}
 
@@ -184,7 +184,7 @@
 \input{FrontMatter/Abstract.tex}
 
 \tableofcontents
-\printnomenclature
+%\printnomenclature
 \listoffigures
 \listoftables
 
@@ -212,15 +212,16 @@
         \section{Thesis Roadmap}
         \input{Intro/Roadmap.tex}
 
-\nomenclature{$\bot$}{Either the bottom element of a lattice or the representation of an erroneous or non-terminating value}
-\nomenclature{$\top$}{The top element of a lattice}
-\nomenclature{$f^{\#}$}{The abstract version of $f$}
-\nomenclature{$\sqcup$}{The \emph{join} or \emph{least upper bound} (lub) of two points in a lattice}
-\nomenclature{$\sqcap$}{The \emph{meet} or \emph{greatest lower bound} (glb) of two points in a lattice}
-\nomenclature{$\sqsubseteq$}{The ordering relation on a domain. $x \sqsubseteq y$ can be read as ``$x$ approximates $y$''}
+%\nomenclature{$\bot$}{Either the bottom element of a lattice or the representation of an erroneous or non-terminating value}
+%\nomenclature{$\top$}{The top element of a lattice}
+%\nomenclature{$f^{\#}$}{The abstract version of $f$}
+%\nomenclature{$\sqcup$}{The \emph{join} or \emph{least upper bound} (lub) of two points in a lattice}
+%\nomenclature{$\sqcap$}{The \emph{meet} or \emph{greatest lower bound} (glb) of two points in a lattice}
+%\nomenclature{$\sqsubseteq$}{The ordering relation on a domain. $x \sqsubseteq y$ can be read as ``$x$ approximates $y$''}
 
 \part{The Idea}
 \label{part:idea}
+\null\clearpage
     \chapter{Parallelism in a Functional Language}
     \label{chap:background}
     \begin{chapquote}{\cite{marlowBook}}
@@ -254,6 +255,7 @@
         \label{sec:sumBack}
         \input{Background/Summary.tex}
         
+\null\clearpage
     \chapter{Bird's eye view of our Technique}
     \label{chap:overview}
     \begin{chapquote}{\cite{benEmail}}
@@ -487,7 +489,7 @@
 
 \end{appendices}
 
-\listoftodos[Notes]
+%\listoftodos[Notes]
 
 \if@openright
   \cleardoublepage

@@ -5,7 +5,7 @@ listing for each program in Appendix \ref{append:bench}.
 \paragraph{SumEuler}
 SumEuler is a common parallel functional programming benchmark first introduced
 with the work on the $\langle\nu, G\rangle$-Machine in 1989 \citep{vGMachine}.
-This program is often used a parallel compiler benchmark making it a
+This program is often used as a parallel compiler benchmark, making it a
 `sanity-check' for our work. We expect to see consistent speed-ups in this
 program when parallelised (9 \verb-par- sites).
 
@@ -17,8 +17,8 @@ fact that Queens2 has more than double the number of \verb-par- sites for the
 same problem shows that writing in a more symbolic style provides more
 opportunity for \emph{safe} parallelism.
 
-\paragraph{SodaCount}
-Solves a word search problem for a given grid of letters and a list of
+\paragraph{SodaCount} The SodaCount program
+solves a word search problem for a given grid of letters and a list of
 keywords.  Introduced by Runciman and Wakeling, this program was chosen because
 it exhibits a standard search problem and because Runciman and Wakeling
 hand-tuned and profiled a parallel version, demonstrating that impressive
@@ -39,5 +39,5 @@ is to rework the algorithm (15 \verb-par- sites).
 
 \paragraph{MatMul}
 List of list matrix multiplication. Matrix multiplication is an inherently
-parallel operation, we expect this program to demonstrate speed-ups when
+parallel operation; we expect this program to demonstrate speed-ups when
 parallelised (7 \verb-par- sites).

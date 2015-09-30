@@ -1,7 +1,5 @@
-import Prelude hiding ( foldr, foldl, foldr1, map, concatMap
-                      , sum, tail, null, length, transpose
-                      , reverse, zipWith, zip, filter, const
-                      , replicate, flip, and
+import Prelude hiding ( foldr, map, sum, null
+                      , transpose, zipWith, replicate
                       )
 
 null []      =  True

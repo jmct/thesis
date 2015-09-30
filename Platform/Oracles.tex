@@ -39,7 +39,7 @@ arguments to the depth determined by the demand analysis.
 
 While Section \ref{sec:projections} shows how to derive parallel strategies
 from projections representing demand, we still require a method to
-\emph{introduce} the use of the strategies within the program.  Luckily we can
+\emph{introduce} the use of the strategies within the program.  Happily, we can
 reuse the results of the projection analysis for this task as well.  The
 general approach taken is to apply the generated strategies to \emph{the
 strict} arguments of a function. As discussed earlier, the strict arguments are
@@ -77,11 +77,8 @@ lifting subexpressions into \verb-let- bindings we preclude the possibility of
 certain compiler optimisations. The sharing of values is essential for parallel
 strategies to be beneficial.  In particular, thunk elimination becomes more
 difficult.
-
 The other point is that we utilise the common technique of combining
 \verb-par-s and \verb-seq-s in order to prevent collisions between threads.
-This is not always possible and as we will see in \S \ref{sec:conclusion} can
-be detrimental.
 
 \hfill$\Box$
 
@@ -124,14 +121,14 @@ mediumOracle e = or $ map f (universe e)
 Here, \verb-universe- takes an expression $e$ and provides a list of all the
 valid subexpressions of $e$, reaching the leaf nodes of the AST.
 
-The transformation we apply is simple, for each function application $f \ e_{1}
+The transformation we apply is simple. For each function application $f \ e_{1}
 \dots e_{n}$:
 
 \begin{enumerate}
     \item Gather all the strict argument expressions to a function
     \item Pass each expression to the oracle
     \item Give a name (via let-binding) to each of the oracle-approved expressions
-    \item Before calling $f$ spark the application of the derived
+    \item Before calling $f$, spark the application of the derived
         strategy to the appropriate binding
     \item If there are multiple arguments that are oracle approved, ensure that
         the last argument has its strategy applied with \verb-seq-

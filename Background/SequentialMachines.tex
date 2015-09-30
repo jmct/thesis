@@ -29,7 +29,7 @@ reduces that graph to weak head normal form (WHNF).
 \end{figure}
 
 In figure \ref{example:gCode} we walk through a simple $G$-Machine reduction.
-At (a) we have we have a reduction about to take place, the top of the stack is
+At (a) we have a reduction about to take place, the top of the stack is
 pointing to the root of the expression. In (b) the GCode instruction Unwind is
 executed, placing a pointer to the application node's function argument on the
 stack. Unwinding continues until a global function is encountered.
@@ -47,16 +47,16 @@ and (e) in order to have pointers to both arguments at the top of the stack.
 Then we have the Add instruction which dereferences the top two pointers and
 adds the resulting values, the resulting value is then pushed onto the stack;
 this is seen at (f). With the result now on the stack, updating takes place, (g).
-The Update instruction take a value (which is the arity of the function being
+The Update instruction takes a value (which is the arity of the function being
 evaluated) and updates the stack pointer that originally pointed to the root of
-the expression. The pointer is replaced by an indirection node, which is in turn
+the expression. The pointer is replaced by an indirection node, which, in turn, is
 set to point to the same value as the top stack pointer. With the updating
 finished the expression's original graph is no longer needed. Therefore, we can
 pop all of the intermediate pointers on the stack, which will always be equal to
 the arity of the expression. At (h) we are left with the updated pointer that
 can now be used by the calling function. We execute the Unwind instruction again,
-entering the $G$-Machine into its unwind state, which will ensure that the
-proper stack jumping occurs when there is nothing left to evaluate (such as in
+entering the $G$-Machine into its unwind state, which will ensure that
+proper stack dumping occurs when there is nothing left to evaluate (such as in
 this case).
 
  \subsection{Spineless $G$-Machine}
@@ -72,7 +72,7 @@ variation of the $G$-Machine is that updating should be associated with the
 potential loss of sharing and not with a reduction \citep{burn1988spineless}.
 
     The way this was accomplished was by adding a new type of application node
-which they call a ``SAP'' node (for shared application). A SAP node indicates
+called a ``SAP'' node (for shared application). A SAP node indicates
 that the node is `updatable' and that the result of any reduction at that node
 should be updated in the graph.
 
@@ -107,13 +107,13 @@ as few re-writes as possible make the overhead cost of dashing worthwhile
 A few years after the design of the Spineless $G$-Machine, another enhancement
 was introduced, the Spineless Tagless $G$-Machine. This descendant of the
 $G$-Machine is a fully realised Spineless $G$-Machine that eliminates the need
-for tagged nodes by using a uniform representation for all value in its graph
+for tagged nodes by using a uniform representation for all values in its graph
 representation. All values are represented on the heap as \emph{closures}.
 
 Each closure consists of a code pointer and zero or more pointer fields used to
 point to the values of free variables. The code the closure points to is what
-determines the behavior of that node in the graph. When the code for a closure
-is entered, the free variables can be access via an environment pointer that
+determines the behaviour of that node in the graph. When the code for a closure
+is entered, the free variables can be accessed via an environment pointer that
 points to the original node in the graph (which has the pointer fields
 mentioned above) \citep{jones1992implementing}. Because there is no tag on a
 node, the only way of determining the purpose of the node is to enter the
@@ -130,10 +130,10 @@ evaluated.
 
 The STG-Machine became the basis for GHC and has had many improvements over the
 years \citep{HistoryOfHaskell}. Interestingly, one of the improvements to the
-STG-Machine was the introduction of tags! The elegance of being able to treat
+STG-Machine was the introduction of tags. The elegance of being able to treat
 every node the same has a cost on the performance on modern architectures
 \citep{marlow2007faster}.  Because so much of the performance in modern CPUs
-comes from the speed of its cache (and therefore avoiding the memory
+comes from the speed of its cache (therefore avoiding the memory
 bottleneck) the indirections that arise from the code pointers in each closure
 have a significant cost on performance. As stated in the introduction to their
 2007 paper \citep{marlow2007faster}:
@@ -150,6 +150,6 @@ pipeline.
 \end{quote}
 
 As much as we would like to focus on elegant abstractions and distance
-ourselves from any low level concerns, there will always be \emph{some} focus
+ourselves from any low-level concerns, there will always be \emph{some} focus
 on performance, and that will sometimes require compromises to accommodate
 hardware realities.

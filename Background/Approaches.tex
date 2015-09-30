@@ -26,7 +26,7 @@ cases. Most parallel programs exhibit non-uniform parallelism and complex data
 dependencies. This results in programs where parallel threads vary greatly in
 their processing time and contain threads of execution that will depend on the
 results of other threads. This results in threads having to wait for the result
-of another thread before commencing (which is known as blocking).
+of another thread before commencing (known as blocking).
 
 \subsection{Haskell}
 
@@ -36,7 +36,7 @@ decided that an `standard' language was needed to unify the study of lazy
 functional programming\citep{HistoryOfHaskell}, however, the first Haskell
 report was not published until 1990 \citep{Haskell98Book}}
 \citep{HistoryOfHaskell, Haskell98Book}. Haskell as defined by the Haskell
-Report \citep{Haskell98Book} does not have parallelism as part of the language.
+Report \citep{Haskell98Book} does not feature parallelism as part of the language.
 However, functional programming has a long history of parallel implementations
 and Haskell is no different in this regard. Even the early implementations of
 Haskell had facilities for parallel computation.
@@ -44,15 +44,12 @@ Haskell had facilities for parallel computation.
 \paragraph{Haskell Parallelism}
 
 The Glasgow Haskell Compiler (GHC) has extensive parallelism and concurrency
-support, this is part of what makes the compiler a popular implementation
+support; this is part of what makes the compiler a popular implementation
 \citep{HistoryOfHaskell}. While our eventual goal is to have access to
 compilers that take advantage of the implicit parallelism in our programs, it
 is useful to understand the tools and libraries that enable programmers to use
 \emph{explicit} parallelism in their Haskell programs. Some of these techniques
-are well-established and have decades of use and experience to draw from. Other
-techniques are more modern and provide new methods for Haskell programmers to
-use parallelism. Often, these newer methods are an `answer' to problems or
-pitfalls with the older techniques.
+are well-established and have decades of use and experience to draw from.
 
 \subsection{Explicit Parallelism with \texttt{par} and \texttt{seq}}
 \label{sec:parAndSeq}
@@ -72,16 +69,16 @@ that performed the same function in 1983 \citep{hughes:thesis}.} combinators.
 The \<seq\> combinator has the following type.
 
 \begin{haskell}
-seq &::& \hasalpha \to \hasbeta \to \hasbeta
+seq &:: \hasalpha \to \hasbeta \to \hasbeta
 \end{haskell}
 
-An expression of the form \<seq a b\> first forces the evaluation of its
-first argument to WHNF\footnote{For an expression to be in Weak Head Normal
-Form it must be evaluated enough such that the outermost constructor is known.
-To say that a function is in WHNF means that the function is partially
-applied.} and then returns its second argument. This allows a programmer to
-express sequential evaluation. It is important to note that \<seq\> $\bot$
-\<b\> results in $\bot$.
+An expression of the form \<seq a b\> first forces the evaluation of its first
+argument to WHNF\footnote{For an expression to be in Weak Head Normal Form it
+must be evaluated such that the outermost constructor is known, but not
+necessarily any further.  To say that a function is in WHNF means that the
+function is partially applied.} and then returns its second argument. This
+allows a programmer to express sequential evaluation. It is essential to note
+that \<seq\> $\bot$ \<b\> results in $\bot$.
 
 It is important to realise that GHC's implementation of \<seq\> is
 \emph{not} guaranteed to force the evaluation of its first argument
@@ -90,7 +87,7 @@ circumvents the sequencing created by the combinator. In order to provide a
 combinator that \emph{does} provide this guarantee GHC provides the
 \<pseq\>\footnote{The `p' in \texttt{pseq} stands for parallel.  The idea
 being that parallel programs are more likely than sequential programs to
-require that \texttt{seq} guarantees its behavior.} combinator.
+require that \texttt{seq} guarantees its behaviour.} combinator.
 
 In the literature, the \<par\> combinator appears in one of two forms
 \citep{HistoryOfHaskell, hughes:thesis}. In order to differentiate between the
@@ -105,8 +102,8 @@ signature. The combinator takes two arguments, sparks off the first for
 evaluation in parallel, and returns the second.
 
 \begin{haskell}
-par &::& \hasalpha \to \hasbeta \to \hasbeta \\
-par a b &=& b
+par &:: \hasalpha \to \hasbeta \to \hasbeta \\
+par a b &= b
 \end{haskell}
 
 The applicative \<parAp\> expresses a function application whose parameter has been
@@ -114,8 +111,8 @@ sparked off to be evaluated in parallel. Semantically, this means that the
 applicative par has the following form
 
 \begin{haskell}
-parAp &::& (\hasalpha \to \hasbeta) \to \hasalpha \to \hasbeta \\
-parAp f x &=& f x
+parAp &:: (\hasalpha \to \hasbeta) \to \hasalpha \to \hasbeta \\
+parAp f x &= f x
 \end{haskell}
 
 % TODO maybe find a place to show this
@@ -137,9 +134,9 @@ In order to define Haskell par in terms of applicative par we must use the
 \<k\> combinator
 
 \begin{haskell}
-k x y &=& x \\
-\quad&&\quad \\
-par x y &=& parAp (k y) x
+k x y &= x \\
+\quad&\quad \\
+par x y &= parAp (k y) x
 \end{haskell}
 
 The benefit of \<parAp\> is that you get the sharing of the parallel computation
@@ -150,7 +147,7 @@ without needing to give a name to a subexpression. For example, the following us
 parAp f (g 10)
 \end{haskell}
 
-This does as you would expect, evaluate \<g 10\> and share that with
+This does as you would expect: evaluate \<g 10\> and share that with
 \<f\>. In order to achieve the same effect using Haskell \<par\> we must
 give \<g 0\> a name.
 
@@ -161,7 +158,7 @@ give \<g 0\> a name.
 
 
 While language implementors may have strong preferences for one over the other,
-there are a few good arguments for the use of Haskell \<par\> Haskell
+there are a few good arguments for the use of Haskell \<par\>. Haskell
 \<par\> is the simpler of the two versions, using it as an infix combinator
 makes it easy to spark an arbitrary number of expressions easily,
 \<a `par` b `par` c\>, and the use-case for applicative \<par\> can be easily
@@ -171,23 +168,25 @@ expressed using Haskell \<par\>, as shown above.
 
 Now that we have our essential combinators we are able to define a parallel
 algorithm. One of the big sellers of functional programming is the wonderfully
-concise Quicksort definition
+concise \<quicksort\> definition
+
+\pagebreak
 
 \begin{haskell}
 quicksort &:: (Ord \hasalpha) \Rightarrow [\hasalpha] \to [\hasalpha]\\
-quicksort (x:xs) &= less \hsapp x:greater
-            \hswhere{less    &= quicksort [y \mid y \hsfrom xs, y \leq x] \\
+quicksort (x:xs) &= lesser \hsapp x:greater
+            \hswhere{lesser    &= quicksort [y \mid y \hsfrom xs, y \leq x] \\
                      greater &= quicksort [y \mid y \hsfrom xs, y > x]} \\
 quicksort \_ &= []
 \end{haskell}
 
 The obvious way to parallelise this algorithm is to ensure that each of the two
-recursive calls can be executed in parallel, this is a common form of
+recursive calls can be executed in parallel. This is a common form of
 parallelism known as `divide and conquer' \citep{skeletons}.  This can be done
 by changing the second line to
 
 \begin{haskell}
-quicksort (x:xs) = greater `par` (less \hsapp x:greater)
+quicksort (x:xs) = greater `par` (lesser \hsapp x:greater)
 \end{haskell}
 
 The issue with the above is that while the left-hand side is sparked off in
@@ -212,10 +211,12 @@ force list &= force' list `pseq` ()
 \end{haskell}
 
 This function takes a list and enforces spine-strictness. As long as the list is
-not an infinite structure the use of this function is safe. With this function
-in hand we could adapt our basic parallel Quicksort into a better performing one.
+not an infinite structure, the use of this function is safe. With this function
+in hand we could adapt our basic parallel \<quicksort\> into a better performing one.
 
 An interesting point is that this definition of \<force\> can be much simpler
+
+\pagebreak
 
 \begin{haskell}
 force &:: [\hasalpha] \to () \\
@@ -230,8 +231,8 @@ needed.
 
 \begin{haskell}
 parQuicksort &:: (Ord \hasalpha) \Rightarrow [\hasalpha] \to [\hasalpha]\\
-parQuicksort (x:xs) &= force greater `par` (force lesser `pseq` (less ++ x:greater))
-\hswhere{less &= parQuicksort [y \mid y \hsfrom xs, y \leq x]\\
+parQuicksort (x:xs) &= force greater `par` (force lesser `pseq` (lesser ++ x:greater))
+\hswhere{lesser &= parQuicksort [y \mid y \hsfrom xs, y \leq x]\\
          greater &= parQuicksort [y \mid y \hsfrom xs, y > x]
         }
 parQuicksort \_ = []
@@ -240,21 +241,21 @@ parQuicksort \_ = []
 Notice that there were a few more changes than just calling \<force\> with
 the parallel spark. By also forcing the evaluation of \<lesser\> before
 appending the two lists we ensure that both \<greater\> and \<lesser\>
-are constructed completely. While this version of a parallel Quicksort does
-execute its recursive calls in parallel it has come at a cost. First, the
+are constructed completely. While this version of a parallel \<quicksort\> does
+execute its recursive calls in parallel, it has come at a cost. First, the
 resulting list is no longer lazy. Using this function for determining the head
 of the resulting list would result in the entire list being computed. While
 the loss of laziness can sometimes be a worthwhile trade-off (particularly
 if the entire list will be required anyway) for an increase in speed, the
-second major cost is that this parallel Quicksort does not result in a faster
+second major cost is that this parallel \<quicksort\> does not result in a faster
 program!
 
     Despite the added functions to ensure that laziness did not get in the way
 of our desired parallelism, the parallel sorting was actually slower than the
-sequential sort. Running a parallel Quicksort on a two core machine, O'Sullivan
+sequential sort. Running a parallel \<quicksort\> on a two core machine, O'Sullivan
 found that this algorithm actually resulted in a $23\%$ decrease in
 performance \citep{realWorld}. The reason for the slowdown comes up often in the
-design of parallel algorithms: There is a minimum amount of work a thread must
+design of parallel algorithms: there is a minimum amount of work a thread must
 perform in order to make the expense of sparking off the thread worthwhile. This
 issue highlights what is known as granularity \citep{dutchBook}. While the sparking
 of threads is relatively cheap in a system such as GHC, there is still a cost,
@@ -272,10 +273,10 @@ parQuicksort (x:xs) depth = \hsif{depth \leq 0\\}{%
 \end{haskell}
 
     In this version we check to see if the desired maximum depth has been
-reached and if so then the recursive call is to the standard sequential sorting
+reached and, if so, then the recursive call is to the standard sequential sorting
 algorithm. If the max depth is not reached then we use the body of the
 parQuicksort defined above, with the depth argument to each recursive call being
-\<depth - 1\> The desired maximum depth is determined by the value given as
+\<(depth - 1)\>. The desired maximum depth is determined by the value given as
 the depth argument at the top-level call of the function. This method of
 controlling the granularity is a useful one and allows for easy experimentation
 on the maximum depth for the problem at hand. The downside is that it
@@ -298,9 +299,9 @@ communication is via the same mechanism that allows for lazy evaluation
 gaining the maximum benefit from parallelism can often require the
 \emph{forcing} of values beyond WHNF, much like what was done with the
 \<force\> function in the previous section.  This motivated another approach to
-deterministic parallelism, the \<Par\> Monad \citep{marlow2011monad}.
+deterministic parallelism: the \<Par\> Monad \citep{marlow2011monad}.
 
-The \<Par\> Monad makes the following trade-off: For the cost of making the
+The \<Par\> Monad makes the following trade-off: for the cost of making the
 dependencies between computations explicit and prohibiting the use of shared
 lazy structures, users gain predictable performance and the ability to reason
 about when evaluation takes place. The library provides an API for dataflow
@@ -312,7 +313,7 @@ mechanism for communication between tasks. \<IVar\> are mutable cells with
 write-once semantics.  The disciplined use of I-Structures in the \<Par\> Monad
 are what ensure deterministic parallelism.
 
-To illustrate the data-flow nature of the \<Par\> monad we can use its API to
+To illustrate the data-flow nature of the \<Par\> Monad we can use its API to
 write a function that computes two calls to \<fib\> in parallel (this code is
 adapted from \citet[pg. 59]{marlowBook}).
 
@@ -328,7 +329,7 @@ twoFib m n &= runPar \$ \hsdo{%
     }
 \end{haskell}
 
-The \<Par\> monad provides us with an API that is quite explicit about the
+The \<Par\> Monad provides us with an API that is quite explicit about the
 data-flow of the program. This allows the library to schedule the threads
 as appropriate. The function \<put\> takes an \<IVar\> and a value that
 can be \emph{forced} and write the value to the \<IVar\>. By being
@@ -341,7 +342,7 @@ intuitive reasoning about the parallel performance.
 \subsection{Semi-Implicit Parallelism with Strategies}
 
 This section will look at Parallel Strategies to illustrate how a programmer
-can write the algorithm they want (for the most part) and then use Strategies
+can write the algorithm they want (for the most part) and then use strategies
 to specify how that algorithm should be parallelised. Strategies become central
 to our technique and are mentioned throughout this thesis, as they are used as
 the method of introducing parallelism into a program.
@@ -359,7 +360,7 @@ The type declaration for a Strategy is
 \hskwd{type} Strategy \hasalpha = \hasalpha \to ()
 \end{haskell}
 
-The key point to take away from this is that Strategies do not, and can not,
+The key point to take away from this is that strategies do not, and can not,
 affect the \emph{value} of the computation.
 
 It is possible to define strategies that do not introduce parallelism, but
@@ -414,18 +415,18 @@ parMap &:: Strategy \hasbeta \to (\hasalpha \to \hasbeta) \to [\hasalpha] \to [\
 parMap strat f xs &= map f xs `using` parList strat
 \end{haskell}
 
-With this we could evaluate all the elements of a list to whatever level the
+With this we can evaluate all the elements of a list to whatever level the
 first argument specifies.
 
 \subsection{Semi-Implicit Parallelism with Skeletons}
 
-There are many cases where the \emph{structure} of two programs in the same
+There are many cases where the \emph{structure} of two programs are the same
 even though they are computing different results. As mentioned above,
 \<quicksort\> shares a structure with many algorithms known as `divide and
-conquer'. Algorithmic skeletons allow for the reuse of \emph{structural}
+conquer'. Algorithmic skeletons allow for the re-use of \emph{structural}
 parallelism between programs \citep{skeletons}.
 
-To a functional programmer, Skeletons are higher-order functions that are
+To a functional programmer, skeletons are higher-order functions that are
 passed the computation specific actions of a program and ensure that the
 actions are parallelised according to the pre-defined structural parallelism.
 \citet{skeletons} introduce skeletons for the \emph{divide and conquer},
@@ -450,11 +451,11 @@ parts of the problem. The parallelism is introduced using a Strategy in
 \<solveAll\>. Lastly, \<conq\> is used to combine the results of the
 sub-problems.
 
-The only restrictions on the use of \<dc\> is that the result be a member of
+There are two restrictions on the use of \<dc\>. The first is that the result be a member of
 the class \<Evaluable\> which has three member functions, \<none\>, \<outer\>,
-and \<all\>. These functions correspond to Strategies with various degrees of
+and \<all\>. These functions correspond to strategies with various degrees of
 evaluation: \<none\> performs no evaluation of the value, \<outer\> evaluates
-to WHNF, and \<all\> evaluates to normal form. Additionally the container type
+to WHNF, and \<all\> evaluates to normal form. The second is that the container type
 must be a member of \<Coll\> which provides a uniform interface for \<map\>ing
 over its elements.
 
@@ -490,7 +491,7 @@ Another rewriting approach uses a \emph{proof} of the program in separation
 logic, to automatically parallelise the program where it is safe, having the
 safety guaranteed by the provided proof \citep{hurlinProof}. The proof can be
 transformed as the program is transformed providing assurance that the
-resulting program has the same semantic behavior. This technique does save the
+resulting program has the same semantic behaviour. This technique does save the
 programmer from having to manually parallelise the code, at the cost of
 requiring that the algorithm has a separation proof. In any instance where such
 a proof is required for any other reason, this technique can be seen as `free'.
@@ -530,8 +531,8 @@ nfib n \hsbody{%
 \end{haskell}
 
 Because the \<(+)\> function is strict in both its arguments we know that
-both recursive calls to \<nfib\> will be required. This fact, that we
-\emph{know} that the arguments to a function will be required by the function,
+both recursive calls to \<nfib\> will be required. This fact (that we
+\emph{know} that the arguments to a function will be required by the function)
 is what enables us to exploit the parallelism that is inherent in the program.
 
 Strictness analysis has been deemed \emph{conservative} parallelism

@@ -32,7 +32,7 @@ the best bit string found and its fitness (the number of reductions made by the
 main thread), was recorded.
 
 In addition, the fitness (number of reductions) was evaluated for a bit string
-where all bits are set to 1: this equivalent to using the static analysis
+where all bits are set to 1: this is equivalent to using the static analysis
 without optimisation using search.  This evaluation was made for each
 combination of core count and benchmark.  Finally, the fitness was evaluated for the
 sequential version of each benchmark.
@@ -127,7 +127,7 @@ We can now look again at our four research questions from Section
 meaningful results to any of them.
 
 \paragraph{RQ1}
-For most of benchmarks there is a relatively large speed-up of the
+For most of our benchmarks there is a relatively large speed-up of the
 hill-climbing algorithm compared to the default parallelisation where all
 \verb-par-s are enabled.  The largest speed-ups are for \verb|Queens2| where we
 might expect a wall-clock run time that is more than 6 times better than the
@@ -139,7 +139,7 @@ placement is that they decrease as the number of cores increases.  This aligns
 with our intuition for parallel programs. As the number of cores goes up, the
 static placement \emph{gets away} with non-optimal \verb|par| placement. With
 more cores, there is less contention for the resources of the machine. A
-\verb|par| that does more work than its overheads is less likely interrupt
+\verb|par| that does more work than its overheads is less likely to interrupt
 another, more productive thread. When the number of cores is lower, the
 contention makes even productive \verb|par|s detrimental because they interrupt
 threads that are even more productive.
@@ -149,7 +149,7 @@ parallel performance across a range of benchmarks and across a range of core
 counts when compared to using the static placement of parallelism.
 
 \paragraph{RQ2}
-For \verb|Queens2| and \verb|SumEuler|, the speed-up compared the sequential
+For \verb|Queens2| and \verb|SumEuler|, the speed-up compared to the sequential
 version of these benchmarks is almost linear: it approaches the number of cores
 available.  For example, for \verb|SumEuler| on 4 cores, the speed-up compared
 to the sequential version is $3.95$.  A linear speed-up is the best that can be
@@ -178,7 +178,7 @@ program while you take a tea break, the greedy algorithm seems satisfactory.
 For frequently-used benchmarks that account for a significant part of a
 system's performance, the additional effort required to find the best
 parallelisation using hill-climbing may be justified, but will depend on
-context. In the end this is a subjective trade off, we feel that the results
+context. In the end this is a subjective trade off; we feel that the results
 support the use of the greedy algorithm unless finding the optimal solution
 is absolutely necessary.
 

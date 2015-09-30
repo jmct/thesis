@@ -2,7 +2,7 @@ Because we have chosen to perform the iterative step of compilation after
 bytecode generation, we can know \emph{statically} how many \verb|par|s are in
 a program. This allows us to represent a specific \emph{setting} of a program's
 parallelism by a bitstring of static length, allowing us to perform standard
-search techniques. The motivation for doing so is simple, while our platform
+search techniques. The motivation for doing so is simple: while our platform
 can record runtime statistics and profiling data, the overall goal is to
 produce a program that performs better than the input program. The collection
 of profiling data is simply one means of accomplishing this (which we will
@@ -14,7 +14,7 @@ data.
 There are a number of heuristic search techniques that perform search space
 exploration using the evaluation of a fitness function
 \citep{russell1995artificial}. For this thesis we have chosen to explore two
-algorithms: A greedy algorithm, guaranteed to take linear time in the number of
+algorithms: a greedy algorithm, guaranteed to take linear time in the number of
 bits, and a hill-climbing algorithm that explores more of the search space but
 at the cost of being \emph{potentially} exponential in the number of bits.
 
@@ -40,11 +40,11 @@ the program (measured in bytecode reductions). Therefore we aim to
 The greedy algorithm is designed to be simple but effective. The intuition is
 that each bit is either beneficial to the program's performance, or
 detrimental. Therefore the greedy algorithm visits each bit \emph{exactly
-once}, by never revisiting a bit after a decision has been made about it we can
+once}. By never revisiting a bit after a decision has been made about it we can
 guarantee a linear time complexity.
 
 The greedy algorithm considers the bits in our representation in a random
-order.  This avoids any potential bias towards the early bits in a bitstring.
+order.  This avoids any potential bias toward the early bits in a bitstring.
 As each bit is considered, the bit is flipped from its current setting and the
 program is evaluated using the settings of the resulting bitstring; the setting
 of the bit---current or flipped---with the better fitness is retained.  The
@@ -170,7 +170,7 @@ fitness.
 Our hill-climbing algorithm (shown in Algorithm \ref{list:hill-climb}) is only
 slightly more complex than our greedy algorithm, but much more powerful. Its
 power comes from its ability to revisit indices in the bitstring. The function
-\FuncSty{refreshUniques} the state within \FuncSty{uniqueRand} to allow for
+\FuncSty{refreshUniques} resets the state within \FuncSty{uniqueRand} to allow for
 already visited indices to be generated again. However it does \emph{not} reset
 the key in the psuedorandom number generator.
 
@@ -197,4 +197,4 @@ that by starting in a random location in the search space, we may avoid a local
 optimum that our search techniques may encounter. So we experiment with both an
 initial setting with all \verb|par|s on, and with random initial
 settings\footnote{We realise that by being random we actually include option
-$2$ as well, but it becomes a rare edge-case}.
+$2$ as well, but it becomes a rare edge-case.}.

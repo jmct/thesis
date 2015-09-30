@@ -5,7 +5,7 @@ depend on runtime data. One of the benefits of this approach is that it forces
 the programmer to avoid the use of arbitrary side-effects. The resulting purity
 means that functions in pure functional languages are \emph{referentially
 transparent}, or the result of a function depends only on the values of its
-arguments (i.e.  there is no global state that could effect the result of the
+arguments (i.e.  there is no global state that could affect the result of the
 function or be manipulated by the function).
 
 Unfortunately this elegant evaluation model is actually at odds with the goals
@@ -39,14 +39,13 @@ implicit parallelism.
 a program from tasks/expressions that would have been evaluated during
 the program's sequential execution.}
 
-There are downsides to the conservative approach which we will discuss in
-\todo{where will I discuss this?}. However, conservative parallelism is more in
-line with our overall goal of providing a system that guarantees that the
-parallelised program has the same semantics as the original. Therefore, before
-we can run our automatically parallelised programs, we must develop methods and
-techniques for the compiler to \emph{find} and \emph{express} the parallelism
-that is implicit in our programs. Strictness analysis is suitable in aiding
-this task but care must be taken in choosing a specific analysis to use.
+Conservative parallelism is in line with our overall goal of providing a system
+that guarantees that the parallelised program has the same semantics as the
+original. Therefore, before we can run our automatically parallelised programs,
+we must develop methods and techniques for the compiler to \emph{find} and
+\emph{express} the parallelism that is implicit in our programs. Strictness
+analysis is suitable in aiding this task but care must be taken in choosing a
+specific analysis to use.
 
 This chapter is concerned with studying the alternative analyses and the
 trade-offs that are inherent in the differing approaches. A survey of the
@@ -57,7 +56,7 @@ method.
 \subsection*{Plan of the Chapter}
 
 We provide a high-level overview of the issues and motivations in Section
-\ref{sec:strictnessOverview}, this should provide enough context to those who
+\ref{sec:strictnessOverview}; this should provide enough context to those who
 want to move quickly to the next chapter and not concern themselves with the
 details of strictness analysis. The ideas are then expanded in the three
 sections that follow. Section \ref{sec:twoPoint} explores basic strictness
@@ -65,7 +64,7 @@ analysis using a two-point domain. We will see why a two-point domain results
 in an analysis that is too limited for our use in deriving useful parallel
 strategies. Using a four-point domain, which we discuss in Section
 \ref{sec:fourPoint}, fixes much of this issue and provides much better
-information for parallel programs (and has been used towards that end) but does
-not allow for analysis on arbitrary data-types. Lastly we review the work on
+information for parallel programs (and has been used toward that end) but does
+not allow for analysis on arbitrary data-types. Lastly, we review the work on
 projection based analysis, which solves both issues, in Section
 \ref{sec:projections}.

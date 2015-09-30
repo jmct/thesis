@@ -1,27 +1,15 @@
-import Prelude hiding ( foldr
-                      , foldl
-                      , map
-                      , sum
-                      , tail
-                      , null
-                      , length
-                      , transpose
-                      , reverse
-                      , zipWith
-                      , flip
-                      )
+import Prelude hiding ( foldr, foldl, map, sum, tail, null
+                      , transpose, reverse, zipWith
+                      , flip)
 
-tail (x:xs)  =  xs 
+tail (x:xs) = xs 
 
-null []          =  True 
-null (x:xs)  =  False 
+null []     = True 
+null (x:xs) = False 
 
-single x  =  [x] 
+single x = [x] 
 
-length [] = 0
-length (x:xs) = (+) 1 (length xs)
-
-main  =  print $ map gridCount hidden 
+main = print $ map gridCount hidden 
 
 gridCount word  =
   let d = transpose grid 
@@ -85,6 +73,8 @@ prefix (x:xs) []      = False
 prefix (x:xs) (y:ys)  = case ((==) x y) of
                              True  -> prefix xs ys 
                              False -> False 
+
+
 
 grid =
   [ "YIOMRESKST"

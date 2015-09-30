@@ -4,7 +4,7 @@ what causes the \verb|MatMul| benchmark to perform so poorly. \verb|MatMul| was
 expected to be a success story of this approach and understanding why the
 technique does not properly parallelise the program is important in improving
 this work in the future. The exercise of hand parallelising the programs in
-Section \ref{sec:ghcComp} illuminated two main issues: The transfer of parallelism
+Section \ref{sec:ghcComp} illuminated two main issues: the transfer of parallelism
 from the callee to the caller and lack of speculation. These two issues are interrelated
 but we will present them separately for clarity.
 
@@ -46,7 +46,7 @@ As detailed in Chapter \ref{chap:derivation}, the decision about whether to para
 an expression is made based on the strictness properties of a function; additionally
 all parallelisation must be \emph{known to be safe}. Using \emph{caller} parallelism
 forces us to be \emph{too safe}. For example, imagine that we are parallelising
-the function \<f\> which takes two list arguments and returns a list, importantly
+the function \<f\> which takes two list arguments and returns a list; importantly
 \<f\> only uses its first argument when the second argument is a \<cons\>:
 
 \begin{haskell}
@@ -59,7 +59,7 @@ Using \emph{callee} parallelism we could spark the evaluation of \<xs\> within
 demand on the result of} \<f\> \emph{requires the full list!} This is because
 the second argument to \<f\> could be the empty list, making it unsafe for the
 \emph{caller} to spark the evaluation of the first argument. This is quite a
-loss! And exactly what is happening in \verb|MatMul|. To be more concrete, in
+loss! And it is exactly what is happening in \verb|MatMul|. To be more concrete, in
 \verb|MatMul| we have \emph{two} functions of the following form\footnote{The
 functions are both defunctionalised \<map\>s: \<map_{mulRow}\> and
 \<map_{dotProduct}\>.}:
@@ -74,7 +74,7 @@ so would be unsafe if \<ys\> is \<nil\>.
 As an aside, converting the calls to these \<map\>s to \emph{callee}
 parallelism (manually) is only useful for one of the functions
 (\<map_{dotProduct}\>). However, we would expect our iterative step to manage
-that aspect for us, by turning off the parallelism that is not useful. The
+that aspect for us by turning off the parallelism that is not useful. The
 result of converting \<map_{dotProduct}\> to \emph{callee} parallelism was the
 only change needed in achieving the better speedup in Table \ref{tableGHC} for
 \verb|MatMul|.
@@ -99,7 +99,7 @@ Because we are in a non-strict language it is not safe to evaluate the
 allowing us to ignore the rest of the list. However, when \<f\> is very
 expensive, it can be useful to `look ahead' in the list and compute some
 elements of \<longlist\> \emph{speculatively}. This is because if \<f x\> is
-expensive enough we would like save time when elements of the list are
+expensive enough we would likely save time when elements of the list are
 \<True\>, necessitating us to continue evaluating the list.
 
 Unlike the \emph{caller/callee} distinction above, there is no way of making
@@ -109,4 +109,4 @@ these expressions does not introduce non-termination
 \citep{checkland1994speculative, mattson1993effective}. One possible hint to
 the compiler is when an expression is not strictly needed, but \emph{if} it is
 needed, it is needed to its full degree (such as in the \<longlist\> example
-above.
+above).

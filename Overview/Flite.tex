@@ -1,7 +1,7 @@
 The use of a small functional language as the internal representation of a
 compiler is a common technique in functional compilers \citep{dutchBook,
 PeytonJones:IFL, Augustsson:LazyMLCompiler, UHC}. By using a small core
-language as an internal representation source language features are simply
+language as an internal representation, source language features are simply
 syntactic sugar that is translated to a simpler but no less expressive
 language. This provides compiler writers with a smaller surface area for
 analysis and transformation. This has been used to great effect in the Glasgow
@@ -16,7 +16,7 @@ but almost all functional languages are either strict (eager) or non-strict
 distinction between these two systems. Because functional languages can be
 seen as enriched lambda calculi, we can study different evaluation
 orders\footnote{Many texts describe them as \emph{evaluation strategies}.  We
-use the term order to avoid confusion with parallel strategies, which are a
+use the term `order' to avoid confusion with parallel strategies, which are a
 different concept that play a central role in this thesis.} by demonstrating
 them on a simple lambda calculus. There are a few evaluation strategies that
 can be used with the lambda calculus:
@@ -178,8 +178,8 @@ the choice of reduction does not alter the final result \emph{as long as the
 chosen reduction steps eventually terminate}.}
 
 We can illustrate the ramifications of the property with another simple
-example.  \<const\> is a function that takes two arguments are returns the
-first, \<inf\> is an infinite list of \<1\>s. 
+example.  \<const\> is a function that takes two arguments and returns the
+first. \<inf\> is an infinite list of \<1\>s. 
 
 \begin{haskell*}
     const x y = x \\
@@ -210,15 +210,15 @@ expressions (redexes), but only one normal form (NF): \<``NF''\>.
 \end{figure}
 
 The Church-Rosser property gives us a profound guarantee for our functional
-programs: Given a valid expression, there is only one normal form for the
+programs: given a valid expression, there is only one normal form for the
 expression. This is true regardless of the order of reductions carried out
 (given that the series of reductions actually terminates). So given a program,
 there can be many possible reduction orders that all lead to the same result.
-Additionally, if \emph{any} reduction order terminates, than call-by-need
+Additionally, if \emph{any} reduction order terminates, then call-by-need
 evaluation terminates \citep{bird2014thinking}.  What does this mean for
 sequential computation? For lazy languages, such as Haskell, this means that
 there can only be non-termination if there would have been non-termination
-under any other evaluation model!
+under any other evaluation model.
 
 
 With the Church-Rosser theorem in hand and knowing that call-by-need programs
@@ -236,7 +236,7 @@ Systems designed to take advantage of implicit parallelism
 have been written for languages that use each of the three main evaluation
 orders \tocite{We can cite Jens Nicolay here and some loop unrolling method
 too}. We have decided on call-by-need semantics because it emphasises purity
-and has the sharing of computation built into the execution model. The focus on
+and features the sharing of computation built into the execution model. The focus on
 purity allows the compiler to take certain liberties with program
 transformation that may not otherwise be valid \citep{jones1998transformation}.
 In the case of auto-parallelisation, we are able to know that we could only
@@ -244,13 +244,14 @@ alter the semantics of a program by introducing non-termination. As we will see
 in Chapter \ref{chap:discovery} there are methods to ensure we avoid this.
 
 \paragraph{An aside} Many languages, including functional languages, that use
-call-by-value semantics also provide the ability to perform arbitrary side
-effects and mutation. This greatly hampers the feasibility of implicit
+call-by-value semantics also provide the ability to perform arbitrary
+side-effects and mutation. This greatly hampers the feasibility of implicit
 parallelisation because the \emph{sequence} of side-effects can alter the
 semantics of the program. While programmers \emph{could} write pure programs
 that do not rely on shared state, it is not enforced by the compiler as it is
-for languages like Haskell. That being said there are techniques that can be
-used to find safe parallelism in strict languages \citep{might2009interprocedural}.
+for languages like Haskell. That being said, there are techniques that can be
+used to find safe parallelism in strict languages
+\citep{might2009interprocedural}.
 
 \subsection{The Abstract Syntax of F-lite}
 

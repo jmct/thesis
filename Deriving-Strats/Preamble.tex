@@ -9,19 +9,19 @@ safety condition for this analysis, which we remind ourselves of below:
 
 The projection-based analysis attempts to determine the smallest $\pi$ that
 retains the semantics of $f$ for a given $\gamma$. This tells use which
-arguments, if any are safe to evaluate before entering $f$. Our goal now is to
+arguments, if any, are safe to evaluate before entering $f$. Our goal now is to
 take a given $\pi$ and transform the call to $f$ so that as much evaluation as
 $\pi$ allows is done in parallel.
 
 This chapter presents our method of achieving this goal automatically. We
 describe this process as the \emph{derivation} of parallel strategies from
-projections representing demand on a value and it forms a core part of our
+projections representing demand on a value, and it forms a core part of our
 contribution.
 
 \subsection*{Plan of the Chapter}
 
 We discuss some parallels with Burns' \emph{Evaluation Transformers} in Section
-\ref{sec:expressingNeed} which can be seen as a limited, manual, version of our
+\ref{sec:expressingNeed} which can be seen as a limited, manual version of our
 technique. We then present our derivation rules in Section
 \ref{sec:derivation}.  Section \ref{sec:parPlacement} demonstrates how we
 introduce the derived strategies to the input program.

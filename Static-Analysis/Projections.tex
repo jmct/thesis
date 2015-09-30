@@ -10,7 +10,7 @@ appropriate function to compute the strict arguments in parallel.
 
 We can frame the differences in the two approaches by thinking about what each
 analysis is answering. Strictness analysis by abstract interpretation asks
-``When passing $\bot$ as an argument is the result of the function call
+``When passing $\bot$ as an argument, is the result of the function call
 $\bot$?''. Projection-based strictness analysis instead asks ``If there is a
 certain degree of demand on the result of this function, what degree of demand
 is there on its arguments?''.
@@ -20,21 +20,21 @@ that the input list be finite, but no more. We can therefore say that
 \verb'length' \emph{demands} the spine of the argument list. The function
 \verb'append' is a more interesting example:
 
-\begin{alltt}
-        append :: [a] -> [a] -> [a]
-        append []     ys = ys
-        append (x:xs) ys = x : append xs ys
-\end{alltt}
+\begin{haskell*}
+append &::& [\hasalpha] \to [\hasalpha] \to [\hasalpha] \\
+append []     ys &=& ys \\
+append (x:xs) ys &=& x : append xs ys
+\end{haskell*}
 
 As mentioned in the previous section the first argument must be defined to the
 first cons, but we cannot know whether the second argument is ever needed.
 However, what if the \emph{result} of \verb'append' needs to be a finite list?
 For example:
 
-\begin{alltt}
-    lengthOfBoth :: [a] -> [a] -> Int
-    lengthOfBoth xs ys = length (append xs ys)
-\end{alltt}
+\begin{haskell*}
+lengthOfBoth &::& [\hasalpha] \to [\hasalpha] \to Int \\
+lengthOfBoth xs ys &=& length (append xs ys)
+\end{haskell*}
 
 In this case \emph{both} arguments to \verb'append' must be finite. Projections
 can be used to formalise this type of context \citep{wadler1987projections,
@@ -47,10 +47,8 @@ hinze1995projection}, which we call a \emph{demand context}.
 Demand Contexts allow us to reason about the \emph{use} of a function's result,
 letting us reason about functions like \<append\> more accurately. This, combined
 with their ability to analyse functions of arbitrary types without the need to
-design abstract domains by hand make projection-based analysis the most
+design abstract domains by hand, make projection-based analysis the most
 realistic for our purposes of utilising implicit parallelism.
-
-\pagebreak
 
 \subsection{Semantics of Projections}
 \label{sec:projSem}
@@ -147,7 +145,7 @@ Figure \ref{fig:ContextAST} \todo{Add CVars and CRec to AST} presents a
 suitable abstract syntax for projections representing demand.  This form was
 introduced by Kubiak et al. and used in Hinze's work on projection-based
 analyses \citep{kubiak, hinze1995projection}.  We have omitted the details on
-the representation of context variables (for polymorphic demands), for a
+the representation of context variables (for polymorphic demands). For a
 comprehensive discussion we suggest Chapter 6 of Hinze's dissertation
 \citep{hinze1995projection}.
 
@@ -180,6 +178,7 @@ defined but does not require the second element. This is the demand that
 
 \hfill$\Box$
 
+\pagebreak
 For polymorphic lists there are 7 principal contexts; 3 commonly occurring contexts are:
 
 \begin{align}
@@ -199,14 +198,14 @@ restriction is given on page 89 of \cite{hinze1995projection}. This limitation
 does not hinder the analysis significantly as many functions on recursive
 structures are themselves uniform.
 
-With this in mind Context \ref{IDList} represents a lazy demand on the list,
+With this in mind, Context \ref{IDList} represents a lazy demand on the list,
 Context \ref{FINList} represents a \emph{tail strict} demand, and Context
 \ref{FULLList} represents a \emph{head and tail} strict demand on the list.
 
 \hfill$\Box$
 
-It will be useful to have abbreviation for a few of the contexts on lists. These
-abbreviation are presented in Figure \ref{fig:listContexts}.
+It will be useful to have abbreviations for a few of the contexts on lists. These
+abbreviations are presented in Figure \ref{fig:listContexts}.
 
 \begin{figure}[h!]
 \begin{itemize}
@@ -262,7 +261,7 @@ Figure \ref{fig:conjDisBasic} shows the rules for performing conjunction and
 disjunction of projections on basic values (either $BOT$ or $ID$) and for
 lifted values. Note that when we perform $\pmeet$ on two projections with
 different lifts we must ensure that the resulting projection is not more strict
-than the strictly lifted input, this ensure that we maintain our desired safety
+than the strictly lifted input, this ensures that we maintain our desired safety
 condition.
 
 \begin{figure}
@@ -298,7 +297,7 @@ ID             &\sqcup\  ID       &=&\quad ID \\
 Figure \ref{fig:conjDisSum} shows the same operations for projections on sum
 and product types. The only surprising aspect of the definitions is that we are
 forced to normalise the result of a conjunction on product types. This is
-because it possible for $\pmeet$ for form a projection denoting $BOT$ even when
+because it possible for $\pmeet$ to form a projection denoting $BOT$ even when
 both arguments are not $BOT$. For example, applying $\&$ to a projection that
 only accepts $True$ and a projection that only accepts $False$ results in the
 $BOT$ projection. This is because there is no possible Boolean value that the
@@ -354,7 +353,7 @@ HT xs &\equiv& \bot         &&\hscom{\<HT\> forces all elements and the spine}
 
 The reason for the differing results is that \<H\> is not strict in the recursive
 part of the list, but \<T\> is, and being head strict is \emph{not} the same
-as requiring all elements of a structure, as evindenced by the following small
+as requiring all elements of a structure, as evidenced by the following small
 program
 
 \begin{haskell*}
@@ -372,14 +371,14 @@ in \<HT\>.
 \hfill$\Box$
 
 
-The simplest way to maintain uniformity is to simply take the least upperbound
+The simplest way to maintain uniformity is to take the least upper bound
 ($\sqcup$) of the two projections.  However, this would be too conservative and
-we would lose out on some strictness information that is present. Luckily,
+we would lose out on some strictness information that is present. Fortunately,
 Hinze provides us with a method that allows us to use more accurate
 approximations when it is safe to do so, relying on \join only when necessary
 (the last guard in Figure \ref{fig:conjRec}). The idea is to use versions of
 $\sqcup$ and $\pmeet$ that ignore all demands except those on the recursive
-calls, these are written as $\sqcup'$ and $\pmeet'$. We then see where in the
+calls; these are written as $\sqcup'$ and $\pmeet'$. We then see where in the
 lattice the result (\<conj\>) resides, performing the corresponding
 approximation, defaulting to the always safe \<\hasmu\hasbeta.\hasalpha \sqcup
 \hasgamma\>. For details on how this method was derived and a proof of its
@@ -426,6 +425,7 @@ lazy lift of the bottom projection for the corresponding sum type:
 C_{i} \uparrow \haspi = [C_{1} BOT? | \dots | C_{i} \haspi | \dots | C_{n} BOT?]
 \end{haskell*}
 
+\pagebreak
 When analysing expressions wrapped in \<Freeze\> we have to be careful because
 any demands that originate from suspended values are not \emph{strict} demands.
 The \emph{guard} (\<\rhd\>) operator accomplishes this:

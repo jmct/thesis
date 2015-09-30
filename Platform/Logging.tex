@@ -42,13 +42,10 @@ long periods of time.
 
 \subsection{Adjusting the Cost of Parallelism}
 
-Because our simulator abstracts away from many of the bookkeeping details
-of the runtime system the creation and management of a thread is very close
-to free. In fact, the creation of a parallel task only costs the time
-of the \verb|par| function itself! Only a handful of instructions!
-
-This is clearly too optimistic. In order to better model the fact that
-creating and managing parallel tasks incurs \emph{real} cost, we must
-implement a method of simulating this overhead.
-
-\todoinline{Writer more here and show plots of different simulated overheads}
+Because our simulator abstracts away from many of the bookkeeping details of
+the runtime system the creation and management of a thread is very close to
+free. In fact, the creation of a parallel task only costs the time of the
+\verb|par| function itself. This only requires a handful of instructions.  This
+is clearly too optimistic. In order to better model the fact that creating and
+managing parallel tasks incurs \emph{real} cost, we must implement a method of
+simulating this overhead.

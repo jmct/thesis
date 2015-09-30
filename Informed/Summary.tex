@@ -1,7 +1,7 @@
 This chapter has provided a method to utilise runtime profile data in order to
 better search for an optimal \verb|par| setting of a given program. The use
 of profile information gives the hill-climbing algorithm an oracle that
-predicts which neighbor will be the most performant. The oracle is based
+predicts which neighbour will be the most performant. The oracle is based
 on the concept of \verb|par| site health, the mean of the work undertaken
 by all threads sparked by a \verb|par|. This proves to be a good metric
 for our runtime system but does not translate naively to GHC.
@@ -34,9 +34,9 @@ sub-linear, whereas even the greedy algorithm required exactly linear time.
 
 As the programs grow larger the combinatorial explosion for the hill-climbing
 will become more and more detrimental. For the hill-climbing algorithm to
-terminate all neighbors to the current candidate must be explored. This means
-that when a program has twenty \verb|par| sites, the \emph{last} iteration of
-the hill-climbing algorithm will require twenty evaluations of the program! The
-profile based technique's ability to guarantee that this program will require
-\emph{at most} twenty iterations is a huge advantage. This drastically reduces
-the cost of finding the worthwhile parallelism.
+terminate all neighbours of the current best candidate must be explored. This
+means that when a program has twenty \verb|par| sites, the \emph{last}
+iteration of the hill-climbing algorithm will require twenty evaluations of the
+program! The profile based technique's ability to guarantee that this program
+will require \emph{at most} twenty iterations is a huge advantage. This
+drastically reduces the cost of finding the worthwhile parallelism.

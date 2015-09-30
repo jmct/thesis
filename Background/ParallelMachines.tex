@@ -1,6 +1,6 @@
     Having looked at the $G$-Machine as a sequential abstract machine we can now
 look at how graph reduction can occur on parallel architectures. The simplest
-parallel variant would be a parallel $G$-Machine. It turns out that once
+parallel variant would be a parallel $G$-Machine. It turns out that once a
 sequential graph reduction has been accounted for there is not much to add in
 order to provide facilities for parallel evaluation. If one were to use a shared
 graph almost all communication could take place via that graph.
@@ -20,7 +20,7 @@ basis for the implementation described in chapter \ref{chap:platform}
 be used with any of the graph reduction machines, indeed GHC uses a similar
 model that is extended with thread-local heaps \citep{marlow2009runtime}. A
 worker thread allocates from its local heap, when a thread's heap has
-overflowed the GC stops \emph{all} running threads and moves local-heap data to
+overflowed the garbage collector stops \emph{all} running threads and moves local-heap data to
 the shared heap.
 
  \subsection{$\langle \nu , G\rangle $-Machine}
@@ -30,8 +30,8 @@ packet-based abstract machine \citep{vGMachine, Alice}.
 original paper) are similar to the closures we have seen for the STG-Machine
 (although the $\langle \nu , G\rangle $-Machine was described and implemented
 first \citep{vGMachine}). One difference is that on top of the code pointer and
-pointer to its arguments, there is a dynamic pointer that points to the caller of
-the expression the packet represents, and there is a block of free `working
+pointer to its arguments, each node contains a dynamic pointer that points to the caller of
+the expression the packet represents. Each node also contains a block of free `working
 space' on each packet (we will see why in a moment).
 The key difference is the way that the
 $\langle \nu , G\rangle $-Machine deals with its stack.
